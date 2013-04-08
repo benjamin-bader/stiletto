@@ -11,7 +11,12 @@ namespace Abra
 
         public NamedAttribute(string name)
         {
-            Name = Conditions.CheckNotNull(name, "name");
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException("name");
+            }
+
+            Name = name;
         }
     }
 }

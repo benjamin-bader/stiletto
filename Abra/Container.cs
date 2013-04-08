@@ -15,11 +15,6 @@ namespace Abra
         public abstract T Inject<T>(T instance);
         public abstract void Validate();
 
-        protected Container()
-        {
-            
-        }
-
         /// <summary>
         /// Creates a container with the given modules, of which at least one
         /// must be given.
@@ -78,7 +73,9 @@ namespace Abra
 
                 var resolver = new Resolver(
                     baseContainer != null ? baseContainer.resolver : null,
-                    plugin);
+                    plugin,
+                    HandleErrors);
+                resolver.InstallBindings(bindings);
 
                 return new AbraContainer(baseContainer, resolver, plugin, entryPoints);
             }
@@ -132,8 +129,8 @@ namespace Abra
                 Type moduleType = null;
                 for (var container = this; container != null; container = container.baseContainer)
                 {
-                    moduleType = container.entryPoints[entryPointKey];
-                    if (moduleType != null) break;
+                    if (container.entryPoints.TryGetValue(entryPointKey, out moduleType) && moduleType != null)
+                        break;
                 }
 
                 if (moduleType == null)
@@ -152,6 +149,15 @@ namespace Abra
 
                     return binding;
                 }
+            }
+
+            private static void HandleErrors(IEnumerable<string> errors)
+            {
+                var sb = new StringBuilder("The following errors were detected while constructing your object graph:")
+                        .AppendLine();
+                var message = errors.Aggregate(sb, (s, error) => s.AppendLine(error)).ToString();
+
+                throw new InvalidOperationException(message);
             }
 
             private static IDictionary<Type, RuntimeModule> GetAllRuntimeModules(

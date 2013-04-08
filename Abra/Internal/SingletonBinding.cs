@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Abra.Internal
 {
@@ -17,13 +14,25 @@ namespace Abra.Internal
             set { binding.IsResolved = value; }
         }
 
-        public SingletonBinding(Binding binding)
+        internal override bool IsCycleFree
+        {
+            get { return binding.IsCycleFree; }
+            set { binding.IsCycleFree = value; }
+        }
+
+        internal override bool IsVisiting
+        {
+            get { return binding.IsVisiting; }
+            set { binding.IsVisiting = value; }
+        }
+
+        internal SingletonBinding(Binding binding)
             : base(binding.ProviderKey, binding.MembersKey, true, binding.RequiredBy)
         {
             this.binding = binding;
         }
 
-        public object Get()
+        internal override object Get()
         {
             if (!initialized)
             {
@@ -37,9 +46,9 @@ namespace Abra.Internal
             return instance;
         }
 
-        public void GetDependencies(ISet<IBinding> bindings)
+        internal override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
         {
-            binding.GetDependencies(bindings);
+            binding.GetDependencies(injectDependencies, propertyDependencies);
         }
     }
 }

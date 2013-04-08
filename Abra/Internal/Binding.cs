@@ -40,7 +40,7 @@ namespace Abra.Internal
             }
         }
 
-        internal bool IsVisiting
+        internal virtual bool IsVisiting
         {
             get { return (state & BindingState.IsVisiting) == BindingState.IsVisiting; }
             set
@@ -51,7 +51,7 @@ namespace Abra.Internal
             }
         }
 
-        internal bool IsCycleFree
+        internal virtual bool IsCycleFree
         {
             get { return (state & BindingState.IsCycleFree) == BindingState.IsCycleFree; }
             set
@@ -85,22 +85,19 @@ namespace Abra.Internal
             this.requiredBy = requiredBy;
         }
 
-        public virtual object Get()
-        {
-            throw new InvalidOperationException("This method must be overridden.");
-        }
+        internal abstract object Get();
 
-        public virtual void InjectProperties(object target)
+        internal virtual void InjectProperties(object target)
         {
             // no-op
         }
 
-        public virtual void GetDependencies(ISet<Binding> getDependencies, ISet<Binding> propertyDependencies)
+        internal virtual void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
         {
             // no-op.
         }
 
-        public virtual void Resolve(Resolver resolver)
+        internal virtual void Resolve(Resolver resolver)
         {
             // no-op
         }
@@ -111,7 +108,7 @@ namespace Abra.Internal
                 : base(null, null, false, null)
             {}
 
-            public override object Get()
+            internal override object Get()
             {
                 throw new InvalidOperationException("Don't `Get` and unresolved binding");
             }

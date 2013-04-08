@@ -17,7 +17,7 @@ namespace Abra.Internal.Plugins.Reflection
         {
         }
 
-        public override void GetBindings(IDictionary<string, Binding> bindings)
+        internal override void GetBindings(IDictionary<string, Binding> bindings)
         {
             for (var t = ModuleType; t != typeof(object); t = t.BaseType)
             {
@@ -40,7 +40,7 @@ namespace Abra.Internal.Plugins.Reflection
             }
         }
 
-        protected override object CreateModule()
+        internal override object CreateModule()
         {
             if (ModuleType.BaseType != typeof(object))
             {
@@ -59,7 +59,7 @@ namespace Abra.Internal.Plugins.Reflection
 
         private void AddNewBinding(IDictionary<string, Binding> bindings, string key, MethodInfo method)
         {
-            bindings[key] = new ProviderMethodBinding(method, key, null);
+            bindings[key] = new ProviderMethodBinding(method, key, Module);
         }
 
         private class ProviderMethodBinding : Binding
@@ -75,7 +75,7 @@ namespace Abra.Internal.Plugins.Reflection
                 this.target = target;
             }
 
-            public override void Resolve(Resolver resolver)
+            internal override void Resolve(Resolver resolver)
             {
                 var parameters = method.GetParameters();
 
@@ -87,7 +87,7 @@ namespace Abra.Internal.Plugins.Reflection
                 }
             }
 
-            public override object Get()
+            internal override object Get()
             {
                 var args = new object[methodParameterBindings.Length];
                 for (var i = 0; i < methodParameterBindings.Length; ++i)
@@ -98,12 +98,12 @@ namespace Abra.Internal.Plugins.Reflection
                 return method.Invoke(target, args);
             }
 
-            public override void GetDependencies(ISet<Binding> getDependencies, ISet<Binding> propertyDependencies)
+            internal override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
             {
-                getDependencies.UnionWith(methodParameterBindings);
+                injectDependencies.UnionWith(methodParameterBindings);
             }
 
-            public override void InjectProperties(object instance)
+            internal override void InjectProperties(object instance)
             {
                 throw new NotSupportedException("Provider methods can't inject members.");
             }

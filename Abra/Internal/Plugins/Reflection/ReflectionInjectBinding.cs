@@ -32,7 +32,7 @@ namespace Abra.Internal.Plugins.Reflection
             this.propertyBindings = new Binding[properties.Length];
         }
 
-        public override void Resolve(Resolver resolver)
+        internal override void Resolve(Resolver resolver)
         {
             var k = 0;
             for (var i = 0; i < properties.Length; ++i)
@@ -63,7 +63,7 @@ namespace Abra.Internal.Plugins.Reflection
             }
         }
 
-        public override object Get()
+        internal override object Get()
         {
             if (ctor == null)
             {
@@ -81,7 +81,7 @@ namespace Abra.Internal.Plugins.Reflection
             return result;
         }
 
-        public override void InjectProperties(object target)
+        internal override void InjectProperties(object target)
         {
             for (var i = 0; i < properties.Length; ++i)
             {
@@ -94,9 +94,9 @@ namespace Abra.Internal.Plugins.Reflection
             }
         }
 
-        public override void GetDependencies(ISet<Binding> getDependencies, ISet<Binding> propertyDependencies)
+        internal override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
         {
-            getDependencies.UnionWith(paramterBindings);
+            injectDependencies.UnionWith(paramterBindings);
             propertyDependencies.UnionWith(propertyBindings);
 
             if (baseTypeBinding != null)

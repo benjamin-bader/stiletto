@@ -19,12 +19,12 @@ namespace Abra.Internal
         }
 
         [Conditional("ASSERTIONS")]
-        internal static T CheckNotNull<T>(T value, string name = null)
+        internal static void CheckNotNull<T>(T value, string name = null)
             where T : class
         {
             if (!ReferenceEquals(value, null))
             {
-                return value;
+                return;
             }
 
             throw new ArgumentNullException(name ?? "value");

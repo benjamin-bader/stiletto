@@ -7,36 +7,46 @@ namespace Abra.Internal
 {
     internal class Resolver
     {
+        internal delegate void ErrorHandler(IEnumerable<string> errors);
+
         private readonly Resolver baseResolver;
         private readonly IPlugin plugin;
+        private readonly ErrorHandler handler;
+
+        private readonly IList<string> errors = new List<string>();
         private readonly Queue<Binding> bindingsToResolve = new Queue<Binding>();
         private readonly IDictionary<string, Binding> bindings =
             new Dictionary<string, Binding>(StringComparer.Ordinal);
 
         private bool attachSuccess;
 
-        internal Resolver(Resolver baseResolver, IPlugin plugin)
+        internal Resolver(Resolver baseResolver, IPlugin plugin, ErrorHandler handler)
         {
             this.baseResolver = baseResolver;
             this.plugin = plugin;
+            this.handler = handler;
+        }
+
+        internal void InstallBindings(IDictionary<string, Binding> bindingsToInstall)
+        {
+            foreach (var kvp in bindingsToInstall)
+            {
+                bindings.Add(kvp.Key, Scope(kvp.Value));
+            }
         }
 
         internal IDictionary<string, Binding> ResolveAllBindings()
         {
-            var dict = new Dictionary<string, Binding>();
-            
-            foreach (var kvp in bindings)
+            foreach (var binding in bindings.Values)
             {
-                if (!kvp.Value.IsResolved)
+                if (!binding.IsResolved)
                 {
-                    bindingsToResolve.Enqueue(kvp.Value);
+                    bindingsToResolve.Enqueue(binding);
                 }
-
-                dict.Add(kvp.Key, kvp.Value);
             }
 
             ResolveEnqueuedBindings();
-            return dict;
+            return new Dictionary<string, Binding>(bindings, Key.Comparer);
         }
 
         internal Binding RequestBinding(string key, object requiredBy, bool mustBeInjectable = true)
@@ -72,7 +82,120 @@ namespace Abra.Internal
 
         internal void ResolveEnqueuedBindings()
         {
-            
+            while (bindingsToResolve.Count > 0)
+            {
+                var binding = bindingsToResolve.Dequeue();
+
+                if (binding is DeferredBinding)
+                {
+                    var deferredBinding = (DeferredBinding) binding;
+                    var key = deferredBinding.DeferredKey;
+                    var mustBeInjectable = deferredBinding.MustBeInjectable;
+
+                    if (bindings.ContainsKey(key))
+                    {
+                        // We've been satisfied.
+                        continue;
+                    }
+
+                    try
+                    {
+                        var jitBinding = CreateJitBinding(key, binding.RequiredBy, mustBeInjectable);
+                        if (!key.Equals(jitBinding.ProviderKey) && !key.Equals(jitBinding.MembersKey))
+                        {
+                            var ex = new InvalidOperationException();
+                            ex.Data.Add("ResolveError", "Can't create binding for " + key);
+                            throw ex;
+                        }
+
+                        var scopedJitBinding = Scope(jitBinding);
+                        bindingsToResolve.Enqueue(scopedJitBinding);
+                        AddBindingToDictionary(scopedJitBinding);
+                    }
+                    catch (Exception ex)
+                    {
+                        var hasResolveError = ex.Data.Contains("ResolveError");
+
+                        if (!hasResolveError)
+                            throw;
+
+                        errors.Add((string)ex.Data["ResolveError"]);
+                    }
+                }
+                else
+                {
+                    attachSuccess = true;
+                    binding.Resolve(this);
+                    if (attachSuccess)
+                    {
+                        binding.IsResolved = true;
+                    }
+                    else
+                    {
+                        bindingsToResolve.Enqueue(binding);
+                    }
+                }
+            }
+
+            try
+            {
+                if (errors.Count > 0)
+                {
+                    handler(errors);
+                }
+            }
+            finally
+            {
+                errors.Clear();
+            }
+        }
+
+        private void AddBindingToDictionary(Binding binding)
+        {
+            if (binding.ProviderKey != null)
+            {
+                AddBindingIfAbsent(binding, binding.ProviderKey);
+            }
+
+            if (binding.MembersKey != null)
+            {
+                AddBindingIfAbsent(binding, binding.MembersKey);
+            }
+        }
+
+        private void AddBindingIfAbsent(Binding binding, string key)
+        {
+            if (!bindings.ContainsKey(key))
+            {
+                bindings.Add(key, binding);
+            }
+        }
+
+        private Binding CreateJitBinding(string key, object requiredBy, bool mustBeInjectable)
+        {
+            var builtInKey = Key.GetBuiltInKey(key);
+            if (builtInKey != null)
+            {
+                throw new NotImplementedException();
+            }
+
+            var lazyKey = Key.GetLazyKey(key);
+            if (lazyKey != null)
+            {
+                return new LazyBinding(key, requiredBy, lazyKey);
+            }
+
+            var typeName = Key.GetTypeName(key);
+            if (typeName != null && !Key.IsNamed(key))
+            {
+                var binding = plugin.GetInjectBinding(key, typeName, mustBeInjectable);
+                if (binding != null)
+                {
+                    return binding;
+                }
+            }
+
+            throw new ArgumentException("No binding for " + key);
         }
 
         private static Binding Scope(Binding binding)
@@ -108,22 +231,22 @@ namespace Abra.Internal
                 this.mustBeInjectable = mustBeInjectable;
             }
 
-            public override object Get()
+            internal override object Get()
             {
                 throw NotSupported();
             }
 
-            public override void GetDependencies(ISet<Binding> getDependencies, ISet<Binding> propertyDependencies)
+            internal override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
             {
                 throw NotSupported();
             }
 
-            public override void InjectProperties(object target)
+            internal override void InjectProperties(object target)
             {
                 throw NotSupported();
             }
 
-            private Exception NotSupported()
+            private static Exception NotSupported()
             {
                 return new NotSupportedException("Deferred bindings must resolve first.");
             }

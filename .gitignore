@@ -3,3 +3,4 @@ packages/
 bin/
 obj/
 _ReSharper*/
+*.user
