@@ -4,7 +4,7 @@ using Abra.Internal;
 namespace Abra
 {
     [Qualifier]
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter)]
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property)]
     public class NamedAttribute : Attribute
     {
         public string Name { get; set; }

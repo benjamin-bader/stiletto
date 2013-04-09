@@ -32,6 +32,11 @@ namespace Abra.Internal
             this.binding = binding;
         }
 
+        internal override void Resolve(Resolver resolver)
+        {
+            binding.Resolve(resolver);
+        }
+
         internal override object Get()
         {
             if (!initialized)

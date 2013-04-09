@@ -62,7 +62,8 @@ namespace Abra.Internal
             var assemblyName = t.Assembly.FullName;
             return assemblyName.StartsWith("System", StringComparison.Ordinal)
                 || assemblyName.StartsWith("Microsoft", StringComparison.Ordinal)
-                || assemblyName.StartsWith("Mono", StringComparison.Ordinal);
+                || assemblyName.StartsWith("Mono", StringComparison.Ordinal)
+                || assemblyName.StartsWith("mscorlib", StringComparison.Ordinal);
         }
 
         internal static string GetQualifierName(this MemberInfo mi)

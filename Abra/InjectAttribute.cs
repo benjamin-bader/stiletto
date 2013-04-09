@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Abra
 {
-    [AttributeUsage(AttributeTargets.Constructor, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Property, Inherited = false)]
     public class InjectAttribute : Attribute
     {
     }

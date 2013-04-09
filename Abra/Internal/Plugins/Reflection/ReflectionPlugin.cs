@@ -9,7 +9,19 @@ namespace Abra.Internal.Plugins.Reflection
     {
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
-            var t = Type.GetType(className, true);
+            Type t;
+
+            // Fix case when types are part of mscorlib
+            if (className.StartsWith("/", StringComparison.Ordinal)) {
+                className = className.Substring(1);
+            }
+
+            try {
+                t = Type.GetType(className, true);
+            }
+            catch (TypeLoadException exception) {
+                throw new ArgumentException("Failed to load the type '" + className + "'.", exception);
+            }
 
             if (t.IsInterface)
             {

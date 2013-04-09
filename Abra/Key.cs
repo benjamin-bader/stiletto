@@ -25,9 +25,9 @@ namespace Abra
 
         public static string Get(Type t, string name)
         {
-            if (string.IsNullOrEmpty(name) && !t.IsArray)
+            if (string.IsNullOrEmpty(name) && !t.IsArray && !t.IsGenericType)
             {
-                return t.FullName;
+                return t.AssemblyQualifiedName;
             }
 
             var sb = new StringBuilder('@')
@@ -81,7 +81,7 @@ namespace Abra
 
             if (t.ContainsGenericParameters)
             {
-                throw new ArgumentException("Open generic types are not supported: " + t.FullName);
+                throw new ArgumentException("Open generic types are not supported: " + t.AssemblyQualifiedName);
             }
             
             if (t.IsArray)
@@ -111,13 +111,13 @@ namespace Abra
             }
             else
             {
-                sb.Append(t.FullName);
+                sb.Append(t.AssemblyQualifiedName);
             }
         }
 
         private static string GetRawGenericName(Type t)
         {
-            var name = t.FullName;
+            var name = t.AssemblyQualifiedName;
             var genericParametersStart = name.IndexOf('[');
             return name.Substring(0, genericParametersStart);
         }
