@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Abra.Internal.Plugins.Reflection
 {
@@ -10,11 +7,6 @@ namespace Abra.Internal.Plugins.Reflection
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
             Type t;
-
-            // Fix case when types are part of mscorlib
-            if (className.StartsWith("/", StringComparison.Ordinal)) {
-                className = className.Substring(1);
-            }
 
             try {
                 t = Type.GetType(className, true);

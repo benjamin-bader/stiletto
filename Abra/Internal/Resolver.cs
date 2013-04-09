@@ -16,7 +16,7 @@ namespace Abra.Internal
         private readonly IList<string> errors = new List<string>();
         private readonly Queue<Binding> bindingsToResolve = new Queue<Binding>();
         private readonly IDictionary<string, Binding> bindings =
-            new Dictionary<string, Binding>(StringComparer.Ordinal);
+            new Dictionary<string, Binding>(Key.Comparer);
 
         private bool attachSuccess;
 

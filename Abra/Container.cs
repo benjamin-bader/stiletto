@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Abra.Internal;
+using Abra.Internal.Plugins.Codegen;
 using Abra.Internal.Plugins.Reflection;
 
 namespace Abra
@@ -31,7 +32,7 @@ namespace Abra
         public static Container Create(params object[] modules)
         {
             var plugin = new RuntimeAggregationPlugin(
-                new ReflectionPlugin());
+                new CodegenPlugin(), new ReflectionPlugin());
             return AbraContainer.MakeContainer(null, plugin, modules);
         }
 
@@ -59,8 +60,8 @@ namespace Abra
                 IPlugin plugin,
                 params object[] modules)
             {
-                var entryPoints = new Dictionary<string, Type>(StringComparer.Ordinal);
-                var bindings = new Dictionary<string, Binding>();
+                var entryPoints = new Dictionary<string, Type>(Key.Comparer);
+                var bindings = new Dictionary<string, Binding>(Key.Comparer);
                 foreach (var runtimeModule in GetAllRuntimeModules(plugin, modules).Values)
                 {
                     foreach (var key in runtimeModule.EntryPoints)
@@ -104,7 +105,8 @@ namespace Abra
 
             public override void Validate()
             {
-                throw new NotImplementedException();
+                var allBindings = ResolveAllBindings();
+                new GraphVerifier().Verify(allBindings.Values);
             }
 
             private IDictionary<string, Binding> ResolveAllBindings()

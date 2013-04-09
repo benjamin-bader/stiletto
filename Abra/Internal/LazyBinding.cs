@@ -27,7 +27,7 @@ namespace Abra.Internal
 
         internal override object Get()
         {
-            return delayedGet.Value;
+            return delayedGet;
         }
     }
 }

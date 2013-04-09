@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Abra
@@ -10,14 +9,36 @@ namespace Abra
         private const string MemberKeyPrefix = "members/";
         private static readonly string LazyPrefix = GetRawGenericName(typeof (Lazy<object>)) + "<";
 
+        /// <summary>
+        /// An <see cref="IEqualityComparer&lt;String&gt;"/> instance suitable
+        /// for comparing keys.
+        /// </summary>
         public static readonly IEqualityComparer<string> Comparer = StringComparer.Ordinal; 
+
+        /// <summary>
+        /// A <see cref="StringComparison"/> suitable for comparing keys.
+        /// </summary>
         public static readonly StringComparison Comparison = StringComparison.Ordinal;
 
+        /// <summary>
+        /// Gets a key representation for the given type <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>
+        /// Returns a type key.
+        /// </returns>
         public static string Get<T>()
         {
             return Get(typeof (T), null);
         }
 
+        /// <summary>
+        /// Gets a key representation for the given type <paramref name="t"/>
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns>
+        /// Returns a type key.
+        /// </returns>
         public static string Get(Type t)
         {
             return Get(t, null);
@@ -30,9 +51,12 @@ namespace Abra
                 return t.AssemblyQualifiedName;
             }
 
-            var sb = new StringBuilder('@')
-                .Append(name)
-                .Append('/');
+            var sb = new StringBuilder();
+
+            if (name != null)
+            {
+                sb.Append("@").Append(name);
+            }
 
             ForType(t, sb);
 
@@ -55,7 +79,7 @@ namespace Abra
 
         public static bool IsPropertyInjection(string key)
         {
-            return key.StartsWith(MemberKeyPrefix, StringComparison.Ordinal);
+            return key.StartsWith(MemberKeyPrefix, Comparison);
         }
 
         public static bool IsNamed(string key)
@@ -65,11 +89,32 @@ namespace Abra
 
         public static string GetTypeName(string key)
         {
-            var start = key.LastIndexOf('/');
+            var start = StartOfType(key);
 
             return key.IndexOf('[') >= 0 || key.IndexOf('<') >= 0
                        ? null
                        : start < 0 ? key : key.Substring(start);
+        }
+
+        public static string GetBuiltInKey(string key)
+        {
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the key of the underlying binding of a <see cref="Lazy&lt;T&gt;"/>
+        /// binding, or <see langword="null"/> if the key is not a lazy binding.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static string GetLazyKey(string key)
+        {
+            var start = StartOfType(key);
+            if (!SubstringStartsWith(key, start, LazyPrefix))
+            {
+                return null;
+            }
+            return ExtractKey(key, start, key.Substring(0, start), LazyPrefix);
         }
 
         private static void ForType(Type t, StringBuilder sb = null)
@@ -133,22 +178,6 @@ namespace Abra
         {
             var startIndex = start + prefix.Length;
             return delegatePrefix + key.Substring(startIndex, key.Length - startIndex - 1);
-        }
-
-        public static string GetBuiltInKey(string key)
-        {
-            return null;
-        }
-
-        public static string GetLazyKey(string key)
-        {
-            var start = StartOfType(key);
-            if (!SubstringStartsWith(key, start, LazyPrefix))
-            {
-                return null;
-            }
-
-            return ExtractKey(key, start, key.Substring(0, start), LazyPrefix);
         }
 
         private static bool SubstringStartsWith(string str, int offset, string substring)
