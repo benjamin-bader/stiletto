@@ -6,6 +6,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abra.Test", "Abra.Test\Abra.Test.csproj", "{CEF2A81C-1960-47DA-A62A-E2CDA10CD6E7}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{232EAA84-F15B-42E6-939D-83A31E635673}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abra.Compiler", "Abra.Compiler\Abra.Compiler.csproj", "{BF23A35D-774C-4A85-BDA2-2459F3DABC5B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,6 +26,10 @@ Global
 		{232EAA84-F15B-42E6-939D-83A31E635673}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{232EAA84-F15B-42E6-939D-83A31E635673}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{232EAA84-F15B-42E6-939D-83A31E635673}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF23A35D-774C-4A85-BDA2-2459F3DABC5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF23A35D-774C-4A85-BDA2-2459F3DABC5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF23A35D-774C-4A85-BDA2-2459F3DABC5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF23A35D-774C-4A85-BDA2-2459F3DABC5B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
