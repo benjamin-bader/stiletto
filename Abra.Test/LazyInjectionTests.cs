@@ -20,23 +20,23 @@ namespace Abra.Test
         private class NonLazyModule
         {
             [Provides]
-            public object SomeExpensiveObject()
+            public string SomeExpensiveObject()
             {
-                return new object();
+                return "an expensive web service call";
             }
         }
 
         private class NeedsAnExpensiveObject
         {
-            private readonly Lazy<object> expensive;
+            private readonly Lazy<string> expensive;
 
-            public Lazy<object> Expensive
+            public Lazy<string> Expensive
             {
                 get { return expensive; }
             }
 
             [Inject]
-            public NeedsAnExpensiveObject(Lazy<object> expensive)
+            public NeedsAnExpensiveObject(Lazy<string> expensive)
             {
                 this.expensive = expensive;
             }

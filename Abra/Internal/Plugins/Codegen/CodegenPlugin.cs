@@ -13,6 +13,11 @@ namespace Abra.Internal.Plugins.Codegen
             throw new NotImplementedException();
         }
 
+        public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
+        {
+            throw new NotImplementedException();
+        }
+
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
         {
             // TODO: Implement

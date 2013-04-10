@@ -173,16 +173,16 @@ namespace Abra.Internal
 
         private Binding CreateJitBinding(string key, object requiredBy, bool mustBeInjectable)
         {
-            var builtInKey = Key.GetBuiltInKey(key);
-            if (builtInKey != null)
+            var providerKey = Key.GetProviderKey(key);
+            if (providerKey != null)
             {
-                throw new NotImplementedException();
+                return new ProviderBinding(key, requiredBy, mustBeInjectable, providerKey);
             }
 
             var lazyKey = Key.GetLazyKey(key);
             if (lazyKey != null)
             {
-                return new LazyBinding(key, requiredBy, lazyKey);
+                return plugin.GetLazyInjectBinding(key, requiredBy, lazyKey);
             }
 
             var typeName = Key.GetTypeName(key);

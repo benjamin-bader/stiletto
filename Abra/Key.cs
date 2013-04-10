@@ -8,6 +8,7 @@ namespace Abra
     {
         private const string MemberKeyPrefix = "members/";
         private static readonly string LazyPrefix = GetRawGenericName(typeof (Lazy<object>)) + "<";
+        private static readonly string ProviderPrefix = GetRawGenericName(typeof (IProvider<object>)) + "<";
 
         /// <summary>
         /// An <see cref="IEqualityComparer&lt;String&gt;"/> instance suitable
@@ -96,9 +97,13 @@ namespace Abra
                        : start < 0 ? key : key.Substring(start);
         }
 
-        public static string GetBuiltInKey(string key)
+        public static string GetProviderKey(string key)
         {
-            return null;
+            var start = StartOfType(key);
+            if (!SubstringStartsWith(key, start, ProviderPrefix)) {
+                return null;
+            }
+            return ExtractKey(key, start, key.Substring(0, start), ProviderPrefix);
         }
 
         /// <summary>

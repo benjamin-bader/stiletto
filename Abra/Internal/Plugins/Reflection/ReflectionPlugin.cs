@@ -6,21 +6,28 @@ namespace Abra.Internal.Plugins.Reflection
     {
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
-            Type t;
-
-            try {
-                t = Type.GetType(className, true);
-            }
-            catch (TypeLoadException exception) {
-                throw new ArgumentException("Failed to load the type '" + className + "'.", exception);
-            }
-
+            var t = TypeForClassname(className);
             if (t.IsInterface)
             {
                 return null;
             }
 
             return ReflectionInjectBinding.Create(t, mustBeInjectable);
+        }
+
+        public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
+        {
+            return new ReflectionLazyBinding(key, requiredBy, lazyKey);
+        }
+
+        private Type TypeForClassname(string className)
+        {
+            try {
+                return Type.GetType(className, true);
+            }
+            catch (TypeLoadException ex) {
+                throw new ArgumentException("Failed to load the type '" + className + "'.", ex);
+            }
         }
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
