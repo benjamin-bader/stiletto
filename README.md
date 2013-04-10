@@ -1,9 +1,10 @@
 abra-ioc
 ========
 
-A C# port of Square's Dagger IoC library: [https://square.github.io/dagger].
+A C# port of Square's Dagger IoC library: [http://square.github.io/dagger].
 
 This is a vanilla port, intended to be usable everywhere C# is usable, including MonoTouch where `System.Reflection.Emit` is unavailable.
+As of this writing, some features (namely Lazy and IProvider injections) will not work on MonoTouch; once compile-time codegen is complete, this restriction will be lifted.
 
 Users of Dagger, Guice, or any other javax.inject-compatible IoC container will feel only slightly uncomfortable at the syntax:
 
@@ -19,13 +20,13 @@ public class CoffeeMoule
   }
 
   [Provides]
-  public IPump(Thermosiphon pump)
+  public IPump MakePump(Thermosiphon pump)
   {
     return pump;
   }
 }
 
-public class CoffeeApp
+public class CoffeeMaker
 {
   [Inject] public IHeater Heater { get; set; }
   [Inject] public IPump Pump { get; set; }

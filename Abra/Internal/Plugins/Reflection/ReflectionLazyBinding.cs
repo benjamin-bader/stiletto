@@ -45,7 +45,7 @@ namespace Abra.Internal.Plugins.Reflection
                 // The moral of the story is that you should use the compiler, when it's done.
                 var hackType = HACK_TYPE.MakeGenericType(lazyType);
                 var hackProp = hackType.GetProperty("TypedFunc");
-                Func<object> factory = () => Convert.ChangeType(delegateBinding.Get(), lazyType);
+                Func<object> factory = () => delegateBinding.Get();
                 var hack = Activator.CreateInstance(hackType, new object[] {factory});
 
                 var concreteLazyType = LAZY_TYPE.MakeGenericType(lazyType);
