@@ -34,22 +34,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CoffeeApp.cs" />
-    <Compile Include="CoffeeMaker.cs" />
-    <Compile Include="DripCoffeeModule.cs" />
-    <Compile Include="ElectricHeater.cs" />
-    <Compile Include="PumpModule.cs" />
-    <Compile Include="IHeater.cs" />
-    <Compile Include="IPump.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Thermosiphon.cs" />
+    <Compile Include="**/*.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
