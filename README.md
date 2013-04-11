@@ -8,7 +8,7 @@ As of this writing, some features (namely Lazy and IProvider injections) will no
 
 Users of Dagger, Guice, or any other javax.inject-compatible IoC container will feel only slightly uncomfortable at the syntax:
 
-```
+```csharp
 [Module(
   EntryPoints = new[] { typeof(CoffeeApp) })]
 public class CoffeeMoule
