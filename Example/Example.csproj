@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Example</RootNamespace>
     <AssemblyName>Example</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -37,7 +37,14 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="**/*.cs" />
+    <Compile Include="CoffeeApp.cs" />
+    <Compile Include="CoffeeMaker.cs" />
+    <Compile Include="DripCoffeeModule.cs" />
+    <Compile Include="ElectricHeater.cs" />
+    <Compile Include="IHeater.cs" />
+    <Compile Include="IPump.cs" />
+    <Compile Include="PumpModule.cs" />
+    <Compile Include="Thermosiphon.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

@@ -4,8 +4,7 @@ namespace Abra.Internal.Plugins.Reflection
 {
     internal class ReflectionLazyBinding : Binding
     {
-        private static readonly Type LAZY_TYPE = typeof (Lazy<>);
-        private static readonly Type HACK_TYPE = typeof (HackAround<>);
+        private static readonly Type IMPL_TYPE = typeof (LazyImpl<>);
 
         private readonly string lazyKey;
         private readonly Type lazyType;
@@ -43,31 +42,29 @@ namespace Abra.Internal.Plugins.Reflection
                 // Func<object>.
                 //
                 // The moral of the story is that you should use the compiler, when it's done.
-                var hackType = HACK_TYPE.MakeGenericType(lazyType);
-                var hackProp = hackType.GetProperty("TypedFunc");
+                var implType = IMPL_TYPE.MakeGenericType(lazyType);
+                var implGet = implType.GetMethod("GetLazyInstance");
                 Func<object> factory = () => delegateBinding.Get();
-                var hack = Activator.CreateInstance(hackType, new object[] {factory});
+                var impl = Activator.CreateInstance(implType, new object[] {factory});
 
-                var concreteLazyType = LAZY_TYPE.MakeGenericType(lazyType);
-                delayedGet = Activator.CreateInstance(
-                    concreteLazyType, new[] { hackProp.GetValue(hack, null) });
+                delayedGet = implGet.Invoke(impl, Type.EmptyTypes);
             }
 
             return delayedGet;
         }
 
-        private class HackAround<T>
+        private class LazyImpl<T>
         {
-            private readonly Func<object> func;
+            private readonly Func<T> func;
 
-            public Func<T> TypedFunc
+            public Lazy<T> GetLazyInstance()
             {
-                get { return () => (T) func(); }
+                return new Lazy<T>(func);
             }
 
-            public HackAround(Func<object> func)
+            public LazyImpl(Func<object> func)
             {
-                this.func = func;
+                this.func = () => (T) func();
             }
         }
     }
