@@ -5,6 +5,7 @@ namespace Abra.Internal.Plugins.Reflection
     internal class ReflectionLazyBinding : Binding
     {
         private static readonly Type IMPL_TYPE = typeof (LazyImpl<>);
+        private static readonly object[] EMPTY_OBJECTS = new object[0];
 
         private readonly string lazyKey;
         private readonly Type lazyType;
@@ -47,7 +48,7 @@ namespace Abra.Internal.Plugins.Reflection
                 Func<object> factory = () => delegateBinding.Get();
                 var impl = Activator.CreateInstance(implType, new object[] {factory});
 
-                delayedGet = implGet.Invoke(impl, Type.EmptyTypes);
+                delayedGet = implGet.Invoke(impl, EMPTY_OBJECTS);
             }
 
             return delayedGet;
