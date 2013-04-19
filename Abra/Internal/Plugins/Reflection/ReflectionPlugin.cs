@@ -6,7 +6,7 @@ namespace Abra.Internal.Plugins.Reflection
     {
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
-            var t = TypeForClassname(className);
+            var t = ReflectionUtils.GetType(className);
             if (t.IsInterface)
             {
                 return null;
@@ -20,14 +20,9 @@ namespace Abra.Internal.Plugins.Reflection
             return new ReflectionLazyBinding(key, requiredBy, lazyKey);
         }
 
-        private Type TypeForClassname(string className)
+        public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
         {
-            try {
-                return Type.GetType(className, true);
-            }
-            catch (TypeLoadException ex) {
-                throw new ArgumentException("Failed to load the type '" + className + "'.", ex);
-            }
+            return new ReflectionProviderBinding(key, requiredBy, mustBeInjectable, providerKey);
         }
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)

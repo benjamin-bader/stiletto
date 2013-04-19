@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Abra.Internal
 {
@@ -34,6 +31,13 @@ namespace Abra.Internal
         {
             return GetSomethingFromPlugins(plugin =>
                 plugin.GetLazyInjectBinding(key, requiredBy, lazyKey));
+        }
+
+        public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable,
+                                                 string delegateKey)
+        {
+            return GetSomethingFromPlugins(plugin =>
+                plugin.GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, delegateKey));
         }
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)

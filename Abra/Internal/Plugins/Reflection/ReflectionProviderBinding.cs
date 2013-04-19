@@ -1,37 +1,37 @@
 ﻿using System;
 
-namespace Abra.Internal
+namespace Abra.Internal.Plugins.Reflection
 {
-    internal class ProviderBinding : Binding
+    internal class ReflectionProviderBinding : Binding
     {
         private readonly bool mustBeInjectable;
         private readonly string delegateKey;
         private Binding inner;
         private object impl;
 
-        internal ProviderBinding(string providerKey,  object requiredBy, bool mustBeInjectable, string delegateKey)
+        internal ReflectionProviderBinding(string providerKey, object requiredBy, bool mustBeInjectable, string delegateKey)
             : base(providerKey, null, false, requiredBy)
         {
             this.delegateKey = delegateKey;
             this.mustBeInjectable = mustBeInjectable;
         }
 
-        internal override void Resolve(Resolver resolver)
+        public override void Resolve(Resolver resolver)
         {
             inner = resolver.RequestBinding(delegateKey, RequiredBy, mustBeInjectable);
         }
 
-        internal override void GetDependencies(System.Collections.Generic.ISet<Binding> injectDependencies, System.Collections.Generic.ISet<Binding> propertyDependencies)
+        public override void GetDependencies(System.Collections.Generic.ISet<Binding> injectDependencies, System.Collections.Generic.ISet<Binding> propertyDependencies)
         {
             inner.GetDependencies(injectDependencies, propertyDependencies);
         }
 
-        internal override void InjectProperties(object target)
+        public override void InjectProperties(object target)
         {
             inner.InjectProperties(target);
         }
 
-        internal override object Get()
+        public override object Get()
         {
             return impl ?? (impl = ImplForType());
         }
@@ -39,7 +39,7 @@ namespace Abra.Internal
         private object ImplForType()
         {
             var providedTypeName = Key.GetTypeName(delegateKey);
-            var providedType = Type.GetType(providedTypeName);
+            var providedType = ReflectionUtils.GetType(providedTypeName);
             var providerType = typeof (ProviderImpl<>).MakeGenericType(providedType);
             Func<object> factory = () => inner.Get();
             return Activator.CreateInstance(providerType, new object[] { factory });

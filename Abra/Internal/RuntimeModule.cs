@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Abra.Internal
 {
-    internal abstract class RuntimeModule
+    public abstract class RuntimeModule
     {
         private readonly Type moduleType;
         private readonly string[] entryPoints;
@@ -17,22 +17,22 @@ namespace Abra.Internal
             get { return moduleType; }
         }
 
-        internal string[] EntryPoints
+        public string[] EntryPoints
         {
             get { return entryPoints; }
         }
 
-        internal Type[] Includes
+        public Type[] Includes
         {
             get { return includes; }
         }
 
-        internal bool IsComplete
+        public bool IsComplete
         {
             get { return complete; }
         }
 
-        internal object Module { get; set; }
+        public object Module { get; set; }
 
         protected RuntimeModule(Type moduleType, string[] entryPoints, Type[] includes, bool complete)
         {
@@ -46,11 +46,11 @@ namespace Abra.Internal
             this.complete = complete;
         }
 
-        internal virtual void GetBindings(IDictionary<string, Binding> bindings)
+        public virtual void GetBindings(IDictionary<string, Binding> bindings)
         {
             
         }
 
-        internal abstract object CreateModule();
+        public abstract object CreateModule();
     }
 }

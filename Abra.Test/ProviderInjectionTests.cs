@@ -36,7 +36,7 @@ namespace Abra.Test
         }
 
         [Module(EntryPoints = new[] { typeof(NeedsProvider) })]
-        private class TestModule
+        public class TestModule
         {
             public static int Invocations = 0;
 
@@ -48,7 +48,7 @@ namespace Abra.Test
             }
         }
 
-        private class NeedsProvider
+        public class NeedsProvider
         {
             [Inject]
             public IProvider<string> ObjectProvider { get; set; } 

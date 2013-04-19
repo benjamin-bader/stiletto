@@ -7,22 +7,31 @@ namespace Abra.Internal
 {
     internal class GraphVerifier
     {
-        internal void Verify(IEnumerable<Binding> bindings)
+        internal void VerifyModuleSpecs(IEnumerable<ModuleAttribute> modules)
         {
-            DetectCircularDependencies(bindings, new Stack<Binding>());
+            DetectCircularDependencies(
+                modules.Select(VisitableWrapper.Wrap),
+                w => GetIncludedModules(w.Data).Select(VisitableWrapper.Wrap),
+                new Stack<VisitableWrapper<ModuleAttribute>>());
         }
 
-        private void DetectCircularDependencies(IEnumerable<Binding> bindings, Stack<Binding> path)
+        internal void Verify(IEnumerable<Binding> bindings)
         {
-            foreach (var binding in bindings)
-            {
-                if (binding.IsCycleFree)
-                {
+            DetectCircularDependencies(bindings, GetDependencies, new Stack<Binding>());
+        }
+
+        private void DetectCircularDependencies<T>(
+            IEnumerable<T> items,
+            Func<T, IEnumerable<T>> getConnectedItems,
+            Stack<T> path)
+            where T : Visitable
+        {
+            foreach (var item in items) {
+                if (item.IsCycleFree) {
                     continue;
                 }
 
-                if (binding.IsVisiting)
-                {
+                if (item.IsVisiting) {
                     var sb = new StringBuilder("Cycle detected:").AppendLine();
                     var message = Enumerable.Range(1, path.Count)
                         .Zip(path.Reverse(), Tuple.Create)
@@ -30,28 +39,35 @@ namespace Abra.Internal
                             s.Append("\t")
                              .Append(tup.Item1)
                              .Append(". ")
-                             .Append(tup.Item2.ToString()))
+                             .AppendLine(tup.Item2.ToString()))
                         .ToString();
 
                     throw new InvalidOperationException(message);
                 }
 
-                binding.IsVisiting = true;
-                path.Push(binding);
+                item.IsVisiting = true;
+                path.Push(item);
 
-                try
-                {
-                    var dependencies = new HashSet<Binding>();
-                    binding.GetDependencies(dependencies, dependencies);
-                    DetectCircularDependencies(dependencies, path);
-                    binding.IsCycleFree = true;
+                try {
+                    DetectCircularDependencies(getConnectedItems(item), getConnectedItems, path);
+                    item.IsCycleFree = true;
                 }
-                finally
-                {
-                    path.Pop();
-                    binding.IsVisiting = false;
+                finally {
+                    item.IsVisiting = false;
                 }
             }
+        }
+
+        private static IEnumerable<ModuleAttribute> GetIncludedModules(ModuleAttribute attr)
+        {
+            return attr.IncludedModules.Select(t => t.GetSingleAttribute<ModuleAttribute>());
+        }
+
+        private static IEnumerable<Binding> GetDependencies(Binding binding)
+        {
+            var dependencies = new HashSet<Binding>();
+            binding.GetDependencies(dependencies, dependencies);
+            return dependencies;
         }
     }
 }

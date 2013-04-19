@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Abra.Internal
 {
-    internal class Resolver
+    public class Resolver
     {
-        internal delegate void ErrorHandler(IEnumerable<string> errors);
+        public delegate void ErrorHandler(IEnumerable<string> errors);
 
         private readonly Resolver baseResolver;
         private readonly IPlugin plugin;
@@ -20,14 +18,14 @@ namespace Abra.Internal
 
         private bool attachSuccess;
 
-        internal Resolver(Resolver baseResolver, IPlugin plugin, ErrorHandler handler)
+        public Resolver(Resolver baseResolver, IPlugin plugin, ErrorHandler handler)
         {
             this.baseResolver = baseResolver;
             this.plugin = plugin;
             this.handler = handler;
         }
 
-        internal void InstallBindings(IDictionary<string, Binding> bindingsToInstall)
+        public void InstallBindings(IDictionary<string, Binding> bindingsToInstall)
         {
             foreach (var kvp in bindingsToInstall)
             {
@@ -35,7 +33,7 @@ namespace Abra.Internal
             }
         }
 
-        internal IDictionary<string, Binding> ResolveAllBindings()
+        public IDictionary<string, Binding> ResolveAllBindings()
         {
             foreach (var binding in bindings.Values)
             {
@@ -49,7 +47,7 @@ namespace Abra.Internal
             return new Dictionary<string, Binding>(bindings, Key.Comparer);
         }
 
-        internal Binding RequestBinding(string key, object requiredBy, bool mustBeInjectable = true)
+        public Binding RequestBinding(string key, object requiredBy, bool mustBeInjectable = true)
         {
             Binding binding = null;
             for (var resolver = this; resolver != null; resolver = resolver.baseResolver)
@@ -80,7 +78,7 @@ namespace Abra.Internal
             return binding;
         }
 
-        internal void ResolveEnqueuedBindings()
+        public void ResolveEnqueuedBindings()
         {
             while (bindingsToResolve.Count > 0)
             {
@@ -174,9 +172,8 @@ namespace Abra.Internal
         private Binding CreateJitBinding(string key, object requiredBy, bool mustBeInjectable)
         {
             var providerKey = Key.GetProviderKey(key);
-            if (providerKey != null)
-            {
-                return new ProviderBinding(key, requiredBy, mustBeInjectable, providerKey);
+            if (providerKey != null) {
+                return plugin.GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, providerKey);
             }
 
             var lazyKey = Key.GetLazyKey(key);
@@ -209,39 +206,39 @@ namespace Abra.Internal
             return new SingletonBinding(binding);
         }
 
-        private class DeferredBinding : Binding
+        private sealed class DeferredBinding : Binding
         {
             private readonly string deferredKey;
             private readonly bool mustBeInjectable;
 
-            internal string DeferredKey
+            public string DeferredKey
             {
                 get { return deferredKey; }
             }
 
-            internal bool MustBeInjectable
+            public bool MustBeInjectable
             {
                 get { return mustBeInjectable; }
             }
 
-            internal DeferredBinding(string deferredKey, object requiredBy, bool mustBeInjectable)
+            public DeferredBinding(string deferredKey, object requiredBy, bool mustBeInjectable)
                 : base(null, null, false, requiredBy)
             {
                 this.deferredKey = deferredKey;
                 this.mustBeInjectable = mustBeInjectable;
             }
 
-            internal override object Get()
+            public override object Get()
             {
                 throw NotSupported();
             }
 
-            internal override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
+            public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
             {
                 throw NotSupported();
             }
 
-            internal override void InjectProperties(object target)
+            public override void InjectProperties(object target)
             {
                 throw NotSupported();
             }

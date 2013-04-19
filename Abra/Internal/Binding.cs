@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Abra.Internal
 {
-    internal abstract class Binding
+    public abstract class Binding : Visitable
     {
         public static readonly Binding Unresolved = new UnresolvedBinding();
 
@@ -12,8 +12,6 @@ namespace Abra.Internal
         {
             IsSingleton = 1,
             IsResolved = 2,
-            IsVisiting = 4,
-            IsCycleFree = 8
         }
 
         private readonly string providerKey;
@@ -22,12 +20,12 @@ namespace Abra.Internal
 
         private BindingState state;
 
-        internal bool IsSingleton
+        public bool IsSingleton
         {
             get { return (state & BindingState.IsSingleton) == BindingState.IsSingleton; }
         }
 
-        internal virtual bool IsResolved
+        public virtual bool IsResolved
         {
             get { return (state & BindingState.IsResolved) == BindingState.IsResolved; }
             set
@@ -38,39 +36,17 @@ namespace Abra.Internal
             }
         }
 
-        internal virtual bool IsVisiting
-        {
-            get { return (state & BindingState.IsVisiting) == BindingState.IsVisiting; }
-            set
-            {
-                state = value
-                    ? (state | BindingState.IsVisiting)
-                    : (state & ~BindingState.IsVisiting);
-            }
-        }
-
-        internal virtual bool IsCycleFree
-        {
-            get { return (state & BindingState.IsCycleFree) == BindingState.IsCycleFree; }
-            set
-            {
-                state = value
-                    ? (state | BindingState.IsCycleFree)
-                    : (state & ~BindingState.IsCycleFree);
-            }
-        }
-
-        internal string ProviderKey
+        public string ProviderKey
         {
             get { return providerKey; }
         }
 
-        internal string MembersKey
+        public string MembersKey
         {
             get { return membersKey; }
         }
 
-        internal object RequiredBy
+        public object RequiredBy
         {
             get { return requiredBy; }
         }
@@ -83,30 +59,30 @@ namespace Abra.Internal
             this.requiredBy = requiredBy;
         }
 
-        internal abstract object Get();
+        public abstract object Get();
 
-        internal virtual void InjectProperties(object target)
+        public virtual void InjectProperties(object target)
         {
             // no-op
         }
 
-        internal virtual void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
+        public virtual void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
         {
             // no-op.
         }
 
-        internal virtual void Resolve(Resolver resolver)
+        public virtual void Resolve(Resolver resolver)
         {
             // no-op
         }
 
         private class UnresolvedBinding : Binding
         {
-            internal UnresolvedBinding()
+            public UnresolvedBinding()
                 : base(null, null, false, null)
             {}
 
-            internal override object Get()
+            public override object Get()
             {
                 throw new InvalidOperationException("Don't `Get` and unresolved binding");
             }

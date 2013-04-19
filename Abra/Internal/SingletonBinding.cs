@@ -8,19 +8,19 @@ namespace Abra.Internal
         private object instance;
         private bool initialized;
 
-        internal override bool IsResolved
+        public override bool IsResolved
         {
             get { return binding.IsResolved; }
             set { binding.IsResolved = value; }
         }
 
-        internal override bool IsCycleFree
+        public override bool IsCycleFree
         {
             get { return binding.IsCycleFree; }
             set { binding.IsCycleFree = value; }
         }
 
-        internal override bool IsVisiting
+        public override bool IsVisiting
         {
             get { return binding.IsVisiting; }
             set { binding.IsVisiting = value; }
@@ -32,12 +32,12 @@ namespace Abra.Internal
             this.binding = binding;
         }
 
-        internal override void Resolve(Resolver resolver)
+        public override void Resolve(Resolver resolver)
         {
             binding.Resolve(resolver);
         }
 
-        internal override object Get()
+        public override object Get()
         {
             if (!initialized)
             {
@@ -51,7 +51,7 @@ namespace Abra.Internal
             return instance;
         }
 
-        internal override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
+        public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
         {
             binding.GetDependencies(injectDependencies, propertyDependencies);
         }

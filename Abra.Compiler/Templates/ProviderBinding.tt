@@ -1,0 +1,50 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ parameter name="cls" type="Abra.Compiler.Generators.ProviderBindingGenerator" #>
+<#@ assembly name="Abra" #>
+<#@ assembly name="System" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Abra.Compiler" #>
+<#@ output extension=".cs" #>
+
+namespace <#= cls.ProvidedTypeNamespace #>
+{
+    using Binding = global::Abra.Internal.Binding;
+    using Resolver = global::Abra.Internal.Resolver;
+
+    public class <#= cls.ProvidedTypeLiteralName #>_CompiledProviderBinding : Binding, global::Abra.IProvider<<#= cls.ProvidedTypeFullName #>>
+    {
+        private readonly string providerKey;
+        private readonly bool mustBeInjectable;
+        private Binding delegateBinding;
+
+        public <#= cls.ProvidedTypeLiteralName #>_CompiledProviderBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
+            : base(key, null, false, requiredBy)
+        {
+            this.providerKey = providerKey;
+            this.mustBeInjectable = mustBeInjectable;
+        }
+
+        public override void Resolve(Resolver resolver)
+        {
+            delegateBinding = resolver.RequestBinding(providerKey, RequiredBy, mustBeInjectable);
+        }
+
+        <#= cls.ProvidedTypeFullName #> global::Abra.IProvider<<#= cls.ProvidedTypeFullName #>>.Get()
+        {
+            return (<#= cls.ProvidedTypeFullName #>) delegateBinding.Get();
+        }
+
+        public override object Get()
+        {
+            return this;
+        }
+
+        public override void InjectProperties(object obj)
+        {
+            throw new NotSupportedException("Provider bindings do not support property injection.");
+        }
+    }
+}

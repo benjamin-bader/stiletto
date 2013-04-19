@@ -7,6 +7,30 @@ namespace Abra.Internal.Plugins.Reflection
         private static readonly Type IMPL_TYPE = typeof (LazyImpl<>);
         private static readonly object[] EMPTY_OBJECTS = new object[0];
 
+        static ReflectionLazyBinding()
+        {
+            // Try to compensate for the MonoTouch compiler, which can't
+            // correctly predict which generics need to be included in
+            // the final binary.  If we try to instantiate one that it didn't
+            // pick up, the app crashes.  Here we're specifying the common
+            // value types, string, and object, which should cover the 90% case.
+            //
+            // Is it too confusing to say "no value-type Lazy<T> on iOS", or should
+            // we just disallow lazy/provider reflection bindings entirely on iOS?
+
+            new LazyImpl<int>(() => 0).GetLazyInstance();
+            new LazyImpl<byte>(() => 0).GetLazyInstance();
+            new LazyImpl<sbyte>(() => 0).GetLazyInstance();
+            new LazyImpl<short>(() => 0).GetLazyInstance();
+            new LazyImpl<ushort>(() => 0).GetLazyInstance();
+            new LazyImpl<int>(() => 0).GetLazyInstance();
+            new LazyImpl<uint>(() => 0).GetLazyInstance();
+            new LazyImpl<long>(() => 0).GetLazyInstance();
+            new LazyImpl<ulong>(() => 0).GetLazyInstance();
+            new LazyImpl<string>(() => "").GetLazyInstance();
+            new LazyImpl<object>(() => null).GetLazyInstance();
+        }
+
         private readonly string lazyKey;
         private readonly Type lazyType;
         private Binding delegateBinding;
@@ -16,31 +40,29 @@ namespace Abra.Internal.Plugins.Reflection
             : base(key, null, false, requiredBy)
         {
             this.lazyKey = lazyKey;
-            this.lazyType = Type.GetType(Key.GetTypeName(lazyKey));
+            this.lazyType = ReflectionUtils.GetType(Key.GetTypeName(lazyKey));
         }
 
-        internal override void Resolve(Resolver resolver)
+        public override void Resolve(Resolver resolver)
         {
             delegateBinding = resolver.RequestBinding(lazyKey, RequiredBy);
         }
 
-        internal override void InjectProperties(object target)
+        public override void InjectProperties(object target)
         {
             throw new NotSupportedException("Lazy property injection is not supported.");
         }
 
-        internal override object Get()
+        public override object Get()
         {
             if (delayedGet == null) {
                 // So here's how it works.
                 // We're returning a Lazy<T>, but we don't know at compile-time what
-                // T is.  So at runtime, we have to use reflection magic to get the
-                // correct type.  We can't runtime-cast delegates using Convert.ChangeType,
-                // because they don't implement IConvertible.  We need to, though, because
-                // at best we can offer a Func<object> to the Lazy<T> constructor, which
-                // fails to resolve.  So we end-run around the type system by getting the
-                // right kind of Func from HACK_TYPE, which we *can* instantiate with a
-                // Func<object>.
+                // T is.  The Lazy<T> constructor requires a Func<T>, which we can't 
+                // provide here.  LazyImpl<T>, on the other hand, takes a Func<object>,
+                // which we *can* provide, and casts properly and can give us a Lazy<T>.
+                // So we use a bit of reflection magic to instantiate LazyImpl<T> at
+                // runtime, and get our Lazy<T> that way.
                 //
                 // The moral of the story is that you should use the compiler, when it's done.
                 var implType = IMPL_TYPE.MakeGenericType(lazyType);

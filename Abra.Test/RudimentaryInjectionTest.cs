@@ -61,8 +61,7 @@ namespace Abra.Test
         [Test]
         public void NonSingletonProviderMethodReturnsDifferentInstances()
         {
-            var container = Container.Create(typeof(TestSingletonProviderModule));
-            var entryPoint = container.Get<NonSingletonTestEntryPoint>();
+            var entryPoint = GetWithModules<NonSingletonTestEntryPoint>(typeof (TestSingletonProviderModule));
 
             Expect.The(entryPoint.One).Not.ToBeTheSameAs(entryPoint.Another);
         }
@@ -70,17 +69,29 @@ namespace Abra.Test
         [Test]
         public void ModulesCanBeInstances()
         {
-            var container = Container.Create(new TestNamedModule("going outside", "dancing"));
-            var guy = container.Get<Dude>();
+            var guy = GetWithModules<Dude>(new TestNamedModule("going outside", "dancing"));
             var listOfHobbies = guy.Hobbies;
 
             Expect.The(listOfHobbies).ToContain("dancing");
             Expect.The(listOfHobbies).Not.ToContain("dependency injection");
         }
 
+        [Test]
+        public void BaseClassGetsInjectedToo()
+        {
+            var derived = GetWithModules<DerivedInjectable>(new NameModule());
+            Expect.The(derived.TheDude).Not.ToBeNull();
+            Expect.The(derived.Name).ToEqual("Joe");
+        }
+
+        private T GetWithModules<T>(params object[] modules)
+        {
+            return Container.Create(modules).Get<T>();
+        }
+
         [Module(
             EntryPoints = new[] { typeof(object) })]
-        private class TestModule
+        public class TestModule
         {
             [Provides]
             public object ProvideFoo()
@@ -91,7 +102,7 @@ namespace Abra.Test
 
         [Module(
             EntryPoints = new[] { typeof(SingletonTestEntryPoint), typeof(NonSingletonTestEntryPoint)})]
-        private class TestSingletonProviderModule
+        public class TestSingletonProviderModule
         {
             [Provides, Named("n")]
             public object NewEveryTime()
@@ -106,13 +117,13 @@ namespace Abra.Test
             }
         }
 
-        private class SingletonTestEntryPoint
+        public class SingletonTestEntryPoint
         {
             [Inject, Named("s")] public object One { get; set; }
             [Inject, Named("s")] public object Another { get; set; }
         }
 
-        private class NonSingletonTestEntryPoint
+        public class NonSingletonTestEntryPoint
         {
             [Inject, Named("n")] public object One { get; set; }
             [Inject, Named("n")] public object Another { get; set; }
@@ -120,7 +131,7 @@ namespace Abra.Test
 
         [Module(
             EntryPoints = new[] { typeof(Dude) })]
-        private class TestNamedModule
+        public class TestNamedModule
         {
             private readonly IList<string> hobbies;
 
@@ -153,14 +164,24 @@ namespace Abra.Test
             }
         }
 
+        [Module]
+        public class ArrayModule
+        {
+            [Provides]
+            public object[,] ProvidesStringArray()
+            {
+                return new object[0,0];
+            }
+        }
+
         [Module(IncludedModules = new[] { typeof(TestNamedModule) })]
-        private class TestIncludedModules
+        public class TestIncludedModules
         {
             // This space intentionally left blank
         }
 
         [Singleton]
-        private class Dude
+        public class Dude
         {
             private readonly IList<string> hobbies;
 
@@ -177,6 +198,39 @@ namespace Abra.Test
             public Dude(IList<string> hobbies)
             {
                 this.hobbies = hobbies;
+            }
+        }
+
+        [Module(EntryPoints = new[] { typeof(DerivedInjectable) },
+            IncludedModules = new[] { typeof(TestNamedModule) })]
+        public class NameModule
+        {
+            [Provides]
+            public string GetName()
+            {
+                return "Joe";
+            }
+        }
+
+        public class BaseInjectable
+        {
+            [Inject]
+            public Dude TheDude { get; set; }
+        }
+
+        public class DerivedInjectable : BaseInjectable
+        {
+            private readonly string name;
+
+            public string Name
+            {
+                get { return name; }
+            }
+
+            [Inject]
+            public DerivedInjectable(string name)
+            {
+                this.name = name;
             }
         }
     }

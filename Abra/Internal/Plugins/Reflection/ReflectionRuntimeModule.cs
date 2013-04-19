@@ -17,7 +17,7 @@ namespace Abra.Internal.Plugins.Reflection
         {
         }
 
-        internal override void GetBindings(IDictionary<string, Binding> bindings)
+        public override void GetBindings(IDictionary<string, Binding> bindings)
         {
             for (var t = ModuleType; t != typeof(object); t = t.BaseType)
             {
@@ -40,7 +40,7 @@ namespace Abra.Internal.Plugins.Reflection
             }
         }
 
-        internal override object CreateModule()
+        public override object CreateModule()
         {
             if (ModuleType.BaseType != typeof(object))
             {
@@ -75,7 +75,7 @@ namespace Abra.Internal.Plugins.Reflection
                 this.target = target;
             }
 
-            internal override void Resolve(Resolver resolver)
+            public override void Resolve(Resolver resolver)
             {
                 var parameters = method.GetParameters();
 
@@ -87,7 +87,7 @@ namespace Abra.Internal.Plugins.Reflection
                 }
             }
 
-            internal override object Get()
+            public override object Get()
             {
                 var args = new object[methodParameterBindings.Length];
                 for (var i = 0; i < methodParameterBindings.Length; ++i)
@@ -98,12 +98,12 @@ namespace Abra.Internal.Plugins.Reflection
                 return method.Invoke(target, args);
             }
 
-            internal override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
+            public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
             {
                 injectDependencies.UnionWith(methodParameterBindings);
             }
 
-            internal override void InjectProperties(object instance)
+            public override void InjectProperties(object instance)
             {
                 throw new NotSupportedException("Provider methods can't inject members.");
             }

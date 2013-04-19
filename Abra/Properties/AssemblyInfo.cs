@@ -36,3 +36,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 [assembly: InternalsVisibleTo("Abra.Test")]
+[assembly: InternalsVisibleTo("Abra.Compiler")]
+[assembly: InternalsVisibleTo("Abra.Compiler.Test")]

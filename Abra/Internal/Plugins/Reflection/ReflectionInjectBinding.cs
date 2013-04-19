@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace Abra.Internal.Plugins.Reflection
 {
@@ -32,7 +30,7 @@ namespace Abra.Internal.Plugins.Reflection
             this.propertyBindings = new Binding[properties.Length];
         }
 
-        internal override void Resolve(Resolver resolver)
+        public override void Resolve(Resolver resolver)
         {
             var k = 0;
             for (var i = 0; i < properties.Length; ++i)
@@ -63,7 +61,7 @@ namespace Abra.Internal.Plugins.Reflection
             }
         }
 
-        internal override object Get()
+        public override object Get()
         {
             if (ctor == null)
             {
@@ -81,7 +79,7 @@ namespace Abra.Internal.Plugins.Reflection
             return result;
         }
 
-        internal override void InjectProperties(object target)
+        public override void InjectProperties(object target)
         {
             for (var i = 0; i < properties.Length; ++i)
             {
@@ -94,7 +92,7 @@ namespace Abra.Internal.Plugins.Reflection
             }
         }
 
-        internal override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
+        public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
         {
             injectDependencies.UnionWith(paramterBindings);
             propertyDependencies.UnionWith(propertyBindings);

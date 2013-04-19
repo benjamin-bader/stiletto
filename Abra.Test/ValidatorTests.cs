@@ -25,8 +25,8 @@ namespace Abra.Test
             Expect.The(container.Validate).Not.ToThrow<Exception>();
         }
 
-        [Module]
-        private class BadModuleOne
+        [Module(IsComplete = false)]
+        public class BadModuleOne
         {
             [Provides]
             public string Foo(int i)
@@ -35,8 +35,8 @@ namespace Abra.Test
             }
         }
 
-        [Module]
-        private class BadModuleTwo
+        [Module(IsComplete = false)]
+        public class BadModuleTwo
         {
             [Provides]
             public int Bar(string s)
@@ -45,8 +45,8 @@ namespace Abra.Test
             }
         }
 
-        [Module]
-        private class GoodModuleOne
+        [Module(IsComplete = false)]
+        public class GoodModuleOne
         {
             [Provides]
             public string Foo(int i)
@@ -56,7 +56,7 @@ namespace Abra.Test
         }
 
         [Module]
-        private class GoodModuleTwo
+        public class GoodModuleTwo
         {
             [Provides]
             public int Bar()

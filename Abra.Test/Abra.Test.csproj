@@ -33,8 +33,9 @@
     <Reference Include="Castle.Core">
       <HintPath>..\packages\Castle.Core.3.2.0\lib\net40-client\Castle.Core.dll</HintPath>
     </Reference>
-    <Reference Include="ExpectBetter">
-      <HintPath>..\packages\ExpectBetter.0.2.4838.38863\lib\net40\ExpectBetter.dll</HintPath>
+    <Reference Include="ExpectBetter, Version=0.2.4853.23279, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\ExpectBetter.0.2.4853.23279\lib\net40\ExpectBetter.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework, Version=2.6.2.12296, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -49,10 +50,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="KeyTests.cs" />
+    <Compile Include="KeyTestsBase.cs" />
     <Compile Include="LazyInjectionTests.cs" />
     <Compile Include="ProviderInjectionTests.cs" />
     <Compile Include="RudimentaryInjectionTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Tophat.Generated.cs" />
     <Compile Include="ValidatorTests.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -1,0 +1,42 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ parameter name="cls" type="Abra.Compiler.Generators.LazyBindingGenerator" #>
+<#@ assembly name="System" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="Abra.Compiler" #>
+<#@ output extension=".cs" #>
+
+namespace <#= cls.Namespace #>
+{
+    using Binding = global::Abra.Internal.Binding;
+    using Resolver = global::Abra.Internal.Resolver;
+
+    <#= cls.AccessModifier #> class <#= cls.ProvidedTypeLiteralName #>_CompiledLazyBinding : Binding
+    {
+        private readonly string lazyKey;
+        private Binding delegateBinding;
+
+        public <#= cls.ProvidedTypeLiteralName #>_CompiledLazyBinding(string key, object requiredBy, string lazyKey)
+            : base(key, null, false, requiredBy)
+        {
+            this.lazyKey = lazyKey;
+        }
+
+        public override void Resolve(Resolver resolver)
+        {
+            delegateBinding = resolver.RequestBinding(lazyKey, RequiredBy);
+        }
+
+        public override object Get()
+        {
+            return new global::System.Lazy<<#= cls.ProvidedTypeFullName #>>(() => (<#= cls.ProvidedTypeFullName #>) delegateBinding.Get());
+        }
+
+        public override void InjectProperties(object obj)
+        {
+            throw new NotSupportedException("Lazy bindings do not support property injection.");
+        }
+    }
+}

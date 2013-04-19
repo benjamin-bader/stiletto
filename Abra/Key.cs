@@ -47,16 +47,16 @@ namespace Abra
 
         public static string Get(Type t, string name)
         {
-            if (string.IsNullOrEmpty(name) && !t.IsArray && !t.IsGenericType)
+            if (string.IsNullOrEmpty(name) && !t.IsGenericType)
             {
-                return t.AssemblyQualifiedName;
+                return t.FullName;
             }
 
             var sb = new StringBuilder();
 
             if (name != null)
             {
-                sb.Append("@").Append(name);
+                sb.Append("@").Append(name).Append("/");
             }
 
             ForType(t, sb);
@@ -122,29 +122,18 @@ namespace Abra
             return ExtractKey(key, start, key.Substring(0, start), LazyPrefix);
         }
 
-        private static void ForType(Type t, StringBuilder sb = null)
+        private static void ForType(Type t, StringBuilder sb)
         {
-            if (sb == null)
-            {
-                sb = new StringBuilder();
-            }
-
             if (t.ContainsGenericParameters)
             {
                 throw new ArgumentException("Open generic types are not supported: " + t.AssemblyQualifiedName);
             }
-            
-            if (t.IsArray)
-            {
-                ForType(t.GetElementType(), sb);
-                sb.Append('[');
-                for (int i = 1, rank = t.GetArrayRank(); i < rank; ++i)
-                {
-                    sb.Append(',');
-                }
-                sb.Append(']');
+
+            if (t.IsByRef) {
+                throw new ArgumentException("Cannot inject ref or out constructor parameters.");
             }
-            else if (t.IsGenericType)
+
+            if (t.IsGenericType)
             {
                 sb.Append(GetRawGenericName(t));
                 var parameters = t.GetGenericArguments();
@@ -161,13 +150,13 @@ namespace Abra
             }
             else
             {
-                sb.Append(t.AssemblyQualifiedName);
+                sb.Append(t.FullName);
             }
         }
 
         private static string GetRawGenericName(Type t)
         {
-            var name = t.AssemblyQualifiedName;
+            var name = t.FullName;
             var genericParametersStart = name.IndexOf('[');
             return name.Substring(0, genericParametersStart);
         }

@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Abra.Compiler</RootNamespace>
     <AssemblyName>Abra.Compiler</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -32,6 +33,17 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.NRefactory">
+      <HintPath>..\packages\ICSharpCode.NRefactory.5.3.0\lib\Net40\ICSharpCode.NRefactory.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.CSharp">
+      <HintPath>..\packages\ICSharpCode.NRefactory.5.3.0\lib\Net40\ICSharpCode.NRefactory.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.NRefactory.Xml">
+      <HintPath>..\packages\ICSharpCode.NRefactory.5.3.0\lib\Net40\ICSharpCode.NRefactory.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Build" />
+    <Reference Include="Microsoft.Build.Framework" />
     <Reference Include="Mono.Cecil">
       <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
     </Reference>
@@ -47,12 +59,6 @@
     <Reference Include="NDesk.Options">
       <HintPath>..\packages\NDesk.Options.0.2.1\lib\NDesk.Options.dll</HintPath>
     </Reference>
-    <Reference Include="Roslyn.Compilers">
-      <HintPath>..\packages\Roslyn.Compilers.Common.1.2.20906.2\lib\net45\Roslyn.Compilers.dll</HintPath>
-    </Reference>
-    <Reference Include="Roslyn.Compilers.CSharp">
-      <HintPath>..\packages\Roslyn.Compilers.CSharp.1.2.20906.2\lib\net45\Roslyn.Compilers.CSharp.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -62,18 +68,69 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CompilerOptions.cs" />
-    <Compile Include="Env.cs" />
-    <Compile Include="InjectAdapterPass.cs" />
-    <Compile Include="IPass.cs" />
-    <Compile Include="ModuleAdapterPass.cs" />
+    <Compile Include="Attributes.cs" />
+    <Compile Include="Compiler.cs" />
+    <Compile Include="CompilerKeys.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="CSharpFile.cs" />
+    <Compile Include="CSharpProject.cs" />
+    <Compile Include="ErrorReporter.cs" />
+    <Compile Include="Generators\CtorParam.cs" />
+    <Compile Include="Generators\GeneratorBase.cs" />
+    <Compile Include="Generators\InjectBindingGenerator.cs" />
+    <Compile Include="Generators\InjectableProperty.cs" />
+    <Compile Include="Generators\LazyBindingGenerator.cs" />
+    <Compile Include="Generators\ProviderBindingGenerator.cs" />
+    <Compile Include="Generators\ProviderMethod.cs" />
+    <Compile Include="Generators\ProviderMethodParam.cs" />
+    <Compile Include="Generators\ModuleGenerator.cs" />
+    <Compile Include="Reflection\ReflectedModule.cs" />
+    <Compile Include="Settings.cs" />
+    <Compile Include="Templates\InjectBinding.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>InjectBinding.tt</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Solution.cs" />
+    <Compile Include="Templates\LazyBinding.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LazyBinding.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\ProviderBinding.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProviderBinding.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Templates\RuntimeModule.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>RuntimeModule.tt</DependentUpon>
+    </Compile>
+    <Compile Include="CodeHelpers.cs" />
     <Compile Include="ValidationPass.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Templates\InjectBinding.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>InjectBinding.cs</LastGenOutput>
+    </None>
     <None Include="packages.config" />
+    <None Include="Templates\LazyBinding.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>LazyBinding.cs</LastGenOutput>
+    </None>
+    <None Include="Templates\ProviderBinding.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>ProviderBinding.cs</LastGenOutput>
+    </None>
+    <None Include="Templates\RuntimeModule.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>RuntimeModule.cs</LastGenOutput>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Abra\Abra.csproj">
@@ -81,6 +138,10 @@
       <Name>Abra</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

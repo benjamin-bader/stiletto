@@ -17,7 +17,7 @@ namespace Abra.Test
         }
 
         [Module(EntryPoints = new[] { typeof(NeedsAnExpensiveObject) })]
-        private class NonLazyModule
+        public class NonLazyModule
         {
             [Provides]
             public string SomeExpensiveObject()
@@ -26,7 +26,7 @@ namespace Abra.Test
             }
         }
 
-        private class NeedsAnExpensiveObject
+        public class NeedsAnExpensiveObject
         {
             private readonly Lazy<string> expensive;
 
