@@ -1,0 +1,5 @@
+* MSBuild integration
+* Error reporting other than Console.Out and Console.Error, i.e. for MSBuild.Task impl.
+* Integration tests for the compiler
+
+* Compile-time plugin generation - reduce Activator.CreateInstance calls to 1

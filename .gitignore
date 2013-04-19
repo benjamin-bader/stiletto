@@ -5,3 +5,5 @@ obj/
 _ReSharper*/
 *.user
 TopHat.Generated.cs
+*.psses
+*.vspx
