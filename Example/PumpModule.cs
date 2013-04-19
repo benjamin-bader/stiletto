@@ -2,7 +2,7 @@
 
 namespace Example
 {
-    [Module]
+    [Module(IsComplete = false)]
     class PumpModule
     {
         [Provides]
