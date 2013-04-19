@@ -4,3 +4,4 @@ bin/
 obj/
 _ReSharper*/
 *.user
+TopHat.Generated.cs

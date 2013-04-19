@@ -40,7 +40,6 @@
     <Compile Include="Internal\Binding.cs" />
     <Compile Include="Internal\Conditions.cs" />
     <Compile Include="Internal\GraphVerifier.cs" />
-    <Compile Include="Internal\Hashes.cs" />
     <Compile Include="Internal\Plugins\Codegen\CodegenPlugin.cs" />
     <Compile Include="Internal\Plugins\Reflection\ReflectionProviderBinding.cs" />
     <Compile Include="Internal\Plugins\Reflection\ReflectionLazyBinding.cs" />
