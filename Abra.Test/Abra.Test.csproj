@@ -56,7 +56,6 @@
     <Compile Include="ProviderInjectionTests.cs" />
     <Compile Include="RudimentaryInjectionTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tophat.Generated.cs" />
     <Compile Include="ValidatorTests.cs" />
   </ItemGroup>
   <ItemGroup>
