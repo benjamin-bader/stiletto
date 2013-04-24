@@ -1,5 +1,3 @@
-* MSBuild integration
-* Error reporting other than Console.Out and Console.Error, i.e. for MSBuild.Task impl.
 * Integration tests for the compiler
-
-* Compile-time plugin generation - reduce Activator.CreateInstance calls to 1
+* Make MSBuild integration less manual, if possible.  Investigate whether NuGet can help, i.e. modify project file on package installation.
+* Stop stalling and test generics
