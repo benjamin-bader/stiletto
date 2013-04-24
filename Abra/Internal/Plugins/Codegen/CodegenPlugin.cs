@@ -32,7 +32,6 @@ namespace Abra.Internal.Plugins.Codegen
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
         {
-
             return GetObjectOfTypeName<RuntimeModule>(moduleType.FullName, ModuleSuffix);
         }
 

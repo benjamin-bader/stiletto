@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading;
 
 namespace Abra.Internal
 {
@@ -45,6 +44,27 @@ namespace Abra.Internal
 
         }
 
+        public static IPlugin FindCompiledPlugin()
+        {
+            IPlugin plugin;
+
+            lock (knownAssemblies) {
+                plugin = GetPluginFromKnownAssemblies();
+            }
+
+            if (plugin != null) {
+                return plugin;
+            }
+
+            lock (knownAssemblies) {
+                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies()) {
+                    knownAssemblies.Add(asm);
+                }
+
+                return GetPluginFromKnownAssemblies();
+            }
+        }
+
         private static Type GetTypeFromKnownAssemblies(string fullName)
         {
             Type t = null;
@@ -56,6 +76,30 @@ namespace Abra.Internal
                 }
             }
             return t;
+        }
+
+        private static IPlugin GetPluginFromKnownAssemblies()
+        {
+            foreach (var asm in knownAssemblies) {
+                if (asm.FullName.StartsWith("Abra")) {
+                    continue;
+                }
+
+                var types = asm.GetTypes();
+                for (var i = 0; i < types.Length; ++i) {
+                    var t = types[i];
+                    var iface = t.GetInterface("Abra.Internal.IPlugin", false);
+                    if (iface == null) {
+                        continue;
+                    }
+                    if (t.GetConstructor(Type.EmptyTypes) == null) {
+                        continue;
+                    }
+                    return (IPlugin) Activator.CreateInstance(t);
+                }
+            }
+
+            return null;
         }
 
         private class AssemblyComparer : IEqualityComparer<Assembly>
