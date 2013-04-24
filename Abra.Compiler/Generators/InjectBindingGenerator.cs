@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Abra.Compiler.Templates;
+using Abra.Internal.Plugins.Codegen;
 using ICSharpCode.NRefactory.TypeSystem;
 
 namespace Abra.Compiler.Generators
 {
-    internal class InjectBindingGenerator : GeneratorBase
+    public class InjectBindingGenerator : GeneratorBase
     {
+        public override string GeneratedClassName
+        {
+            get { return LiteralName + CodegenPlugin.InjectSuffix; }
+        }
+
         public bool IsEntryPoint { get; private set; }
         public bool IsSingleton { get; private set; }
         public string Key { get; private set; }
@@ -88,6 +94,8 @@ namespace Abra.Compiler.Generators
                 }
 
                 InjectableConstructor = defaultCtor;
+            } else if (Type.IsOpen()) {
+                errorReporter.Error("Constructor injection is not supported for open types: {0}", FullName);
             }
 
             CtorParameters = InjectableConstructor
@@ -127,14 +135,14 @@ namespace Abra.Compiler.Generators
                 var key = CompilerKeys.GetProviderKey(param.Key);
                 if (key != null) {
                     var innerType = ExtractSingleTypeArgument(param.Type);
-                    compiler.EnqueueProviderBinding(param.Type.GetDefinition(), innerType);
+                    compiler.EnqueueProviderBinding(param.Type.GetDefinition(), innerType, param.Key, key);
                     continue;
                 }
 
                 key = CompilerKeys.GetLazyKey(param.Key);
                 if (key != null) {
                     var innerType = ExtractSingleTypeArgument(param.Type);
-                    compiler.EnqueueLazyBinding(param.Type.GetDefinition(), innerType);
+                    compiler.EnqueueLazyBinding(param.Type.GetDefinition(), innerType, param.Key, key);
                     continue;
                 }
             }

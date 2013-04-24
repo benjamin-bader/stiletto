@@ -14,12 +14,15 @@ namespace Abra.Compiler
         public FileInfo OutputFile { get; private set; }
         public FileInfo ProjectFile { get; private set; }
         public bool ShouldValidate { get; private set; }
+        public string PluginName { get; private set; }
+        public ErrorReporter ErrorReporter { get; private set; }
 
         public Settings(IEnumerable<string> args)
         {
             options = new OptionSet {
                 {"p|project-file=", "The .csproj to process", path => ProjectFile = new FileInfo(path)},
                 {"o|outfile=", "The destination file, defaults to Tophat.Generated.cs.", o => OutputFile = new FileInfo(o)},
+                {"n|plugin-name=", "The fully-qualified name of the IPlugin to be generated", n => PluginName = n},
                 {"v|validate", "Perform validation of the dependency graph.", v => ShouldValidate = v != null}
             };
 
@@ -35,10 +38,26 @@ namespace Abra.Compiler
 
             if (OutputFile == null) {
                 var path = Path.GetDirectoryName(ProjectFile.FullName) ?? Environment.CurrentDirectory;
-                OutputFile = new FileInfo(Path.Combine(path, "Tophat.Generated.cs"));
+                OutputFile = new FileInfo(Path.Combine(path, "Abra.Generated.cs"));
             }
 
             options = null;
+            ErrorReporter = new ErrorReporter();
+        }
+
+        public Settings(string outputFile, string projectFile, string pluginName, bool shouldValidate, ErrorReporter reporter)
+        {
+            ProjectFile = new FileInfo(projectFile);
+            if (outputFile == null) {
+                var path = Path.GetDirectoryName(ProjectFile.DirectoryName) ?? Environment.CurrentDirectory;
+                OutputFile = new FileInfo(Path.Combine(path, "Tophat.Generated.cs"));
+            } else {
+                OutputFile = new FileInfo(outputFile);
+            }
+
+            ShouldValidate = shouldValidate;
+            PluginName = pluginName;
+            ErrorReporter = reporter;
         }
 
         private Exception Error(string message, params object[] args)

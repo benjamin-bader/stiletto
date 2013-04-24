@@ -7,6 +7,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Abra.Compiler" #>
+<#@ import namespace="Abra.Compiler.Generators" #>
 <#@ output extension=".cs" #>
 
 namespace <#= cls.ProvidedTypeNamespace #>
@@ -14,13 +15,13 @@ namespace <#= cls.ProvidedTypeNamespace #>
     using Binding = global::Abra.Internal.Binding;
     using Resolver = global::Abra.Internal.Resolver;
 
-    public class <#= cls.ProvidedTypeLiteralName #>_CompiledProviderBinding : Binding, global::Abra.IProvider<<#= cls.ProvidedTypeFullName #>>
+    public class <#= GeneratorBase.BindingName(cls.GeneratedClassName) #> : Binding, global::Abra.IProvider<<#= cls.ProvidedTypeFullName #>>
     {
         private readonly string providerKey;
         private readonly bool mustBeInjectable;
         private Binding delegateBinding;
 
-        public <#= cls.ProvidedTypeLiteralName #>_CompiledProviderBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
+        public <#= GeneratorBase.BindingName(cls.GeneratedClassName) #>(string key, object requiredBy, bool mustBeInjectable, string providerKey)
             : base(key, null, false, requiredBy)
         {
             this.providerKey = providerKey;

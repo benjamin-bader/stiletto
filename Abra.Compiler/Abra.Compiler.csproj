@@ -44,6 +44,7 @@
     </Reference>
     <Reference Include="Microsoft.Build" />
     <Reference Include="Microsoft.Build.Framework" />
+    <Reference Include="Microsoft.Build.Utilities.v4.0" />
     <Reference Include="Mono.Cecil">
       <HintPath>..\packages\Mono.Cecil.0.9.5.4\lib\net40\Mono.Cecil.dll</HintPath>
     </Reference>
@@ -80,12 +81,20 @@
     <Compile Include="Generators\InjectBindingGenerator.cs" />
     <Compile Include="Generators\InjectableProperty.cs" />
     <Compile Include="Generators\LazyBindingGenerator.cs" />
+    <Compile Include="Generators\PluginGenerator.cs" />
     <Compile Include="Generators\ProviderBindingGenerator.cs" />
     <Compile Include="Generators\ProviderMethod.cs" />
     <Compile Include="Generators\ProviderMethodParam.cs" />
     <Compile Include="Generators\ModuleGenerator.cs" />
+    <Compile Include="MSBuild\CompileTask.cs" />
+    <Compile Include="MSBuild\TaskErrorReporter.cs" />
     <Compile Include="Reflection\ReflectedModule.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="Templates\CompiledPlugin.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CompiledPlugin.tt</DependentUpon>
+    </Compile>
     <Compile Include="Templates\InjectBinding.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -110,10 +119,13 @@
       <DependentUpon>RuntimeModule.tt</DependentUpon>
     </Compile>
     <Compile Include="CodeHelpers.cs" />
-    <Compile Include="ValidationPass.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="Templates\CompiledPlugin.tt">
+      <Generator>TextTemplatingFilePreprocessor</Generator>
+      <LastGenOutput>CompiledPlugin.cs</LastGenOutput>
+    </None>
     <None Include="Templates\InjectBinding.tt">
       <Generator>TextTemplatingFilePreprocessor</Generator>
       <LastGenOutput>InjectBinding.cs</LastGenOutput>
@@ -141,7 +153,6 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

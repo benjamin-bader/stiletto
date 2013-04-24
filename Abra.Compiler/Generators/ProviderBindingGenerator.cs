@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Abra.Compiler.Templates;
+using Abra.Internal.Plugins.Codegen;
 using ICSharpCode.NRefactory.TypeSystem;
 
 namespace Abra.Compiler.Generators
@@ -8,6 +9,13 @@ namespace Abra.Compiler.Generators
     public class ProviderBindingGenerator : GeneratorBase
     {
         private readonly ITypeDefinition providedType;
+        private readonly string key;
+        private readonly string providesKey;
+
+        public override string GeneratedClassName
+        {
+            get { return ProvidedTypeLiteralName + CodegenPlugin.IProviderSuffix; }
+        }
 
         public string ProvidedTypeNamespace
         {
@@ -29,10 +37,22 @@ namespace Abra.Compiler.Generators
             get { return CodeHelpers.ToCodeLiteral(providedType); }
         }
 
-        public ProviderBindingGenerator(ITypeDefinition type, ITypeDefinition providedType)
+        public string Key
+        {
+            get { return key; }
+        }
+
+        public string ProvidesKey
+        {
+            get { return providesKey; }
+        }
+
+        public ProviderBindingGenerator(ITypeDefinition type, ITypeDefinition providedType, string key, string providesKey)
             : base(type)
         {
             this.providedType = providedType;
+            this.key = key;
+            this.providesKey = providesKey;
         }
 
         public override void Configure(ErrorReporter errorReporter)

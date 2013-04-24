@@ -10,11 +10,17 @@ namespace Abra.Compiler
 {
     public class Compiler
     {
-        private readonly IList<ITypeDefinition> allTypes; 
+        private readonly IList<ITypeDefinition> allTypes;
+        private readonly string pluginName;
         private readonly Queue<GeneratorBase> queue = new Queue<GeneratorBase>();
 
-        public Compiler(FileInfo projectFile)
+        private readonly IList<LazyBindingGenerator> lazyBindings = new List<LazyBindingGenerator>();
+        private readonly IList<ProviderBindingGenerator> providerBindings = new List<ProviderBindingGenerator>();
+
+        public Compiler(FileInfo projectFile, string pluginName)
         {
+            this.pluginName = pluginName;
+
             var sln = new Solution(projectFile.DirectoryName ?? Environment.CurrentDirectory);
             sln.AddProject(projectFile.FullName);
             sln.CreateCompilation();
@@ -82,16 +88,23 @@ namespace Abra.Compiler
 
                 gen.Generate(output, this);
             }
+
+            var plugin = new PluginGenerator(allTypes.First(), pluginName, moduleGenerators, injectables, lazyBindings, providerBindings);
+            plugin.Generate(output, this);
         }
 
-        public void EnqueueLazyBinding(ITypeDefinition type, ITypeDefinition providedType)
+        public void EnqueueLazyBinding(ITypeDefinition type, ITypeDefinition providedType, string key, string lazyKey)
         {
-            queue.Enqueue(new LazyBindingGenerator(type, providedType));
+            var lazyBindingGenerator = new LazyBindingGenerator(type, providedType, key, lazyKey);
+            lazyBindings.Add(lazyBindingGenerator);
+            queue.Enqueue(lazyBindingGenerator);
         }
 
-        public void EnqueueProviderBinding(ITypeDefinition type, ITypeDefinition providedType)
+        public void EnqueueProviderBinding(ITypeDefinition type, ITypeDefinition providedType, string key, string providerKey)
         {
-            queue.Enqueue(new ProviderBindingGenerator(type, providedType));
+            var providerBindingGenerator = new ProviderBindingGenerator(type, providedType, key, providerKey);
+            providerBindings.Add(providerBindingGenerator);
+            queue.Enqueue(providerBindingGenerator);
         }
 
         private static bool IsModule(ITypeDefinition type)

@@ -6,19 +6,20 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Abra.Compiler" #>
+<#@ import namespace="Abra.Compiler.Generators" #>
 <#@ output extension=".cs" #>
 
-namespace <#= cls.Namespace #>
+namespace <#= cls.ProvidedTypeNamespace #>
 {
     using Binding = global::Abra.Internal.Binding;
     using Resolver = global::Abra.Internal.Resolver;
 
-    <#= cls.AccessModifier #> class <#= cls.ProvidedTypeLiteralName #>_CompiledLazyBinding : Binding
+    <#= cls.AccessModifier #> class <#= GeneratorBase.BindingName(cls.GeneratedClassName) #> : Binding
     {
         private readonly string lazyKey;
         private Binding delegateBinding;
 
-        public <#= cls.ProvidedTypeLiteralName #>_CompiledLazyBinding(string key, object requiredBy, string lazyKey)
+        public <#= GeneratorBase.BindingName(cls.GeneratedClassName) #>(string key, object requiredBy, string lazyKey)
             : base(key, null, false, requiredBy)
         {
             this.lazyKey = lazyKey;

@@ -13,16 +13,15 @@ namespace Abra.Compiler.Templates
     using System.Text;
     using System.Collections.Generic;
     using Abra.Compiler;
-    using Abra.Compiler.Generators;
     using System;
     
     /// <summary>
     /// Class to produce the template output
     /// </summary>
     
-    #line 1 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
+    #line 1 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "11.0.0.0")]
-    public partial class RuntimeModule : RuntimeModuleBase
+    public partial class CompiledPlugin : CompiledPluginBase
     {
 #line hidden
         /// <summary>
@@ -32,352 +31,191 @@ namespace Abra.Compiler.Templates
         {
             this.Write("\r\nnamespace ");
             
-            #line 12 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(mod.Namespace));
+            #line 12 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(cls.RootNamespace));
             
             #line default
             #line hidden
             this.Write("\r\n{\r\n    using Binding = global::Abra.Internal.Binding;\r\n    using Resolver = glo" +
                     "bal::Abra.Internal.Resolver;\r\n    using RuntimeModule = global::Abra.Internal.Ru" +
-                    "ntimeModule;\r\n\r\n    public class ");
+                    "ntimeModule;\r\n    using IPlugin = global::Abra.Internal.IPlugin;\r\n\r\n    public c" +
+                    "lass ");
             
-            #line 18 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GeneratorBase.BindingName(mod.GeneratedClassName)));
-            
-            #line default
-            #line hidden
-            this.Write(" : RuntimeModule\r\n    {\r\n        public ");
-            
-            #line 20 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(GeneratorBase.BindingName(mod.GeneratedClassName)));
+            #line 19 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(cls.GeneratedClassName));
             
             #line default
             #line hidden
-            this.Write("()\r\n            : base(typeof(");
+            this.Write(@" : IPlugin
+    {
+        private delegate Binding LazyBindingCtor(string key, object requiredBy, string lazyKey);
+        private delegate Binding ProvidesBindingCtor(string key, object requiredBy, bool mustBeInjectable, string providesKey);
+
+        private readonly IDictionary<string, Func<RuntimeModule>> modules = new Dictionary<string, Func<RuntimeModule>>(StringComparer.Ordinal);
+        private readonly IDictionary<string, Func<Binding>> injectBindings = new Dictionary<string, Func<Binding>>(StringComparer.Ordinal);
+        private readonly IDictionary<string, LazyBindingCtor> lazyBindings = new Dictionary<string, LazyBindingCtor>(StringComparer.Ordinal);
+        private readonly IDictionary<string, ProvidesBindingCtor> providesBindings = new Dictionary<string, ProvidesBindingCtor>(StringComparer.Ordinal);
+
+        public ");
             
-            #line 21 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(mod.FullName));
-            
-            #line default
-            #line hidden
-            this.Write("),\r\n                   new string[] { ");
-            
-            #line 22 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(string.Join(", ", Quote(mod.EntryPointKeys))));
-            
-            #line default
-            #line hidden
-            this.Write(" },\r\n                   new Type[] { ");
-            
-            #line 23 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(string.Join(", ", mod.IncludedTypeofs)));
+            #line 29 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(cls.GeneratedClassName));
             
             #line default
             #line hidden
-            this.Write(" },\r\n                   ");
+            this.Write("()\r\n        {\r\n");
             
-            #line 24 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(mod.IsComplete ? "true" : "false"));
-            
-            #line default
-            #line hidden
-            this.Write(")\r\n        {}\r\n\r\n        public override object CreateModule()\r\n        {\r\n      " +
-                    "      return new ");
-            
-            #line 29 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(mod.LiteralName));
+            #line 31 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+ foreach (var module in cls.Modules) { 
             
             #line default
             #line hidden
-            this.Write("();\r\n        }\r\n\r\n        public override void GetBindings(IDictionary<string, Bi" +
-                    "nding> bindings)\r\n        {\r\n");
+            this.Write("            modules[\"");
             
-            #line 34 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- foreach (var prov in mod.ProviderMethods) { 
-            
-            #line default
-            #line hidden
-            this.Write("            bindings[\"");
-            
-            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.Key));
+            #line 32 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(module.Key));
             
             #line default
             #line hidden
-            this.Write("\"] = new ");
+            this.Write("\"] = () => new ");
             
-            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.BindingName));
-            
-            #line default
-            #line hidden
-            this.Write("((");
-            
-            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(mod.LiteralName));
-            
-            #line default
-            #line hidden
-            this.Write(") Module);\r\n");
-            
-            #line 36 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- } 
-            
-            #line default
-            #line hidden
-            this.Write("        }\r\n\r\n");
-            
-            #line 39 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- foreach (var prov in mod.ProviderMethods) { 
-            
-            #line default
-            #line hidden
-            this.Write("\r\n        private class ");
-            
-            #line 41 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.BindingName));
-            
-            #line default
-            #line hidden
-            this.Write(" : Binding\r\n        {\r\n            private readonly ");
-            
-            #line 43 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(mod.LiteralName));
-            
-            #line default
-            #line hidden
-            this.Write(" module;\r\n");
-            
-            #line 44 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- foreach (var param in prov.Params) { 
-            
-            #line default
-            #line hidden
-            this.Write("            private Binding ");
-            
-            #line 45 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(param.Name));
-            
-            #line default
-            #line hidden
-            this.Write(";\r\n");
-            
-            #line 46 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- } 
-            
-            #line default
-            #line hidden
-            this.Write("\r\n            public ");
-            
-            #line 48 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.BindingName));
-            
-            #line default
-            #line hidden
-            this.Write("(");
-            
-            #line 48 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(mod.LiteralName));
-            
-            #line default
-            #line hidden
-            this.Write(" module)\r\n                : base(\"");
-            
-            #line 49 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.Key));
-            
-            #line default
-            #line hidden
-            this.Write("\", null, ");
-            
-            #line 49 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.IsSingleton ? "true" : "false"));
-            
-            #line default
-            #line hidden
-            this.Write(", typeof(");
-            
-            #line 49 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(mod.FullName));
-            
-            #line default
-            #line hidden
-            this.Write("))\r\n            {\r\n                this.module = module;\r\n            }\r\n");
-            
-            #line 53 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- if (prov.HasParams) { 
-            
-            #line default
-            #line hidden
-            this.Write("\r\n            public override void Resolve(Resolver resolver)\r\n            {\r\n");
-            
-            #line 57 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- foreach (var param in prov.Params) { 
-            
-            #line default
-            #line hidden
-            this.Write("                ");
-            
-            #line 58 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(param.Name));
-            
-            #line default
-            #line hidden
-            this.Write(" = resolver.RequestBinding(\"");
-            
-            #line 58 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(param.Key));
-            
-            #line default
-            #line hidden
-            this.Write("\", typeof(");
-            
-            #line 58 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(mod.LiteralName));
-            
-            #line default
-            #line hidden
-            this.Write("));\r\n");
-            
-            #line 59 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- } 
-            
-            #line default
-            #line hidden
-            this.Write("            }\r\n\r\n            public override void GetDependencies(ISet<Binding> i" +
-                    "njectDependencies, ISet<Binding> propertyDependencies)\r\n            {\r\n");
-            
-            #line 64 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- foreach (var param in prov.Params) { 
-            
-            #line default
-            #line hidden
-            this.Write("                injectDependencies.Add(");
-            
-            #line 65 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(param.Name));
-            
-            #line default
-            #line hidden
-            this.Write(");\r\n");
-            
-            #line 66 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- } 
-            
-            #line default
-            #line hidden
-            this.Write("            }\r\n");
-            
-            #line 68 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- } 
-            
-            #line default
-            #line hidden
-            this.Write("\r\n            public override object Get()\r\n            {\r\n");
-            
-            #line 72 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- if (prov.HasParams) { 
-            
-            #line default
-            #line hidden
-            this.Write("                return module.");
-            
-            #line 73 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.Name));
-            
-            #line default
-            #line hidden
-            this.Write("(\r\n");
-            
-            #line 74 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- for (var i = 0; i < prov.Params.Count; ++i) { 
-            
-            #line default
-            #line hidden
-            this.Write("                    (");
-            
-            #line 75 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.Params[i].TypeName));
-            
-            #line default
-            #line hidden
-            this.Write(") ");
-            
-            #line 75 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.Params[i].Name));
-            
-            #line default
-            #line hidden
-            this.Write(".Get()");
-            
-            #line 75 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(i < prov.Params.Count - 1 ? "," : ");"));
-            
-            #line default
-            #line hidden
-            this.Write("\r\n");
-            
-            #line 76 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- } 
-            
-            #line default
-            #line hidden
-            
-            #line 77 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- } else { 
-            
-            #line default
-            #line hidden
-            this.Write("                return module.");
-            
-            #line 78 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(prov.Name));
+            #line 32 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(module.ClassName));
             
             #line default
             #line hidden
             this.Write("();\r\n");
             
-            #line 79 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
+            #line 33 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
  } 
             
             #line default
             #line hidden
-            this.Write("            }\r\n        }\r\n");
             
-            #line 82 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
- } // end of provider-binding classes 
+            #line 34 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+ foreach (var injectBinding in cls.InjectBindings) { 
             
             #line default
             #line hidden
-            this.Write("    }\r\n}");
+            this.Write("            injectBindings[\"");
+            
+            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(injectBinding.Key));
+            
+            #line default
+            #line hidden
+            this.Write("\"] = () => new ");
+            
+            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(injectBinding.ClassName));
+            
+            #line default
+            #line hidden
+            this.Write("();\r\n");
+            
+            #line 36 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+ } 
+            
+            #line default
+            #line hidden
+            this.Write("\r\n");
+            
+            #line 38 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+ foreach (var lazyBinding in cls.LazyBindings) { 
+            
+            #line default
+            #line hidden
+            this.Write("            lazyBindings[\"");
+            
+            #line 39 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(lazyBinding.Key));
+            
+            #line default
+            #line hidden
+            this.Write("\"] = (k, r, l) => new ");
+            
+            #line 39 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(lazyBinding.ClassName));
+            
+            #line default
+            #line hidden
+            this.Write("(k, r, l);\r\n");
+            
+            #line 40 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+ } 
+            
+            #line default
+            #line hidden
+            this.Write("\r\n");
+            
+            #line 42 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+ foreach (var providesBinding in cls.ProvidesBindings) { 
+            
+            #line default
+            #line hidden
+            this.Write("            providesBindings[\"");
+            
+            #line 43 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(providesBinding.Key));
+            
+            #line default
+            #line hidden
+            this.Write("\"] = (k, r, m, p) => new ");
+            
+            #line 43 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(providesBinding.ClassName));
+            
+            #line default
+            #line hidden
+            this.Write("(k, r, m, p);\r\n");
+            
+            #line 44 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
+ } 
+            
+            #line default
+            #line hidden
+            this.Write(@"        }
+
+        public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
+        {
+            var ctor = injectBindings[key];
+            return ctor();
+        }
+
+        public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
+        {
+            var ctor = lazyBindings[key];
+            return ctor(key, requiredBy, lazyKey);
+        }
+
+        public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
+        {
+            var ctor = providesBindings[providerKey];
+            return ctor(key, requiredBy, mustBeInjectable, providerKey);
+        }
+
+        public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
+        {
+            var ctor = modules[moduleType.FullName];
+            return ctor();
+        }
+    }
+}");
             return this.GenerationEnvironment.ToString();
         }
         
-        #line 84 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
+        #line 1 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\CompiledPlugin.tt"
 
-private IEnumerable<string> Quote(IEnumerable<string> strs)
-{
-    foreach (var str in strs) {
-        yield return "\"" + str + "\"";
-    }
-}
-
-        
-        #line default
-        #line hidden
-        
-        #line 1 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\RuntimeModule.tt"
-
-private global::Abra.Compiler.Generators.ModuleGenerator _modField;
+private global::Abra.Compiler.Generators.PluginGenerator _clsField;
 
 /// <summary>
-/// Access the mod parameter of the template.
+/// Access the cls parameter of the template.
 /// </summary>
-private global::Abra.Compiler.Generators.ModuleGenerator mod
+private global::Abra.Compiler.Generators.PluginGenerator cls
 {
     get
     {
-        return this._modField;
+        return this._clsField;
     }
 }
 
@@ -389,33 +227,33 @@ public virtual void Initialize()
 {
     if ((this.Errors.HasErrors == false))
     {
-bool modValueAcquired = false;
-if (this.Session.ContainsKey("mod"))
+bool clsValueAcquired = false;
+if (this.Session.ContainsKey("cls"))
 {
-    if ((typeof(global::Abra.Compiler.Generators.ModuleGenerator).IsAssignableFrom(this.Session["mod"].GetType()) == false))
+    if ((typeof(global::Abra.Compiler.Generators.PluginGenerator).IsAssignableFrom(this.Session["cls"].GetType()) == false))
     {
-        this.Error("The type \'Abra.Compiler.Generators.ModuleGenerator\' of the parameter \'mod\' did no" +
+        this.Error("The type \'Abra.Compiler.Generators.PluginGenerator\' of the parameter \'cls\' did no" +
                 "t match the type of the data passed to the template.");
     }
     else
     {
-        this._modField = ((global::Abra.Compiler.Generators.ModuleGenerator)(this.Session["mod"]));
-        modValueAcquired = true;
+        this._clsField = ((global::Abra.Compiler.Generators.PluginGenerator)(this.Session["cls"]));
+        clsValueAcquired = true;
     }
 }
-if ((modValueAcquired == false))
+if ((clsValueAcquired == false))
 {
-    object data = global::System.Runtime.Remoting.Messaging.CallContext.LogicalGetData("mod");
+    object data = global::System.Runtime.Remoting.Messaging.CallContext.LogicalGetData("cls");
     if ((data != null))
     {
-        if ((typeof(global::Abra.Compiler.Generators.ModuleGenerator).IsAssignableFrom(data.GetType()) == false))
+        if ((typeof(global::Abra.Compiler.Generators.PluginGenerator).IsAssignableFrom(data.GetType()) == false))
         {
-            this.Error("The type \'Abra.Compiler.Generators.ModuleGenerator\' of the parameter \'mod\' did no" +
+            this.Error("The type \'Abra.Compiler.Generators.PluginGenerator\' of the parameter \'cls\' did no" +
                     "t match the type of the data passed to the template.");
         }
         else
         {
-            this._modField = ((global::Abra.Compiler.Generators.ModuleGenerator)(data));
+            this._clsField = ((global::Abra.Compiler.Generators.PluginGenerator)(data));
         }
     }
 }
@@ -437,7 +275,7 @@ if ((modValueAcquired == false))
     /// Base class for this transformation
     /// </summary>
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TextTemplating", "11.0.0.0")]
-    public class RuntimeModuleBase
+    public class CompiledPluginBase
     {
         #region Fields
         private global::System.Text.StringBuilder generationEnvironmentField;

@@ -6,6 +6,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Abra.Compiler" #>
+<#@ import namespace="Abra.Compiler.Generators" #>
 <#@ output extension=".cs" #>
 
 namespace <#= mod.Namespace #>
@@ -14,9 +15,9 @@ namespace <#= mod.Namespace #>
     using Resolver = global::Abra.Internal.Resolver;
     using RuntimeModule = global::Abra.Internal.RuntimeModule;
 
-    public class <#= BindingName(mod.LiteralName) #>_CompiledModule : RuntimeModule
+    public class <#= GeneratorBase.BindingName(mod.GeneratedClassName) #> : RuntimeModule
     {
-        public <#= BindingName(mod.LiteralName) #>_CompiledModule()
+        public <#= GeneratorBase.BindingName(mod.GeneratedClassName) #>()
             : base(typeof(<#= mod.FullName #>),
                    new string[] { <#= string.Join(", ", Quote(mod.EntryPointKeys)) #> },
                    new Type[] { <#= string.Join(", ", mod.IncludedTypeofs) #> },
@@ -86,10 +87,5 @@ private IEnumerable<string> Quote(IEnumerable<string> strs)
     foreach (var str in strs) {
         yield return "\"" + str + "\"";
     }
-}
-
-private string BindingName(string name)
-{
-    return name.Replace(".", "_");
 }
 #>

@@ -6,9 +6,9 @@ namespace Abra.Compiler
     {
         private enum ErrorState
         {
-            Valid,
-            Warn,
-            Error
+            Valid = 0,
+            Warn  = 1,
+            Error = 2
         }
 
         private ErrorState state = ErrorState.Valid;
@@ -16,6 +16,11 @@ namespace Abra.Compiler
         public bool IsValid
         {
             get { return state != ErrorState.Error; }
+        }
+
+        public void Log(string message, params object[] args)
+        {
+            Report(ErrorState.Valid, OnLog, message, args);
         }
 
         public void Warn(string message, params object[] args)
@@ -28,7 +33,17 @@ namespace Abra.Compiler
             Report(ErrorState.Error, OnError, message, args);
         }
 
+        protected virtual void OnLog(string message)
+        {
+            Console.WriteLine(message);
+        }
+
         protected virtual void OnWarn(string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        protected virtual void OnError(string message)
         {
             Console.WriteLine(message);
         }
@@ -44,11 +59,6 @@ namespace Abra.Compiler
             }
 
             action(message);
-        }
-
-        protected virtual void OnError(string message)
-        {
-            Console.WriteLine(message);
         }
     }
 }

@@ -13,6 +13,7 @@ namespace Abra.Compiler.Templates
     using System.Text;
     using System.Collections.Generic;
     using Abra.Compiler;
+    using Abra.Compiler.Generators;
     using System;
     
     /// <summary>
@@ -31,7 +32,7 @@ namespace Abra.Compiler.Templates
         {
             this.Write("\r\nnamespace ");
             
-            #line 10 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 11 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.Namespace));
             
             #line default
@@ -40,74 +41,68 @@ namespace Abra.Compiler.Templates
                     "bal::Abra.Internal.Resolver;\r\n\r\n    /// <summary>\r\n    /// Represents a binding " +
                     "to an object of type <see cref=\"");
             
-            #line 16 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 17 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.FullName));
             
             #line default
             #line hidden
             this.Write("\"/>.\r\n    /// </summary>\r\n");
             
-            #line 18 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 19 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.IsEntryPoint) { 
             
             #line default
             #line hidden
             this.Write("    /// <remarks>\r\n    /// ");
             
-            #line 20 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 21 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.LiteralName));
             
             #line default
             #line hidden
             this.Write(" is an entry point binding.\r\n    /// </remarks>\r\n");
             
-            #line 22 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 23 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
             #line hidden
             this.Write("    ");
             
-            #line 23 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 24 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.AccessModifier));
             
             #line default
             #line hidden
             this.Write(" class ");
             
-            #line 23 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(BindingName(cls.LiteralName)));
+            #line 24 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GeneratorBase.BindingName(cls.GeneratedClassName)));
             
             #line default
             #line hidden
-            this.Write("_CompiledBinding : Binding\r\n    {\r\n");
+            this.Write(" : Binding\r\n    {\r\n");
             
-            #line 25 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 26 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.InjectableProperties.Count > 0) { 
             
             #line default
             #line hidden
             this.Write("        // Property bindings\r\n");
             
-            #line 27 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 28 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  foreach (var prop in cls.InjectableProperties) { 
             
             #line default
             #line hidden
             this.Write("        private Binding ");
             
-            #line 28 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 29 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(";\r\n");
-            
-            #line 29 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
- } 
-            
-            #line default
-            #line hidden
             
             #line 30 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
@@ -116,19 +111,25 @@ namespace Abra.Compiler.Templates
             #line hidden
             
             #line 31 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+ } 
+            
+            #line default
+            #line hidden
+            
+            #line 32 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.BaseTypeKey != null) { 
             
             #line default
             #line hidden
             this.Write("        private Binding baseTypeBinding;\r\n");
             
-            #line 33 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 34 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
             #line hidden
             
-            #line 34 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.CtorParameters.Count != 0) { 
             
             #line default
@@ -136,49 +137,49 @@ namespace Abra.Compiler.Templates
             this.Write("        // Constructor bindings\r\n        private Binding[] ctorParameterBindings " +
                     "= new Binding[");
             
-            #line 36 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 37 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.CtorParameters.Count));
             
             #line default
             #line hidden
             this.Write("];\r\n");
             
-            #line 37 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 38 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
             #line hidden
             this.Write("\r\n        public ");
             
-            #line 39 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(BindingName(cls.LiteralName)));
+            #line 40 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GeneratorBase.BindingName(cls.GeneratedClassName)));
             
             #line default
             #line hidden
-            this.Write("_CompiledBinding()\r\n            : base(\"");
+            this.Write("()\r\n            : base(\"");
             
-            #line 40 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 41 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.Key));
             
             #line default
             #line hidden
             this.Write("\", \"");
             
-            #line 40 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 41 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.MemberKey));
             
             #line default
             #line hidden
             this.Write("\", ");
             
-            #line 40 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 41 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.IsSingleton ? "true" : "false"));
             
             #line default
             #line hidden
             this.Write(", \"");
             
-            #line 40 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 41 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.Type.ReflectionName));
             
             #line default
@@ -186,89 +187,89 @@ namespace Abra.Compiler.Templates
             this.Write("\")\r\n        {\r\n        }\r\n\r\n        public override void Resolve(Resolver resolve" +
                     "r)\r\n        {\r\n");
             
-            #line 46 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 47 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  foreach (var prop in cls.InjectableProperties) { 
             
             #line default
             #line hidden
             this.Write("            ");
             
-            #line 47 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 48 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(" = resolver.RequestBinding(\"");
             
-            #line 47 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 48 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Key));
             
             #line default
             #line hidden
             this.Write("\", \"");
             
-            #line 47 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 48 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write("\");\r\n");
             
-            #line 48 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 49 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
             #line hidden
             
-            #line 49 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 50 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  for (var i = 0; i < cls.CtorParameters.Count; ++i) { 
             
             #line default
             #line hidden
             this.Write("            ctorParameterBindings[");
             
-            #line 50 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 51 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(i));
             
             #line default
             #line hidden
             this.Write("] = resolver.RequestBinding(\"");
             
-            #line 50 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 51 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.CtorParameters[i].Key));
             
             #line default
             #line hidden
             this.Write("\", \"");
             
-            #line 50 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 51 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.InjectableConstructor.FullName));
             
             #line default
             #line hidden
             this.Write("\");\r\n");
             
-            #line 51 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 52 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
             #line hidden
             
-            #line 52 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 53 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.BaseTypeKey != null) { 
             
             #line default
             #line hidden
             this.Write("            baseTypeBinding = resolver.RequestBinding(\"");
             
-            #line 53 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 54 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.BaseTypeKey));
             
             #line default
             #line hidden
             this.Write("\", this, false);\r\n");
             
-            #line 54 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 55 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
@@ -276,116 +277,116 @@ namespace Abra.Compiler.Templates
             this.Write("        }\r\n\r\n        public override void GetDependencies(ISet<Binding> injectDep" +
                     "endencies, ISet<Binding> propDependencies)\r\n        {\r\n");
             
-            #line 59 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 60 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.CtorParameters.Count != 0) { 
             
             #line default
             #line hidden
             this.Write("            injectDependencies.UnionWith(ctorParameterBindings);\r\n");
             
-            #line 61 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 62 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
             #line hidden
             
-            #line 62 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 63 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  foreach (var prop in cls.InjectableProperties) { 
             
             #line default
             #line hidden
             this.Write("            propDependencies.Add(");
             
-            #line 63 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 64 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(");\r\n");
             
-            #line 64 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 65 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
             #line hidden
             
-            #line 65 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 66 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.BaseTypeKey != null) { 
             
             #line default
             #line hidden
             this.Write("            propDependencies.Add(baseTypeBinding);\r\n");
             
-            #line 67 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 68 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
             #line hidden
             this.Write("        }\r\n\r\n        public override object Get()\r\n        {\r\n");
             
-            #line 72 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 73 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.CtorParameters.Count == 0) { 
             
             #line default
             #line hidden
             this.Write("            var obj = new ");
             
-            #line 73 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 74 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.FullName));
             
             #line default
             #line hidden
             this.Write("();\r\n");
             
-            #line 74 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 75 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } else { 
             
             #line default
             #line hidden
             this.Write("            var obj = new ");
             
-            #line 75 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 76 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.FullName));
             
             #line default
             #line hidden
             this.Write("(\r\n");
             
-            #line 76 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 77 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  for (var i = 0; i < cls.CtorParameters.Count; ++i) { 
             
             #line default
             #line hidden
             this.Write("                (");
             
-            #line 77 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 78 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.CtorParameters[i].TypeName));
             
             #line default
             #line hidden
             this.Write(") ctorParameterBindings[");
             
-            #line 77 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 78 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(i));
             
             #line default
             #line hidden
             this.Write("].Get() ");
             
-            #line 77 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 78 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(i == cls.CtorParameters.Count - 1 ? ");" : ","));
             
             #line default
             #line hidden
             this.Write("\r\n");
             
-            #line 78 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 79 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } //foreach 
             
             #line default
             #line hidden
             
-            #line 79 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 80 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } //if 
             
             #line default
@@ -393,86 +394,75 @@ namespace Abra.Compiler.Templates
             this.Write("            InjectProperties(obj);\r\n            return obj;\r\n        }\r\n\r\n       " +
                     " public override void InjectProperties(object obj)\r\n        {\r\n");
             
-            #line 86 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 87 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.InjectableProperties.Count > 0) { 
             
             #line default
             #line hidden
             this.Write("            var toInject = (");
             
-            #line 87 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 88 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.FullName));
             
             #line default
             #line hidden
             this.Write(") obj;\r\n");
             
-            #line 88 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 89 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  foreach (var prop in cls.InjectableProperties) { 
             
             #line default
             #line hidden
             this.Write("            toInject.");
             
-            #line 89 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 90 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(" = (");
             
-            #line 89 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 90 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.TypeName));
             
             #line default
             #line hidden
             this.Write(") ");
             
-            #line 89 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 90 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(prop.Name));
             
             #line default
             #line hidden
             this.Write(".Get();\r\n");
             
-            #line 90 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 91 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } //foreach 
             
             #line default
             #line hidden
             
-            #line 91 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 92 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } //if 
             
             #line default
             #line hidden
             
-            #line 92 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 93 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  if (cls.BaseTypeKey != null) { 
             
             #line default
             #line hidden
             this.Write("            baseTypeBinding.InjectProperties(obj);\r\n");
             
-            #line 94 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
+            #line 95 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
  } 
             
             #line default
             #line hidden
-            this.Write("        }\r\n    }\r\n}\r\n");
+            this.Write("        }\r\n    }\r\n}");
             return this.GenerationEnvironment.ToString();
         }
-        
-        #line 98 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
-
-protected string BindingName(string id)
-{
-    return id.Replace(".", "_");
-}
-
-        
-        #line default
-        #line hidden
         
         #line 1 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\InjectBinding.tt"
 

@@ -5,6 +5,7 @@
 <#@ import namespace="System.Text" #>
 <#@ import namespace="System.Collections.Generic" #>
 <#@ import namespace="Abra.Compiler" #>
+<#@ import namespace="Abra.Compiler.Generators" #>
 <#@ output extension=".cs" #>
 
 namespace <#= cls.Namespace #>
@@ -20,7 +21,7 @@ namespace <#= cls.Namespace #>
     /// <#= cls.LiteralName #> is an entry point binding.
     /// </remarks>
 <# } #>
-    <#= cls.AccessModifier #> class <#= BindingName(cls.LiteralName) #>_CompiledBinding : Binding
+    <#= cls.AccessModifier #> class <#= GeneratorBase.BindingName(cls.GeneratedClassName) #> : Binding
     {
 <# if (cls.InjectableProperties.Count > 0) { #>
         // Property bindings
@@ -36,7 +37,7 @@ namespace <#= cls.Namespace #>
         private Binding[] ctorParameterBindings = new Binding[<#= cls.CtorParameters.Count #>];
 <# } #>
 
-        public <#= BindingName(cls.LiteralName) #>_CompiledBinding()
+        public <#= GeneratorBase.BindingName(cls.GeneratedClassName) #>()
             : base("<#= cls.Key #>", "<#= cls.MemberKey #>", <#= cls.IsSingleton ? "true" : "false" #>, "<#= cls.Type.ReflectionName #>")
         {
         }
@@ -95,9 +96,3 @@ namespace <#= cls.Namespace #>
         }
     }
 }
-<#+
-protected string BindingName(string id)
-{
-    return id.Replace(".", "_");
-}
-#>

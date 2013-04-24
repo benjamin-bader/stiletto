@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Abra.Compiler.Reflection;
 using Abra.Compiler.Templates;
+using Abra.Internal.Plugins.Codegen;
 using ICSharpCode.NRefactory.TypeSystem;
 
 namespace Abra.Compiler.Generators
@@ -11,6 +12,11 @@ namespace Abra.Compiler.Generators
     public class ModuleGenerator : GeneratorBase
     {
         private readonly ReflectedModule reflectedModule;
+
+        public override string GeneratedClassName
+        {
+            get { return LiteralName + CodegenPlugin.ModuleSuffix; }
+        }
 
         public IList<string> IncludedTypeofs { get; private set; }
         public IList<string> EntryPointKeys { get; private set; }

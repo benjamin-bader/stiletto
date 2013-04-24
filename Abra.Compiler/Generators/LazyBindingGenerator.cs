@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using Abra.Compiler.Templates;
+using Abra.Internal.Plugins.Codegen;
 using ICSharpCode.NRefactory.TypeSystem;
 
 namespace Abra.Compiler.Generators
@@ -8,6 +9,13 @@ namespace Abra.Compiler.Generators
     public class LazyBindingGenerator : GeneratorBase
     {
         private readonly ITypeDefinition providedType;
+        private readonly string key;
+        private readonly string lazyKey;
+
+        public override string GeneratedClassName
+        {
+            get { return ProvidedTypeLiteralName + CodegenPlugin.LazySuffix; }
+        }
 
         public string ProvidedTypeNamespace
         {
@@ -29,10 +37,22 @@ namespace Abra.Compiler.Generators
             get { return CodeHelpers.ToCodeLiteral(providedType); }
         }
 
-        public LazyBindingGenerator(ITypeDefinition type, ITypeDefinition providedType)
+        public string Key
+        {
+            get { return key; }
+        }
+
+        public string LazyKey
+        {
+            get { return lazyKey; }
+        }
+
+        public LazyBindingGenerator(ITypeDefinition type, ITypeDefinition providedType, string key, string lazyKey)
             : base(type)
         {
             this.providedType = providedType;
+            this.key = key;
+            this.lazyKey = lazyKey;
         }
 
         public override void Configure(ErrorReporter errorReporter)

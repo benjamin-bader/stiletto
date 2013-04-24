@@ -13,6 +13,7 @@ namespace Abra.Compiler.Templates
     using System.Text;
     using System.Collections.Generic;
     using Abra.Compiler;
+    using Abra.Compiler.Generators;
     using System;
     
     /// <summary>
@@ -31,35 +32,35 @@ namespace Abra.Compiler.Templates
         {
             this.Write("\r\nnamespace ");
             
-            #line 11 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(cls.Namespace));
+            #line 12 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeNamespace));
             
             #line default
             #line hidden
             this.Write("\r\n{\r\n    using Binding = global::Abra.Internal.Binding;\r\n    using Resolver = glo" +
                     "bal::Abra.Internal.Resolver;\r\n\r\n    ");
             
-            #line 16 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
+            #line 17 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.AccessModifier));
             
             #line default
             #line hidden
             this.Write(" class ");
             
-            #line 16 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeLiteralName));
+            #line 17 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GeneratorBase.BindingName(cls.GeneratedClassName)));
             
             #line default
             #line hidden
-            this.Write("_CompiledLazyBinding : Binding\r\n    {\r\n        private readonly string lazyKey;\r\n" +
-                    "        private Binding delegateBinding;\r\n\r\n        public ");
+            this.Write(" : Binding\r\n    {\r\n        private readonly string lazyKey;\r\n        private Bind" +
+                    "ing delegateBinding;\r\n\r\n        public ");
             
-            #line 21 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeLiteralName));
+            #line 22 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GeneratorBase.BindingName(cls.GeneratedClassName)));
             
             #line default
             #line hidden
-            this.Write(@"_CompiledLazyBinding(string key, object requiredBy, string lazyKey)
+            this.Write(@"(string key, object requiredBy, string lazyKey)
             : base(key, null, false, requiredBy)
         {
             this.lazyKey = lazyKey;
@@ -74,14 +75,14 @@ namespace Abra.Compiler.Templates
         {
             return new global::System.Lazy<");
             
-            #line 34 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
+            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeFullName));
             
             #line default
             #line hidden
             this.Write(">(() => (");
             
-            #line 34 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
+            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\LazyBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeFullName));
             
             #line default

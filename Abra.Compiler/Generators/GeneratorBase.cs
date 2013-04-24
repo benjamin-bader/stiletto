@@ -9,32 +9,34 @@ namespace Abra.Compiler.Generators
         private readonly ITypeDefinition type;
         private readonly string literal;
 
-        public string Namespace
+        public abstract string GeneratedClassName { get; }
+
+        public virtual string Namespace
         {
             get { return type.Namespace; }
         }
 
-        public string Name
+        public virtual string Name
         {
             get { return type.Name; }
         }
 
-        public string LiteralName
+        public virtual string LiteralName
         {
             get { return literal; }
         }
 
-        public string FullName
+        public virtual string FullName
         {
             get { return type.FullName; }
         }
 
-        public string AccessModifier
+        public virtual string AccessModifier
         {
             get { return CodeHelpers.AccessibilityName(type); }
         }
 
-        public string Typeof
+        public virtual string Typeof
         {
             get { return "typeof(" + Name + ")"; }
         }
@@ -56,5 +58,10 @@ namespace Abra.Compiler.Generators
         public abstract void Configure(ErrorReporter errorReporter);
 
         public abstract void Generate(TextWriter output, Compiler compiler);
+
+        public static string BindingName(string name)
+        {
+            return name.Replace(".", "_");
+        }
     }
 }

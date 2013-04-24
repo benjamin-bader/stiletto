@@ -9,6 +9,13 @@ namespace Abra.Compiler
 {
     public static class CodeHelpers
     {
+        /// <summary>
+        /// Gets the C# access modifier for the compiled wrapper of a given
+        /// type.  Note that this does *not* return the access modifier of the
+        /// type itself - it returns that of its wrapper.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static string AccessibilityName(ITypeDefinition type)
         {
             switch (type.Accessibility) {
@@ -20,6 +27,16 @@ namespace Abra.Compiler
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating whether the given <paramref name="entity"/>
+        /// is visible to other non-nesting classes in its parent assembly.
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns>
+        /// Returns <see langword="true"/> if the entity is <see langword="public"/>,
+        /// <see langword="internal"/>, or <see langword="protected internal"/>;
+        /// returns <see langword="false"/> otherwise.
+        /// </returns>
         public static bool IsPublicOrInternal(this IEntity entity)
         {
             return entity.Accessibility == Accessibility.Public
@@ -27,6 +44,21 @@ namespace Abra.Compiler
                 || entity.Accessibility == Accessibility.ProtectedOrInternal;
         }
 
+        /// <summary>
+        /// Constructs the name used in C# code to reference the given
+        /// <paramref name="type"/>.
+        /// </summary>
+        /// <remarks>
+        /// The code-literal of a type is the text that would appear in a C#
+        /// program.  For example, an <see cref="ITypeDefinition"/> for the string
+        /// type would be "String".  For a list of ints, it would be "List&lt;int&gt;".
+        /// </remarks>
+        /// <param name="type">
+        /// The type whose C# representation is to be constructed.
+        /// </param>
+        /// <returns>
+        /// The C# text identifying the given <paramref name="type"/>.
+        /// </returns>
         public static string ToCodeLiteral(ITypeDefinition type)
         {
             if (type.TypeParameterCount == 0 && type.DeclaringType is UnknownType) {

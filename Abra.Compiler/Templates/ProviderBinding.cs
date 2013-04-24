@@ -13,6 +13,7 @@ namespace Abra.Compiler.Templates
     using System.Text;
     using System.Collections.Generic;
     using Abra.Compiler;
+    using Abra.Compiler.Generators;
     using System;
     
     /// <summary>
@@ -31,7 +32,7 @@ namespace Abra.Compiler.Templates
         {
             this.Write("\r\nnamespace ");
             
-            #line 12 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
+            #line 13 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeNamespace));
             
             #line default
@@ -39,14 +40,14 @@ namespace Abra.Compiler.Templates
             this.Write("\r\n{\r\n    using Binding = global::Abra.Internal.Binding;\r\n    using Resolver = glo" +
                     "bal::Abra.Internal.Resolver;\r\n\r\n    public class ");
             
-            #line 17 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeLiteralName));
+            #line 18 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GeneratorBase.BindingName(cls.GeneratedClassName)));
             
             #line default
             #line hidden
-            this.Write("_CompiledProviderBinding : Binding, global::Abra.IProvider<");
+            this.Write(" : Binding, global::Abra.IProvider<");
             
-            #line 17 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
+            #line 18 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeFullName));
             
             #line default
@@ -55,12 +56,12 @@ namespace Abra.Compiler.Templates
                     "bool mustBeInjectable;\r\n        private Binding delegateBinding;\r\n\r\n        publ" +
                     "ic ");
             
-            #line 23 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
-            this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeLiteralName));
+            #line 24 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
+            this.Write(this.ToStringHelper.ToStringWithCulture(GeneratorBase.BindingName(cls.GeneratedClassName)));
             
             #line default
             #line hidden
-            this.Write(@"_CompiledProviderBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
+            this.Write(@"(string key, object requiredBy, bool mustBeInjectable, string providerKey)
             : base(key, null, false, requiredBy)
         {
             this.providerKey = providerKey;
@@ -74,21 +75,21 @@ namespace Abra.Compiler.Templates
 
         ");
             
-            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
+            #line 36 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeFullName));
             
             #line default
             #line hidden
             this.Write(" global::Abra.IProvider<");
             
-            #line 35 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
+            #line 36 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeFullName));
             
             #line default
             #line hidden
             this.Write(">.Get()\r\n        {\r\n            return (");
             
-            #line 37 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
+            #line 38 "C:\Users\ben\Development\abra-ioc\Abra.Compiler\Templates\ProviderBinding.tt"
             this.Write(this.ToStringHelper.ToStringWithCulture(cls.ProvidedTypeFullName));
             
             #line default
