@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Abra.Internal
 {
     internal class ReflectionUtils
     {
-        private static HashSet<Assembly> knownAssemblies = new HashSet<Assembly>(new AssemblyComparer());
+        private readonly static HashSet<Assembly> knownAssemblies = new HashSet<Assembly>(new AssemblyComparer());
+        private readonly static Dictionary<string, Type> knownTypes = new Dictionary<string, Type>();
+        private readonly static HashSet<Type> pluginTypes = new HashSet<Type>(new TypeComparer());
 
         /// <summary>
         /// Looks up a type at runtime by its name.
@@ -26,80 +30,74 @@ namespace Abra.Internal
                 return t;
             }
 
-            lock (knownAssemblies) {
-                t = GetTypeFromKnownAssemblies(fullName);
-            }
+            lock (knownTypes) {
+                if (knownTypes.TryGetValue(fullName, out t)) {
+                    return t;
+                }
 
-            if (t != null) {
+                ScanLoadedAssemblies();
+
+                knownTypes.TryGetValue(fullName, out t);
                 return t;
             }
-
-            lock (knownAssemblies) {
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                    knownAssemblies.Add(assembly);
-                }
-
-                return GetTypeFromKnownAssemblies(fullName);
-            }
-
         }
 
-        public static IPlugin FindCompiledPlugin()
+        public static IList<IPlugin> FindCompiledPlugins()
         {
-            IPlugin plugin;
-
             lock (knownAssemblies) {
-                plugin = GetPluginFromKnownAssemblies();
-            }
-
-            if (plugin != null) {
-                return plugin;
-            }
-
-            lock (knownAssemblies) {
-                foreach (var asm in AppDomain.CurrentDomain.GetAssemblies()) {
-                    knownAssemblies.Add(asm);
+                if (pluginTypes.Count != 0) {
+                    return pluginTypes
+                        .Select(Activator.CreateInstance)
+                        .Cast<IPlugin>()
+                        .ToList();
                 }
 
-                return GetPluginFromKnownAssemblies();
+                ScanLoadedAssemblies();
+
+                return pluginTypes
+                    .Select(Activator.CreateInstance)
+                    .Cast<IPlugin>()
+                    .ToList();
             }
         }
 
-        private static Type GetTypeFromKnownAssemblies(string fullName)
+        private static void ScanLoadedAssemblies()
         {
-            Type t = null;
-            foreach (var assembly in knownAssemblies) {
-                t = assembly.GetType(fullName, false);
+            var pluginType = typeof (IPlugin);
 
-                if (t != null) {
-                    break;
-                }
-            }
-            return t;
-        }
-
-        private static IPlugin GetPluginFromKnownAssemblies()
-        {
-            foreach (var asm in knownAssemblies) {
-                if (asm.FullName.StartsWith("Abra")) {
+            var containingAssembly = Assembly.GetExecutingAssembly();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            for (var i = 0; i < assemblies.Length; ++i) {
+                var asm = assemblies[i];
+                if (!knownAssemblies.Add(asm)) {
                     continue;
                 }
 
+                var isInternalAsm = asm.FullName.Equals(containingAssembly.FullName, StringComparison.Ordinal);
+
                 var types = asm.GetTypes();
-                for (var i = 0; i < types.Length; ++i) {
-                    var t = types[i];
-                    var iface = t.GetInterface("Abra.Internal.IPlugin", false);
+                for (var j = 0; j < types.Length; ++j) {
+                    var t = types[j];
+
+                    if (knownTypes.ContainsKey(t.FullName)) {
+                        continue;
+                    }
+
+                    knownTypes[t.FullName] = t;
+
+                    if (isInternalAsm) {
+                        continue;
+                    }
+
+                    var iface = t.GetInterface(pluginType.FullName);
+                    
                     if (iface == null) {
                         continue;
                     }
-                    if (t.GetConstructor(Type.EmptyTypes) == null) {
-                        continue;
-                    }
-                    return (IPlugin) Activator.CreateInstance(t);
+
+                    pluginTypes.Add(t);
                 }
             }
-
-            return null;
         }
 
         private class AssemblyComparer : IEqualityComparer<Assembly>
@@ -113,6 +111,22 @@ namespace Abra.Internal
             }
 
             public int GetHashCode(Assembly obj)
+            {
+                return ReferenceEquals(obj, null) ? 0 : obj.FullName.GetHashCode();
+            }
+        }
+
+        private class TypeComparer : IEqualityComparer<Type>
+        {
+            public bool Equals(Type x, Type y)
+            {
+                if (ReferenceEquals(x, y)) return true;
+                if (ReferenceEquals(x, null)) return false;
+                if (ReferenceEquals(y, null)) return false;
+                return x.FullName.Equals(y.FullName, StringComparison.Ordinal);
+            }
+
+            public int GetHashCode(Type obj)
             {
                 return ReferenceEquals(obj, null) ? 0 : obj.FullName.GetHashCode();
             }

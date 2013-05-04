@@ -41,6 +41,10 @@ namespace Abra.Compiler
                 OutputFile = new FileInfo(Path.Combine(path, "Abra.Generated.cs"));
             }
 
+            if (PluginName == null) {
+                PluginName = "CompilerGeneratedPlugin";
+            }
+
             options = null;
             ErrorReporter = new ErrorReporter();
         }

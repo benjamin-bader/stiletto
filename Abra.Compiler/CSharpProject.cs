@@ -34,6 +34,8 @@ namespace Abra.Compiler
     /// </summary>
     public class CSharpProject
     {
+        private static readonly ProjectCollection projectCollection = new ProjectCollection(); 
+
         private readonly string assemblyName;
         private readonly string fileName;
         private readonly IList<CSharpFile> files = new List<CSharpFile>();
@@ -88,7 +90,7 @@ namespace Abra.Compiler
             this.fileName = fileName;
 
             // Use MSBuild to open the .csproj
-            var msbuildProject = new Project(fileName);
+            var msbuildProject = new Project(fileName, null, null, projectCollection);
             // Figure out some compiler settings
             assemblyName = msbuildProject.GetPropertyValue("AssemblyName");
             compilerSettings.AllowUnsafeBlocks = GetBoolProperty(msbuildProject, "AllowUnsafeBlocks");
