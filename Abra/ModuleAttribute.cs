@@ -11,9 +11,10 @@ namespace Abra
     /// <see cref="System.Object"/>.  They must also expose a public default
     /// constructor.  The classes themselves are not required to be public.
     /// </remarks>
-    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
     public class ModuleAttribute : Attribute
     {
+        private bool complete = true;
         private Type[] entryPoints;
         private Type[] includedModules;
 
@@ -46,6 +47,10 @@ namespace Abra
         /// Gets or sets a value indicating whether this module has any outside
         /// dependencies, such as provider methods that require injected parameters.
         /// </summary>
-        public bool IsComplete { get; set; }
+        public bool IsComplete
+        {
+            get { return complete; }
+            set { complete = value; }
+        }
     }
 }
