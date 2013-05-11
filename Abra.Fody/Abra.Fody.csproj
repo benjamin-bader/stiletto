@@ -58,6 +58,7 @@
     <Compile Include="CompilerKeys.cs" />
     <Compile Include="Conditions.cs" />
     <Compile Include="EnumerableExtensions.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Generators\Generator.cs" />
     <Compile Include="AttributesExtensions.cs" />
     <Compile Include="Generators\InjectBindingGenerator.cs" />

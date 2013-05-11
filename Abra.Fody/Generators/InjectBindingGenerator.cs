@@ -78,18 +78,7 @@ namespace Abra.Fody.Generators
                     continue;
                 }
 
-                var key = CompilerKeys.ForProperty(p);
-                var providerKey = CompilerKeys.GetProviderKey(key);
-                if (providerKey != null) {
-                    var genericPropertyType = (GenericInstanceType) p.PropertyType;
-                    weaver.EnqueueProviderBinding(genericPropertyType.GenericArguments.Single());
-                }
-
-                var lazyKey = CompilerKeys.GetLazyKey(key);
-                if (lazyKey != null) {
-                    var genericPropertyType = (GenericInstanceType) p.PropertyType;
-                    weaver.EnqueueLazyBinding(genericPropertyType.GenericArguments.Single());
-                }
+                EnqueueParameterizedBindings(weaver, CompilerKeys.ForProperty(p), p.PropertyType);
             }
 
             if (InjectableCtor == null) {
@@ -109,23 +98,12 @@ namespace Abra.Fody.Generators
             CtorParams = InjectableCtor.Parameters.ToList();
 
             foreach (var param in CtorParams) {
-                var key = CompilerKeys.ForParam(param);
-                var providerKey = CompilerKeys.GetProviderKey(key);
-                if (providerKey != null) {
-                    var genericParamType = (GenericInstanceType) param.ParameterType;
-                    weaver.EnqueueProviderBinding(genericParamType.GenericArguments.Single());
-                }
-
-                var lazyKey = CompilerKeys.GetLazyKey(key);
-                if (lazyKey != null) {
-                    var genericParamType = (GenericInstanceType) param.ParameterType;
-                    weaver.EnqueueLazyBinding(genericParamType.GenericArguments.Single());
-                }
+                EnqueueParameterizedBindings(weaver, CompilerKeys.ForParam(param), param.ParameterType);
             }
 
             var baseType = injectedType.BaseType;
-            var baseTypeScope = baseType == null ? null : baseType.Scope;
-            var baseTypeAsmName = baseTypeScope == null ? null : baseTypeScope.Name;
+            var baseTypeAsmName = baseType.Maybe(type => type.Scope)
+                                          .Maybe(scope => scope.Name);
 
             if (baseType == null
                 || baseTypeAsmName == null
@@ -133,8 +111,12 @@ namespace Abra.Fody.Generators
                 || baseTypeAsmName.StartsWith("System")
                 || baseTypeAsmName.StartsWith("Microsoft")
                 || baseTypeAsmName.StartsWith("Mono")) {
+                // We can safely skip types known not to have [Inject] bindings, i.e. types
+                // from the BCL, etc.
                 BaseTypeKey = null;
             } else {
+                // Otherwise, base types might have [Inject] properties that we'll need
+                // to account for.
                 BaseTypeKey = CompilerKeys.ForType(baseType);
             }
         }
@@ -201,6 +183,23 @@ namespace Abra.Fody.Generators
 
         private void EmitResolve(TypeDefinition injectBinding, IList<FieldDefinition> propertyFields, FieldDefinition paramsField, FieldDefinition baseTypeField)
         {
+            /**
+             * public override void Resolve(Resolver resolver)
+             * {
+             *     // if properties
+             *     propBinding0 = resolver.RequestBinding(Key(prop0), prop0.FullName, mustBeInjectable: true);
+             *     ...
+             *     propBindingN = resolver.RequestBinding(Key(propN), propN.FullName, mustBeInjectable: true);
+             *     
+             *     // if ctor params
+             *     ctorParams = new Binding[params.Count];
+             *     ctorParams[0..n] = resolver.RequestBinding(Key(params[0..n]), ctor.FullName, mustBeInjectable: true);
+             *     
+             *     // if base type
+             *     baseTypeBinding = resolver.RequestBinding(Key(baseType), typeof(baseType), mustBeInjectable: false);
+             * }
+             */
+
             var resolve = new MethodDefinition(
                 "Resolve",
                 MethodAttributes.Public | MethodAttributes.Virtual,
@@ -398,6 +397,23 @@ namespace Abra.Fody.Generators
 
             injectBinding.Methods.Add(injectProperties);
             return injectProperties;
+        }
+
+        private static void EnqueueParameterizedBindings(IWeaver weaver, string key, TypeReference typeref)
+        {
+            var providerKey = CompilerKeys.GetProviderKey(key);
+            if (providerKey != null)
+            {
+                var genericParamType = (GenericInstanceType) typeref;
+                weaver.EnqueueProviderBinding(genericParamType.GenericArguments.Single());
+            }
+
+            var lazyKey = CompilerKeys.GetLazyKey(key);
+            if (lazyKey != null)
+            {
+                var genericParamType = (GenericInstanceType) typeref;
+                weaver.EnqueueLazyBinding(genericParamType.GenericArguments.Single());
+            }
         }
     }
 }
