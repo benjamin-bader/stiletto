@@ -39,6 +39,9 @@ namespace Abra.Internal.Plugins.Reflection
         public ReflectionLazyBinding(string key, object requiredBy, string lazyKey)
             : base(key, null, false, requiredBy)
         {
+#if MONOTOUCH
+			throw new PlatformNotSupportedException("Reflection-based Lazy<T> bindings are not supported on MonoTouch - please use the Fody plugin.");
+#endif
             this.lazyKey = lazyKey;
             this.lazyType = ReflectionUtils.GetType(Key.GetTypeName(lazyKey));
         }

@@ -7,3 +7,6 @@ _ReSharper*/
 TopHat.Generated.cs
 *.psses
 *.vspx
+
+# MonoDevelop Files
+*.userprefs

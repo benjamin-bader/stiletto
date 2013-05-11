@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D2A6D060-F0C0-4618-9D0F-B9D592053689}</ProjectGuid>
+    <ProjectTypeGuids>{6BC8ED88-2882-458C-8E55-DFD12B67127B};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Abra.Monotouch</RootNamespace>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+    <AssemblyName>Abra.Monotouch</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <DefineConstants>MONOTOUCH;</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>MONOTOUCH;</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="monotouch" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Abra\Container.cs" />
+    <Compile Include="..\Abra\InjectAttribute.cs" />
+    <Compile Include="..\Abra\Internal\Binding.cs" />
+    <Compile Include="..\Abra\Internal\Conditions.cs" />
+    <Compile Include="..\Abra\Internal\GraphVerifier.cs" />
+    <Compile Include="..\Abra\Internal\Plugins\Codegen\CodegenPlugin.cs" />
+    <Compile Include="..\Abra\Internal\Plugins\Reflection\ReflectionProviderBinding.cs" />
+    <Compile Include="..\Abra\Internal\Plugins\Reflection\ReflectionLazyBinding.cs" />
+    <Compile Include="..\Abra\Internal\Plugins\Reflection\ReflectionRuntimeModule.cs" />
+    <Compile Include="..\Abra\Internal\IPlugin.cs" />
+    <Compile Include="..\Abra\Internal\Plugins\Reflection\ReflectionInjectBinding.cs" />
+    <Compile Include="..\Abra\Internal\Plugins\Reflection\ReflectionPlugin.cs" />
+    <Compile Include="..\Abra\Internal\ReflectionUtils.cs" />
+    <Compile Include="..\Abra\Internal\RuntimeAggregationPlugin.cs" />
+    <Compile Include="..\Abra\Internal\RuntimeModule.cs" />
+    <Compile Include="..\Abra\Internal\Resolver.cs" />
+    <Compile Include="..\Abra\Internal\SingletonBinding.cs" />
+    <Compile Include="..\Abra\Internal\TypeExtensions.cs" />
+    <Compile Include="..\Abra\Internal\Visitable.cs" />
+    <Compile Include="..\Abra\IProvider.cs" />
+    <Compile Include="..\Abra\Key.cs" />
+    <Compile Include="..\Abra\NamedAttribute.cs" />
+    <Compile Include="..\Abra\ModuleAttribute.cs" />
+    <Compile Include="..\Abra\Properties\AssemblyInfo.cs" />
+    <Compile Include="..\Abra\ProvidesAttribute.cs" />
+    <Compile Include="..\Abra\QualifierAttribute.cs" />
+    <Compile Include="..\Abra\SingletonAttribute.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+</Project>
