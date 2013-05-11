@@ -27,6 +27,6 @@ namespace Abra.Fody.Generators
 
         public abstract void Validate(IWeaver weaver);
 
-        public abstract void Generate(IWeaver weaver);
+        public abstract TypeDefinition Generate(IWeaver weaver);
     }
 }

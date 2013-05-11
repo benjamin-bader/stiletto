@@ -20,12 +20,15 @@ namespace Abra.Fody.Generators
         public MethodDefinition InjectableCtor { get; private set; }
         public IList<PropertyDefinition> InjectableProperties { get; private set; }
         public bool IsEntryPoint { get { return isEntryPoint; } }
-        public IList<ParameterDefinition> CtorParams { get; private set; } 
+        public IList<ParameterDefinition> CtorParams { get; private set; }
+        public TypeDefinition InjectedType { get { return injectedType; } }
 
-        public InjectBindingGenerator(ModuleDefinition moduleDefinition, TypeDefinition injectedType, bool isEntryPoint)
+        public InjectBindingGenerator(ModuleDefinition moduleDefinition, TypeReference injectedType, bool isEntryPoint)
             : base(moduleDefinition)
         {
-            this.injectedType = Conditions.CheckNotNull(injectedType, "injectedType");
+            this.injectedType = injectedType.IsDefinition
+                                    ? (TypeDefinition) injectedType
+                                    : ModuleDefinition.Import(injectedType).Resolve();
             this.isEntryPoint = isEntryPoint;
         }
 
@@ -105,6 +108,21 @@ namespace Abra.Fody.Generators
 
             CtorParams = InjectableCtor.Parameters.ToList();
 
+            foreach (var param in CtorParams) {
+                var key = CompilerKeys.ForParam(param);
+                var providerKey = CompilerKeys.GetProviderKey(key);
+                if (providerKey != null) {
+                    var genericParamType = (GenericInstanceType) param.ParameterType;
+                    weaver.EnqueueProviderBinding(genericParamType.GenericArguments.Single());
+                }
+
+                var lazyKey = CompilerKeys.GetLazyKey(key);
+                if (lazyKey != null) {
+                    var genericParamType = (GenericInstanceType) param.ParameterType;
+                    weaver.EnqueueLazyBinding(genericParamType.GenericArguments.Single());
+                }
+            }
+
             var baseType = injectedType.BaseType;
             var baseTypeScope = baseType == null ? null : baseType.Scope;
             var baseTypeAsmName = baseTypeScope == null ? null : baseTypeScope.Name;
@@ -121,7 +139,7 @@ namespace Abra.Fody.Generators
             }
         }
 
-        public override void Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IWeaver weaver)
         {
             var injectBinding = new TypeDefinition(
                 injectedType.Namespace,
@@ -157,10 +175,9 @@ namespace Abra.Fody.Generators
 
             if (injectedType.DeclaringType != null) {
                 injectBinding.DeclaringType = injectedType.DeclaringType;
-                injectedType.DeclaringType.NestedTypes.Add(injectBinding);
-            } else {
-                ModuleDefinition.Types.Add(injectBinding);
             }
+
+            return injectBinding;
         }
 
         private void EmitCtor(TypeDefinition injectBinding)
@@ -174,7 +191,7 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ldstr, Key);
             il.Emit(OpCodes.Ldstr, MembersKey);
             il.EmitBoolean(IsSingleton);
-            il.EmitType(injectedType);
+            il.EmitType(ModuleDefinition.Import(injectedType));
             il.Emit(OpCodes.Call, References.Binding_Ctor);
 
             il.Emit(OpCodes.Ret);
@@ -319,7 +336,7 @@ namespace Abra.Fody.Generators
                 il.Cast(param.ParameterType);
             }
 
-            il.Emit(OpCodes.Newobj, InjectableCtor);
+            il.Emit(OpCodes.Newobj, ModuleDefinition.Import(InjectableCtor));
 
             if (vResult != null) {
                 il.Emit(OpCodes.Stloc, vResult);
@@ -367,7 +384,7 @@ namespace Abra.Fody.Generators
                 il.Emit(OpCodes.Callvirt, References.Binding_Get);
                 il.Cast(property.PropertyType);
                 
-                il.Emit(OpCodes.Callvirt, setter);
+                il.Emit(OpCodes.Callvirt, ModuleDefinition.Import(setter));
             }
 
             if (baseTypeField != null) {

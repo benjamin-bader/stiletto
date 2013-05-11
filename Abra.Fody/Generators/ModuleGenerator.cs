@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Abra.Fody.Generators.Module;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -105,13 +104,13 @@ namespace Abra.Fody.Generators
                 weaver.LogError(moduleType.FullName + " is marked as a [Module], but no default constructor is visible.");
             }
 
-            if (baseProvidesMethods.Count == 0) {
+            if (IncludedModules.Count == 0 && baseProvidesMethods.Count == 0) {
                 weaver.LogError("Modules must expose at least one [Provides] method.");
             }
 
             ProvidedKeys = new HashSet<string>(StringComparer.Ordinal);
             foreach (var method in baseProvidesMethods) {
-                var name = method.MethodReturnType.GetNamedAttributeName();
+                var name = method.GetNamedAttributeName();
                 var key = CompilerKeys.ForType(method.ReturnType, name);
 
                 if (!ProvidedKeys.Add(key)) {
@@ -139,7 +138,7 @@ namespace Abra.Fody.Generators
             }
         }
 
-        public override void Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IWeaver weaver)
         {
             var name = moduleType.Name + Internal.Plugins.Codegen.CodegenPlugin.ModuleSuffix;
             var t = new TypeDefinition(moduleType.Namespace, name, moduleType.Attributes, References.RuntimeModule);
@@ -155,10 +154,9 @@ namespace Abra.Fody.Generators
 
             if (moduleType.DeclaringType != null) {
                 t.DeclaringType = moduleType.DeclaringType;
-                moduleType.DeclaringType.NestedTypes.Add(t);
-            } else {
-                ModuleDefinition.Types.Add(t);
             }
+
+            return t;
         }
 
         private void EmitCreateModule(TypeDefinition runtimeModule)

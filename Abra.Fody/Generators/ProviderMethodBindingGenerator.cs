@@ -3,7 +3,7 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace Abra.Fody.Generators.Module
+namespace Abra.Fody.Generators
 {
     public class ProviderMethodBindingGenerator : Generator
     {
@@ -37,7 +37,8 @@ namespace Abra.Fody.Generators.Module
             this.providerMethod = Conditions.CheckNotNull(providerMethod, "providerMethod");
             this.moduleType = Conditions.CheckNotNull(moduleType, "moduleType");
 
-            key = CompilerKeys.ForReturnType(providerMethod.MethodReturnType);
+            var name = ProviderMethod.GetNamedAttributeName();
+            key = CompilerKeys.ForType(ProviderMethod.ReturnType, name);
         }
 
         public override void Validate(IWeaver weaver)
@@ -47,7 +48,7 @@ namespace Abra.Fody.Generators.Module
             }
         }
 
-        public override void Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IWeaver weaver)
         {
             Conditions.CheckNotNull(RuntimeModuleType, "RuntimeModuleType");
             var providerType = new TypeDefinition(
@@ -58,7 +59,7 @@ namespace Abra.Fody.Generators.Module
 
             providerType.DeclaringType = RuntimeModuleType;
 
-            var isSingleton = ProviderMethod.MethodReturnType.CustomAttributes.Any(Attributes.IsSingletonAttribute);
+            var isSingleton = ProviderMethod.CustomAttributes.Any(Attributes.IsSingletonAttribute);
             var moduleField = new FieldDefinition("module", FieldAttributes.Private, ModuleType);
             providerType.Fields.Add(moduleField);
 
@@ -77,6 +78,8 @@ namespace Abra.Fody.Generators.Module
             EmitGet(providerType, moduleField, parameters, fields);
 
             RuntimeModuleType.NestedTypes.Add(providerType);
+
+            return providerType;
         }
 
         private void EmitCtor(TypeDefinition providerBindingType, FieldReference moduleField, bool singleton)
@@ -190,10 +193,13 @@ namespace Abra.Fody.Generators.Module
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, field);
                 il.Emit(OpCodes.Callvirt, References.Binding_Get);
-                il.Emit(OpCodes.Castclass, parameter.ParameterType);
+                il.Cast(parameter.ParameterType);
             }
 
             il.Emit(OpCodes.Callvirt, ProviderMethod);
+            if (ProviderMethod.ReturnType.IsValueType) {
+                il.Emit(OpCodes.Box, ProviderMethod.ReturnType);
+            }
             il.Emit(OpCodes.Ret);
 
             providerBinding.Methods.Add(get);

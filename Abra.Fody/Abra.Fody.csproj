@@ -63,8 +63,8 @@
     <Compile Include="Generators\InjectBindingGenerator.cs" />
     <Compile Include="Generators\LazyBindingGenerator.cs" />
     <Compile Include="Generators\ModuleGenerator.cs" />
-    <Compile Include="Generators\Module\ProviderMethodBindingGenerator.cs" />
     <Compile Include="Generators\ProviderBindingGenerator.cs" />
+    <Compile Include="Generators\ProviderMethodBindingGenerator.cs" />
     <Compile Include="ILProcessorExtensions.cs" />
     <Compile Include="IWeaver.cs" />
     <Compile Include="MethodReferenceExtensions.cs" />
@@ -72,6 +72,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="References.cs" />
+    <Compile Include="Validation\CompilerPlugin.cs" />
+    <Compile Include="Validation\Validator.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Abra\Abra.csproj">
@@ -82,9 +84,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Validation\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

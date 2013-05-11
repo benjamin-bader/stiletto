@@ -19,7 +19,7 @@ namespace Abra.Fody.Generators
         {
         }
 
-        public override void Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IWeaver weaver)
         {
             var t = new TypeDefinition(
                 providedType.Namespace,
@@ -48,7 +48,7 @@ namespace Abra.Fody.Generators
             EmitResolve(t, mustBeInjectableField, providerKeyField, delegateBindingField);
             EmitGet(t, providerOfT_get, delegateBindingField);
 
-            ModuleDefinition.Types.Add(t);  
+            return t;
         }
 
         private void EmitCtor(TypeDefinition providerBinding, FieldDefinition providerKeyField, FieldDefinition mustBeInjectableField)

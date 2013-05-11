@@ -38,7 +38,7 @@ namespace Abra.Internal.Plugins.Codegen
         private T GetObjectOfTypeName<T>(string typeName, string suffix, object[] ctorArgs = null)
         {
             typeName += suffix;
-            typeName = typeName.Replace('+', '_');
+            //typeName = typeName.Replace('+', '.');
             var t = ReflectionUtils.GetType(typeName);
 
             if (t == null) {

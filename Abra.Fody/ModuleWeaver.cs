@@ -53,14 +53,26 @@ namespace Abra.Fody
                 }
             }
 
+            var internalInjectTypes = new HashSet<TypeReference>(injectTypes, new TypeReferenceComparer());
+
             var moduleGenerators = moduleTypes.Select(m => new ModuleGenerator(ModuleDefinition, m)).ToList();
 
-            var entryPointTypes = new HashSet<TypeReference>(
-                moduleGenerators.SelectMany(m => m.EntryPoints),
-                new TypeReferenceComparer());
+            var entryPoints = from m in moduleGenerators
+                              from e in m.EntryPoints
+                              select e;
 
-            var injectGenerators = injectTypes
-                .Select(i => new InjectBindingGenerator(ModuleDefinition, i, entryPointTypes.Contains(i)));
+            var injectGenerators = new List<Generator>();
+            foreach (var e in entryPoints) {
+                if (internalInjectTypes.Contains(e)) {
+                    internalInjectTypes.Remove(e);
+                }
+
+                injectGenerators.Add(new InjectBindingGenerator(ModuleDefinition, e, true));
+            }
+
+            foreach (var i in internalInjectTypes) {
+                injectGenerators.Add(new InjectBindingGenerator(ModuleDefinition, i, false));
+            }
 
             foreach (var m in moduleGenerators) {
                 m.Validate(this);
@@ -76,10 +88,20 @@ namespace Abra.Fody
                 return;
             }
 
+            var generatedTypes = new HashSet<TypeDefinition>(new TypeReferenceComparer());
             while (generators.Count > 0) {
                 var current = generators.Dequeue();
-                current.Generate(this);
+                var newType = current.Generate(this);
 
+                if (!generatedTypes.Add(newType)) {
+                    continue;
+                }
+
+                if (newType.DeclaringType != null) {
+                    newType.DeclaringType.NestedTypes.Add(newType);
+                } else {
+                    ModuleDefinition.Types.Add(newType);
+                }
             }
 
             // Get modules

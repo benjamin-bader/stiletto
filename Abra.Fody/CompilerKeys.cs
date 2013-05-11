@@ -33,7 +33,7 @@ namespace Abra.Fody
         {
             if (string.IsNullOrEmpty(name) && !(typedef is GenericInstanceType))
             {
-                return typedef.FullName;
+                return typedef.GetReflectionName();
             }
 
             var sb = new StringBuilder();
@@ -85,13 +85,13 @@ namespace Abra.Fody
             }
             else
             {
-                sb.Append(typedef.FullName);
+                sb.Append(typedef.GetReflectionName());
             }
         }
 
         private static string GetRawGenericName(TypeReference typedef)
         {
-            var rn = typedef.FullName;
+            var rn = typedef.GetReflectionName();
             var index = rn.IndexOf('<');
             return index < 0 ? rn : rn.Substring(0, index);
         }
@@ -142,6 +142,10 @@ namespace Abra.Fody
             return index >= 0 ? index + 1 : 0;
         }
 
+        private static string GetReflectionName(this TypeReference reference)
+        {
+            return reference.FullName.Replace('/', '+');
+        }
 
         private static string ExtractKey(string key, int start, string delegatePrefix, string prefix)
         {

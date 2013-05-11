@@ -46,7 +46,7 @@ namespace Abra.Fody.Generators
         {
         }
 
-        public override void Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IWeaver weaver)
         {
             var t = new TypeDefinition(
                 lazyElementType.Namespace,
@@ -63,7 +63,7 @@ namespace Abra.Fody.Generators
             EmitResolve(t, lazyKeyField, delegateBindingField);
             EmitGet(t, delegateBindingField);
 
-            ModuleDefinition.Types.Add(t);
+            return t;
         }
 
         private void EmitCtor(TypeDefinition lazyBinding, FieldDefinition lazyKeyField)
