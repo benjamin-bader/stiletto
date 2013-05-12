@@ -42,9 +42,6 @@
     <Reference Include="Mono.Android" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Resources\Resource.designer.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\Abra\Container.cs" />
     <Compile Include="..\Abra\InjectAttribute.cs" />
     <Compile Include="..\Abra\Internal\Binding.cs" />
@@ -72,12 +69,10 @@
     <Compile Include="..\Abra\ProvidesAttribute.cs" />
     <Compile Include="..\Abra\QualifierAttribute.cs" />
     <Compile Include="..\Abra\SingletonAttribute.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\AboutResources.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <AndroidResource Include="Resources\values\Strings.xml" />
+    <Compile Include="Resources\Resources.designer.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
 </Project>
