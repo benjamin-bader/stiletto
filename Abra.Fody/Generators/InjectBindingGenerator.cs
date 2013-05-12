@@ -13,6 +13,8 @@ namespace Abra.Fody.Generators
         private readonly TypeDefinition injectedType;
         private readonly bool isEntryPoint;
 
+		private MethodReference generatedCtor;
+
         public string Key { get; private set; }
         public string MembersKey { get; private set; }
         public string BaseTypeKey { get; private set; }
@@ -129,6 +131,8 @@ namespace Abra.Fody.Generators
                 injectedType.Attributes,
                 References.Binding);
 
+			injectBinding.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
+
             var propertyFields = new List<FieldDefinition>(InjectableProperties.Count);
 
             foreach (var property in InjectableProperties) {
@@ -162,6 +166,12 @@ namespace Abra.Fody.Generators
             return injectBinding;
         }
 
+		public override KeyedCtor GetKeyedCtor()
+		{
+			Conditions.CheckNotNull(generatedCtor);
+			return new KeyedCtor(Key, generatedCtor);
+		}
+
         private void EmitCtor(TypeDefinition injectBinding)
         {
             var ctor = new MethodDefinition(".ctor",
@@ -179,6 +189,7 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ret);
 
             injectBinding.Methods.Add(ctor);
+			generatedCtor = ctor;
         }
 
         private void EmitResolve(TypeDefinition injectBinding, IList<FieldDefinition> propertyFields, FieldDefinition paramsField, FieldDefinition baseTypeField)
@@ -405,14 +416,14 @@ namespace Abra.Fody.Generators
             if (providerKey != null)
             {
                 var genericParamType = (GenericInstanceType) typeref;
-                weaver.EnqueueProviderBinding(genericParamType.GenericArguments.Single());
+                weaver.EnqueueProviderBinding(providerKey, genericParamType.GenericArguments.Single());
             }
 
             var lazyKey = CompilerKeys.GetLazyKey(key);
             if (lazyKey != null)
             {
                 var genericParamType = (GenericInstanceType) typeref;
-                weaver.EnqueueLazyBinding(genericParamType.GenericArguments.Single());
+                weaver.EnqueueLazyBinding(lazyKey, genericParamType.GenericArguments.Single());
             }
         }
     }

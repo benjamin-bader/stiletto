@@ -9,36 +9,31 @@ namespace Abra.Fody.Generators
 {
     public class LazyBindingGenerator : Generator
     {
+		private readonly string lazyKey;
         private readonly TypeReference lazyElementType;
-        private readonly TypeReference lazyType;
-        private readonly TypeReference funcType;
         private readonly MethodReference lazyCtor;
         private readonly MethodReference funcCtor;
 
-        public LazyBindingGenerator(ModuleDefinition moduleDefinition, TypeReference lazyElementType)
+		private MethodReference generatedCtor;
+
+        public LazyBindingGenerator(ModuleDefinition moduleDefinition, string lazyKey, TypeReference lazyElementType)
             : base(moduleDefinition)
         {
+			this.lazyKey = Conditions.CheckNotNull(lazyKey, "lazyKey");
             this.lazyElementType = Conditions.CheckNotNull(lazyElementType, "lazyElementType");
-            this.lazyType = References.LazyOfT.MakeGenericInstanceType(lazyElementType);
 
-            var genericArgument = lazyElementType;
-            var funcType = References.FuncOfT.MakeGenericInstanceType(genericArgument);
-            var funcCtor =
-                ModuleDefinition.Import(funcType.Resolve()
-                                                .Methods.First(m => m.IsConstructor && m.Parameters.Count == 2))
-                                .MakeHostInstanceGeneric(genericArgument);
+			var genericArgument = lazyElementType;
+			var funcCtor = ImportGeneric(
+				References.FuncOfT,
+				m => m.IsConstructor && m.Parameters.Count == 2,
+				genericArgument);
 
-            var lazyType = References.LazyOfT.MakeGenericInstanceType(genericArgument);
-            var lazyCtor =
-                ModuleDefinition.Import(lazyType.Resolve()
-                                                .GetConstructors()
-                                                .First(m => m.Parameters.Count == 1
-                                                         && m.Parameters[0].ParameterType.Name.StartsWith("Func")))
-                                .MakeHostInstanceGeneric(genericArgument);
+			var lazyCtor = ImportGeneric(
+				References.LazyOfT,
+				m => m.Parameters.Count == 1 && m.Parameters[0].ParameterType.Name.StartsWith("Func"),
+				genericArgument);
 
-            this.lazyType = lazyType;
             this.lazyCtor = lazyCtor;
-            this.funcType = funcType;
             this.funcCtor = funcCtor;
         }
 
@@ -54,6 +49,8 @@ namespace Abra.Fody.Generators
                 TypeAttributes.Public | TypeAttributes.Sealed,
                 References.Binding);
 
+			t.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
+
             var lazyKeyField = new FieldDefinition("lazyKey", FieldAttributes.Private, ModuleDefinition.TypeSystem.String);
             var delegateBindingField = new FieldDefinition("delegateBinding", FieldAttributes.Private, References.Binding);
             t.Fields.Add(lazyKeyField);
@@ -65,6 +62,12 @@ namespace Abra.Fody.Generators
 
             return t;
         }
+
+		public override KeyedCtor GetKeyedCtor ()
+		{
+			Conditions.CheckNotNull(generatedCtor);
+			return new KeyedCtor(lazyKey, generatedCtor);
+		}
 
         private void EmitCtor(TypeDefinition lazyBinding, FieldDefinition lazyKeyField)
         {
@@ -92,6 +95,7 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ret);
 
             lazyBinding.Methods.Add(ctor);
+			generatedCtor = ctor;
         }
 
         private void EmitResolve(TypeDefinition lazyBinding, FieldDefinition lazyKeyField, FieldDefinition delegateBindingField)

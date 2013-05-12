@@ -8,8 +8,8 @@ namespace Abra.Fody
 {
     public interface IWeaver
     {
-        void EnqueueProviderBinding(TypeReference providedType);
-        void EnqueueLazyBinding(TypeReference lazyType);
+        void EnqueueProviderBinding(string providerKey, TypeReference providedType);
+        void EnqueueLazyBinding(string lazyKey, TypeReference lazyType);
         void LogWarning(string message);
         void LogError(string message);
     }

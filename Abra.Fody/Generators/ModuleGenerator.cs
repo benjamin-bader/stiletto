@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
@@ -22,8 +22,7 @@ namespace Abra.Fody.Generators
         public IList<MethodDefinition> BaseProvidesMethods { get { return baseProvidesMethods; }}
         public IList<ProviderMethodBindingGenerator> ProviderGenerators { get; private set; } 
 
-        public MethodDefinition Ctor { get; private set; }
-        public TypeDefinition GeneratedType { get; private set; }
+		private MethodReference generatedCtor;
 
         public ModuleGenerator(ModuleDefinition moduleDefinition, TypeDefinition moduleType)
             : base(moduleDefinition)
@@ -143,6 +142,8 @@ namespace Abra.Fody.Generators
             var name = moduleType.Name + Internal.Plugins.Codegen.CodegenPlugin.ModuleSuffix;
             var t = new TypeDefinition(moduleType.Namespace, name, moduleType.Attributes, References.RuntimeModule);
 
+			t.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
+
             foreach (var gen in ProviderGenerators) {
                 gen.RuntimeModuleType = t;
                 gen.Generate(weaver);
@@ -158,6 +159,18 @@ namespace Abra.Fody.Generators
 
             return t;
         }
+
+		public override KeyedCtor GetKeyedCtor ()
+		{
+			// We don't care about keys for modules, we can dispatch on moduleType.
+			return null;
+		}
+
+		public Tuple<TypeReference, MethodReference> GetModuleTypeAndGeneratedCtor()
+		{
+			Conditions.CheckNotNull(generatedCtor);
+			return Tuple.Create((TypeReference) moduleType, generatedCtor);
+		}
 
         private void EmitCreateModule(TypeDefinition runtimeModule)
         {
@@ -251,6 +264,7 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ret);
 
             runtimeModule.Methods.Add(ctor);
+			generatedCtor = ctor;
         }
     }
 }

@@ -8,10 +8,14 @@ namespace Abra.Fody.Generators
     public class ProviderBindingGenerator : Generator
     {
         private readonly TypeReference providedType;
+		private readonly string providerKey;
 
-        public ProviderBindingGenerator(ModuleDefinition moduleDefinition, TypeReference providedType)
+		private MethodReference ctor;
+
+        public ProviderBindingGenerator(ModuleDefinition moduleDefinition, string providerKey, TypeReference providedType)
             : base(moduleDefinition)
         {
+			this.providerKey = Conditions.CheckNotNull(providerKey, "providerKey");
             this.providedType = Conditions.CheckNotNull(providedType, "providedType");
         }
 
@@ -30,6 +34,7 @@ namespace Abra.Fody.Generators
             var providerOfT = References.IProviderOfT.MakeGenericInstanceType(providedType);
 
             t.Interfaces.Add(providerOfT);
+			t.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
 
             var providerOfT_get = ModuleDefinition.Import(providerOfT.Resolve()
                                                                      .Methods
@@ -50,6 +55,12 @@ namespace Abra.Fody.Generators
 
             return t;
         }
+
+		public override KeyedCtor GetKeyedCtor()
+		{
+			Conditions.CheckNotNull(ctor);
+			return new KeyedCtor(providerKey, ctor);
+		}
 
         private void EmitCtor(TypeDefinition providerBinding, FieldDefinition providerKeyField, FieldDefinition mustBeInjectableField)
         {
@@ -82,6 +93,7 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ret);
 
             providerBinding.Methods.Add(ctor);
+			this.ctor = ctor;
         }
 
         private void EmitResolve(TypeDefinition providerBinding, FieldDefinition mustBeInjectableField,
