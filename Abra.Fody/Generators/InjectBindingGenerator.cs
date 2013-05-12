@@ -13,7 +13,7 @@ namespace Abra.Fody.Generators
         private readonly TypeDefinition injectedType;
         private readonly bool isEntryPoint;
 
-		private MethodReference generatedCtor;
+        private MethodReference generatedCtor;
 
         public string Key { get; private set; }
         public string MembersKey { get; private set; }
@@ -131,7 +131,7 @@ namespace Abra.Fody.Generators
                 injectedType.Attributes,
                 References.Binding);
 
-			injectBinding.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
+            injectBinding.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
 
             var propertyFields = new List<FieldDefinition>(InjectableProperties.Count);
 
@@ -166,11 +166,11 @@ namespace Abra.Fody.Generators
             return injectBinding;
         }
 
-		public override KeyedCtor GetKeyedCtor()
-		{
-			Conditions.CheckNotNull(generatedCtor);
-			return new KeyedCtor(Key, generatedCtor);
-		}
+        public override KeyedCtor GetKeyedCtor()
+        {
+            Conditions.CheckNotNull(generatedCtor);
+            return new KeyedCtor(Key, generatedCtor);
+        }
 
         private void EmitCtor(TypeDefinition injectBinding)
         {
@@ -189,7 +189,7 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ret);
 
             injectBinding.Methods.Add(ctor);
-			generatedCtor = ctor;
+            generatedCtor = ctor;
         }
 
         private void EmitResolve(TypeDefinition injectBinding, IList<FieldDefinition> propertyFields, FieldDefinition paramsField, FieldDefinition baseTypeField)

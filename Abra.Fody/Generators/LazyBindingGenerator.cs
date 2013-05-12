@@ -9,29 +9,29 @@ namespace Abra.Fody.Generators
 {
     public class LazyBindingGenerator : Generator
     {
-		private readonly string lazyKey;
+        private readonly string lazyKey;
         private readonly TypeReference lazyElementType;
         private readonly MethodReference lazyCtor;
         private readonly MethodReference funcCtor;
 
-		private MethodReference generatedCtor;
+        private MethodReference generatedCtor;
 
         public LazyBindingGenerator(ModuleDefinition moduleDefinition, string lazyKey, TypeReference lazyElementType)
             : base(moduleDefinition)
         {
-			this.lazyKey = Conditions.CheckNotNull(lazyKey, "lazyKey");
+            this.lazyKey = Conditions.CheckNotNull(lazyKey, "lazyKey");
             this.lazyElementType = Conditions.CheckNotNull(lazyElementType, "lazyElementType");
 
-			var genericArgument = lazyElementType;
-			var funcCtor = ImportGeneric(
-				References.FuncOfT,
-				m => m.IsConstructor && m.Parameters.Count == 2,
-				genericArgument);
+            var genericArgument = lazyElementType;
+            var funcCtor = ImportGeneric(
+                References.FuncOfT,
+                m => m.IsConstructor && m.Parameters.Count == 2,
+                genericArgument);
 
-			var lazyCtor = ImportGeneric(
-				References.LazyOfT,
-				m => m.Parameters.Count == 1 && m.Parameters[0].ParameterType.Name.StartsWith("Func"),
-				genericArgument);
+            var lazyCtor = ImportGeneric(
+                References.LazyOfT,
+                m => m.Parameters.Count == 1 && m.Parameters[0].ParameterType.Name.StartsWith("Func"),
+                genericArgument);
 
             this.lazyCtor = lazyCtor;
             this.funcCtor = funcCtor;
@@ -49,7 +49,7 @@ namespace Abra.Fody.Generators
                 TypeAttributes.Public | TypeAttributes.Sealed,
                 References.Binding);
 
-			t.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
+            t.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
 
             var lazyKeyField = new FieldDefinition("lazyKey", FieldAttributes.Private, ModuleDefinition.TypeSystem.String);
             var delegateBindingField = new FieldDefinition("delegateBinding", FieldAttributes.Private, References.Binding);
@@ -63,11 +63,11 @@ namespace Abra.Fody.Generators
             return t;
         }
 
-		public override KeyedCtor GetKeyedCtor ()
-		{
-			Conditions.CheckNotNull(generatedCtor);
-			return new KeyedCtor(lazyKey, generatedCtor);
-		}
+        public override KeyedCtor GetKeyedCtor ()
+        {
+            Conditions.CheckNotNull(generatedCtor);
+            return new KeyedCtor(lazyKey, generatedCtor);
+        }
 
         private void EmitCtor(TypeDefinition lazyBinding, FieldDefinition lazyKeyField)
         {
@@ -95,7 +95,7 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ret);
 
             lazyBinding.Methods.Add(ctor);
-			generatedCtor = ctor;
+            generatedCtor = ctor;
         }
 
         private void EmitResolve(TypeDefinition lazyBinding, FieldDefinition lazyKeyField, FieldDefinition delegateBindingField)

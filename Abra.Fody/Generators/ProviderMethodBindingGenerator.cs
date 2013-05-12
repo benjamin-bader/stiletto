@@ -57,7 +57,7 @@ namespace Abra.Fody.Generators
                 TypeAttributes.NestedPublic,
                 References.Binding);
 
-			providerType.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
+            providerType.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
             providerType.DeclaringType = RuntimeModuleType;
 
             var isSingleton = ProviderMethod.CustomAttributes.Any(Attributes.IsSingletonAttribute);
@@ -83,11 +83,11 @@ namespace Abra.Fody.Generators
             return providerType;
         }
 
-		public override KeyedCtor GetKeyedCtor ()
-		{
-			// Ignored here, not needed by the ModuleGenerator.
-			return null;
-		}
+        public override KeyedCtor GetKeyedCtor ()
+        {
+            // Ignored here, not needed by the ModuleGenerator.
+            return null;
+        }
 
         private void EmitCtor(TypeDefinition providerBindingType, FieldReference moduleField, bool singleton)
         {

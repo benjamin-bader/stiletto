@@ -21,9 +21,9 @@ namespace Abra.Fody
         public Action<string, SequencePoint> LogWarningPoint { get; set; }
         public Action<string, SequencePoint> LogErrorPoint { get; set; }
 
-		private bool hasError;
-		private IList<ProviderBindingGenerator> providerGenerators = new List<ProviderBindingGenerator>();
-		private IList<LazyBindingGenerator> lazyGenerators = new List<LazyBindingGenerator>();
+        private bool hasError;
+        private IList<ProviderBindingGenerator> providerGenerators = new List<ProviderBindingGenerator>();
+        private IList<LazyBindingGenerator> lazyGenerators = new List<LazyBindingGenerator>();
 
         private Queue<Generator> generators = new Queue<Generator>();
 
@@ -42,8 +42,8 @@ namespace Abra.Fody
         {
             Initialize();
 
-			var moduleTypes = new List<TypeDefinition>();
-			var injectTypes = new List<TypeDefinition>();
+            var moduleTypes = new List<TypeDefinition>();
+            var injectTypes = new List<TypeDefinition>();
 
             foreach (var t in ModuleDefinition.GetTypes()) {
                 if (IsModule(t)) {
@@ -104,18 +104,18 @@ namespace Abra.Fody
                 }
             }
 
-			generators = null;
+            generators = null;
 
-			var pluginGenerator = new PluginGenerator(
-				ModuleDefinition,
-				injectGenerators.Select(gen => gen.GetKeyedCtor()),
-				lazyGenerators.Select(gen => gen.GetKeyedCtor()),
-				providerGenerators.Select(gen => gen.GetKeyedCtor()),
-				moduleGenerators.Select(gen => gen.GetModuleTypeAndGeneratedCtor()));
+            var pluginGenerator = new PluginGenerator(
+                ModuleDefinition,
+                injectGenerators.Select(gen => gen.GetKeyedCtor()),
+                lazyGenerators.Select(gen => gen.GetKeyedCtor()),
+                providerGenerators.Select(gen => gen.GetKeyedCtor()),
+                moduleGenerators.Select(gen => gen.GetModuleTypeAndGeneratedCtor()));
 
-			pluginGenerator.Validate(this);
-			var plugin = pluginGenerator.Generate(this);
-			ModuleDefinition.Types.Add(plugin);
+            pluginGenerator.Validate(this);
+            var plugin = pluginGenerator.Generate(this);
+            ModuleDefinition.Types.Add(plugin);
 
             // Find all Abra.Container.Create invocations
             // Replace them with a call to Container.CreateGenerated
@@ -125,7 +125,7 @@ namespace Abra.Fody
         {
             var gen = new ProviderBindingGenerator(ModuleDefinition, providerKey, providedType);
             gen.Validate(this);
-			providerGenerators.Add(gen);
+            providerGenerators.Add(gen);
             generators.Enqueue(gen);
         }
 
@@ -133,7 +133,7 @@ namespace Abra.Fody
         {
             var gen = new LazyBindingGenerator(ModuleDefinition, lazyKey, lazyType);
             gen.Validate(this);
-			lazyGenerators.Add(gen);
+            lazyGenerators.Add(gen);
             generators.Enqueue(gen);
         }
 
@@ -166,10 +166,10 @@ namespace Abra.Fody
                    select m;
         }
 
-		private void RewriteContainerCreateInvocations(MethodDefinition method)
-		{
+        private void RewriteContainerCreateInvocations(MethodDefinition method)
+        {
 
-		}
+        }
 
         private class TypeReferenceComparer : IEqualityComparer<TypeReference>
         {

@@ -38,7 +38,7 @@ namespace Abra
 
         public static Container CreateWithPlugin(IPlugin plugin, params object[] modules)
         {
-            plugin = new RuntimeAggregationPlugin(plugin, new CodegenPlugin());
+            plugin = new RuntimeAggregationPlugin(plugin);
             return AbraContainer.MakeContainer(null, plugin, modules);
         }
 
