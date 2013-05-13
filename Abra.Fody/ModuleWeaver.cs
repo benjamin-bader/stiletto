@@ -114,11 +114,11 @@ namespace Abra.Fody
                 moduleGenerators.Select(gen => gen.GetModuleTypeAndGeneratedCtor()));
 
             pluginGenerator.Validate(this);
-            var plugin = pluginGenerator.Generate(this);
-            ModuleDefinition.Types.Add(plugin);
+            ModuleDefinition.Types.Add(pluginGenerator.Generate(this));
 
-            // Find all Abra.Container.Create invocations
-            // Replace them with a call to Container.CreateGenerated
+            foreach (var method in GetContainerCreateInvocations()) {
+                RewriteContainerCreateInvocations(method, pluginGenerator.GeneratedCtor);
+            }
         }
 
         public void EnqueueProviderBinding(string providerKey, TypeReference providedType)
@@ -156,19 +156,41 @@ namespace Abra.Fody
 
         private IEnumerable<MethodDefinition> GetContainerCreateInvocations()
         {
-            return from t in ModuleDefinition.Types
+            return from t in ModuleDefinition.GetTypes()
                    from m in t.Methods
                    where m.HasBody
                    let instrs = m.Body.Instructions
-                   where instrs.Any(i => i.OpCode == OpCodes.Callvirt
+                   where instrs.Any(i => i.OpCode == OpCodes.Call
                                       && i.Operand is MethodReference
                                       && ((MethodReference)i.Operand).AreSame(References.Container_Create))
                    select m;
         }
 
-        private void RewriteContainerCreateInvocations(MethodDefinition method)
+        private void RewriteContainerCreateInvocations(MethodDefinition method, MethodReference pluginCtor)
         {
+            if (!method.HasBody) {
+                return;
+            }
 
+            for (var instr = method.Body.Instructions.First(); instr != null; instr = instr.Next) {
+                if (instr == null) {
+                    break;
+                }
+
+                if (instr.OpCode != OpCodes.Call && instr.OpCode != OpCodes.Callvirt) {
+                    continue;
+                }
+
+                var methodReference = (MethodReference) instr.Operand;
+
+                if (!methodReference.AreSame(References.Container_Create)) {
+                    continue;
+                }
+
+                // Container.Create(object[]) -> Container.CreateWithPlugin(object[], IPlugin);
+                method.Body.GetILProcessor().InsertBefore(instr, Instruction.Create(OpCodes.Newobj, pluginCtor));
+                instr.Operand = References.Container_CreateWithPlugin;
+            }
         }
 
         private class TypeReferenceComparer : IEqualityComparer<TypeReference>

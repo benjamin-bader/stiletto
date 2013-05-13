@@ -9,32 +9,27 @@ namespace Abra.Fody.Generators
 {
     public class PluginGenerator : Generator
     {
+        private readonly IEnumerable<KeyedCtor> injectBindingCtors;
+        private readonly IEnumerable<KeyedCtor> lazyBindingCtors;
+        private readonly IEnumerable<KeyedCtor> providerBindingCtors;
+        private readonly IEnumerable<Tuple<TypeReference, MethodReference>> runtimeModuleCtors;
+        private readonly MethodReference bindingFnCtor;
+        private readonly MethodReference bindingFnInvoke;
+        private readonly MethodReference lazyFnCtor;
+        private readonly MethodReference lazyFnInvoke;
+        private readonly MethodReference providerFnCtor;
+        private readonly MethodReference providerFnInvoke;
+        private readonly MethodReference moduleFnCtor;
+        private readonly MethodReference moduleFnInvoke;
+
         private TypeDefinition plugin;
         private FieldDefinition injectsField;
         private FieldDefinition lazyInjectsField;
         private FieldDefinition providersField;
         private FieldDefinition modulesField;
-
-        private IEnumerable<KeyedCtor> injectBindingCtors;
-        private IEnumerable<KeyedCtor> lazyBindingCtors;
-        private IEnumerable<KeyedCtor> providerBindingCtors;
-        private IEnumerable<Tuple<TypeReference, MethodReference>> runtimeModuleCtors;
-
-        private MethodReference bindingFnCtor;
-        private MethodReference bindingFnInvoke;
-
-        private MethodReference lazyFnCtor;
-        private MethodReference lazyFnInvoke;
-
-        private MethodReference providerFnCtor;
-        private MethodReference providerFnInvoke;
-
-        private MethodReference moduleFnCtor;
-        private MethodReference moduleFnInvoke;
+        private int factoryMethodsGenerated;
 
         public MethodReference GeneratedCtor { get; private set; }
-
-        private int factoryMethodsGenerated;
 
         public PluginGenerator(
             ModuleDefinition moduleDefinition,
@@ -97,11 +92,22 @@ namespace Abra.Fody.Generators
             return Tuple.Create(ctor, invoke);
         }
 
-        public override void Validate (IWeaver weaver)
+        public override void Validate(IWeaver weaver)
         {
         }
 
-        public override TypeDefinition Generate (IWeaver weaver)
+        /// <summary>
+        /// Generates an IPlugin implementation that provides the given
+        /// inject bindings, lazy bindings, provider bindings, and modules,
+        /// at runtime.
+        /// </summary>
+        /// <remarks>
+        /// The idea here is that we have a key and constructor methodref for all generated
+        /// types; we can just wrap each methodref in a so-called factory function and maintain
+        /// dictionaries of keys to factory Funcs; at runtime, either the proper Func is looked
+        /// up or a KeyNotFoundException is thrown, passing the job off to other plugins.
+        /// </remarks>
+        public override TypeDefinition Generate(IWeaver weaver)
         {
             plugin = new TypeDefinition(
                 ModuleDefinition.Assembly.Name.Name,
@@ -133,12 +139,28 @@ namespace Abra.Fody.Generators
 
         public override KeyedCtor GetKeyedCtor ()
         {
-            // Not used here, this is the KeyedCtor consumer.
             return null;
         }
 
         private void EmitCtor()
         {
+            /**
+             * public $CompiledBinding$()
+             *     : base()
+             * {
+             *     bindings = new Dictionary<string, Func<Binding>>(StringComparer.Ordinal);
+             *     bindings.Add("key0-N", this.InjectBindingFactory_0-N);
+             * 
+             *     lazyBindings = new Dictionary<string, Func<string, object, string, Binding>>(StringComparer.Ordinal);
+             *     lazyBindings.Add("lazyKey0-N", this.LazyInjectBindingFactory_0-N);
+             * 
+             *     providerBindings = new Dictionary<string, Func<string, object, bool, string, Binding>>(StringComparer.Ordinal);
+             *     providerBindings.Add("providerKey0-N", this.ProviderBindingFactory_0-N);
+             * 
+             *     modules = new Dictionary<Type, Func<RuntimeModule>>();
+             *     modules.Add(typeof(ModuleType0-N), this.ModuleFactory_0-N);
+             * }
+             */
             var ctor = new MethodDefinition(
                 ".ctor",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
@@ -209,8 +231,10 @@ namespace Abra.Fody.Generators
                 il.Emit (OpCodes.Ldarg_0);
                 il.Emit (OpCodes.Ldftn, factory);
                 il.Emit (OpCodes.Newobj, moduleFnCtor);
-                il.Emit (OpCodes.Callvirt, References.DictionaryOfTypeToModuleFn_Add);
+                il.Emit (OpCodes.Call, References.DictionaryOfTypeToModuleFn_Add);
             }
+
+            il.Emit (OpCodes.Ret);
 
             plugin.Methods.Add(ctor);
             GeneratedCtor = ctor;
@@ -220,7 +244,7 @@ namespace Abra.Fody.Generators
             ILProcessor il,
             string key,
             MethodReference factory,
-            FieldDefinition field,
+            FieldReference field,
             MethodReference fnCtor,
             MethodReference addFn)
         {
@@ -230,11 +254,17 @@ namespace Abra.Fody.Generators
             il.Emit (OpCodes.Ldarg_0);
             il.Emit (OpCodes.Ldftn, factory);
             il.Emit (OpCodes.Newobj, fnCtor);
-            il.Emit (OpCodes.Callvirt, addFn);
+            il.Emit (OpCodes.Call, addFn);
         }
 
         private MethodDefinition EmitInjectFactory(MethodReference ctor)
         {
+            /**
+             * private Binding InjectBindingFactory_N()
+             * {
+             *     return new CompiledBindingN();
+             * }
+             */
             var factory = new MethodDefinition(
                 "InjectBindingFactory_" + (factoryMethodsGenerated++),
                 MethodAttributes.Private,
@@ -242,7 +272,6 @@ namespace Abra.Fody.Generators
 
             var il = factory.Body.GetILProcessor();
             il.Emit (OpCodes.Newobj, ctor);
-            il.Emit (OpCodes.Castclass, References.Binding);
             il.Emit (OpCodes.Ret);
 
             return factory;
@@ -250,6 +279,12 @@ namespace Abra.Fody.Generators
 
         private MethodDefinition EmitLazyFactory(MethodReference ctor)
         {
+            /**
+             * private Binding LazyInjectBindingFactory_N(string key, object requiredBy, string lazyKey)
+             * {
+             *     return new CompiledLazyBinding(key, requiredBy, lazyKey);
+             * }
+             */
             var factory = new MethodDefinition(
                 "LazyInjectBindingFactory_" + (factoryMethodsGenerated++),
                 MethodAttributes.Private,
@@ -271,6 +306,12 @@ namespace Abra.Fody.Generators
 
         private MethodDefinition EmitProviderFactory(MethodReference ctor)
         {
+            /**
+             * private Binding ProviderBindingFactory_N(string key, object requiredBy, bool mustBeInjectable, string providerKey)
+             * {
+             *     return new CompiledProviderBinding(key, requiredBy, mustBeInjectable, providerKey);
+             * }
+             */
             var factory = new MethodDefinition(
                 "ProviderBindingFactory_" + (factoryMethodsGenerated++),
                 MethodAttributes.Private,
@@ -294,6 +335,12 @@ namespace Abra.Fody.Generators
 
         private MethodDefinition EmitModuleFactory(MethodReference ctor)
         {
+            /**
+             * private RuntimeModule ModuleFactory_N()
+             * {
+             *     return new CompiledRuntimeModuleN();
+             * }
+             */
             var factory = new MethodDefinition(
                 "ModuleFactory_" + (factoryMethodsGenerated++),
                 MethodAttributes.Private,
@@ -308,9 +355,15 @@ namespace Abra.Fody.Generators
 
         private void EmitGetInjectBinding()
         {
+            /**
+             * public virtual Binding GetInjectBinding(string key, string className, object requiredBy)
+             * {
+             *     return bindings[key]();
+             * }
+             */
             var getInjectBinding = new MethodDefinition(
                 "GetInjectBinding",
-                MethodAttributes.Public,
+                MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
                 References.Binding);
 
             getInjectBinding.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
@@ -330,9 +383,15 @@ namespace Abra.Fody.Generators
 
         private void EmitGetLazyInjectBinding()
         {
+            /**
+             * public virtual Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
+             * {
+             *     return lazyBindings[lazyKey](key, requiredBy, lazyKey);
+             * }
+             */
             var getLazy = new MethodDefinition(
                 "GetLazyInjectBinding",
-                MethodAttributes.Public,
+                MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
                 References.Binding);
 
             getLazy.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
@@ -355,9 +414,15 @@ namespace Abra.Fody.Generators
 
         private void EmitGetIProviderInjectBinding()
         {
+            /**
+             * public virtual Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
+             * {
+             *     return providerBindings[providerKey](key, requiredBy, mustBeInjectable, providerKey);
+             * }
+             */
             var getProvider = new MethodDefinition(
                 "GetIProviderInjectBinding",
-                MethodAttributes.Public,
+                MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
                 References.Binding);
 
             getProvider.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
@@ -384,9 +449,15 @@ namespace Abra.Fody.Generators
 
         private void EmitGetRuntimeModule()
         {
+            /**
+             * public virtual RuntimeModule GetRuntimeModule(Type type, object instance)
+             * {
+             *     return modules[type]();
+             * }
+             */
             var getModule = new MethodDefinition(
                 "GetRuntimeModule",
-                MethodAttributes.Public,
+                MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
                 References.RuntimeModule);
 
             getModule.Parameters.Add(new ParameterDefinition("type", ParameterAttributes.None, References.Type));
@@ -404,4 +475,3 @@ namespace Abra.Fody.Generators
         }
     }
 }
-

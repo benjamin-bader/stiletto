@@ -22,19 +22,16 @@ namespace Abra.Fody.Generators
             this.lazyKey = Conditions.CheckNotNull(lazyKey, "lazyKey");
             this.lazyElementType = Conditions.CheckNotNull(lazyElementType, "lazyElementType");
 
-            var genericArgument = lazyElementType;
-            var funcCtor = ImportGeneric(
+            funcCtor = ImportGeneric(
                 References.FuncOfT,
                 m => m.IsConstructor && m.Parameters.Count == 2,
-                genericArgument);
+                lazyElementType);
 
-            var lazyCtor = ImportGeneric(
+            lazyCtor = ImportGeneric(
                 References.LazyOfT,
-                m => m.Parameters.Count == 1 && m.Parameters[0].ParameterType.Name.StartsWith("Func"),
-                genericArgument);
-
-            this.lazyCtor = lazyCtor;
-            this.funcCtor = funcCtor;
+                m => m.Parameters.Count == 1
+                     && m.Parameters[0].ParameterType.Name.StartsWith("Func", StringComparison.Ordinal),
+                lazyElementType);
         }
 
         public override void Validate(IWeaver weaver)
@@ -69,7 +66,7 @@ namespace Abra.Fody.Generators
             return new KeyedCtor(lazyKey, generatedCtor);
         }
 
-        private void EmitCtor(TypeDefinition lazyBinding, FieldDefinition lazyKeyField)
+        private void EmitCtor(TypeDefinition lazyBinding, FieldReference lazyKeyField)
         {
             var ctor = new MethodDefinition(
                 ".ctor",
@@ -98,7 +95,7 @@ namespace Abra.Fody.Generators
             generatedCtor = ctor;
         }
 
-        private void EmitResolve(TypeDefinition lazyBinding, FieldDefinition lazyKeyField, FieldDefinition delegateBindingField)
+        private void EmitResolve(TypeDefinition lazyBinding, FieldReference lazyKeyField, FieldReference delegateBindingField)
         {
             var resolve = new MethodDefinition(
                 "Resolve",
@@ -122,7 +119,7 @@ namespace Abra.Fody.Generators
             lazyBinding.Methods.Add(resolve);
         }
 
-        private void EmitGet(TypeDefinition lazyBinding, FieldDefinition delegateBindingField)
+        private void EmitGet(TypeDefinition lazyBinding, FieldReference delegateBindingField)
         {
             var get = new MethodDefinition(
                 "Get",
