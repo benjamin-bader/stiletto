@@ -90,21 +90,35 @@ namespace Abra.Internal.Plugins.Reflection
                 args[i] = paramterBindings[i].Get();
             }
 
-            var result = ctor.Invoke(args);
-            InjectProperties(result);
-            return result;
+            try
+            {
+                var result = ctor.Invoke(args);
+                InjectProperties(result);
+                return result;
+            }
+            catch (TargetInvocationException ex)
+            {
+                throw ex.InnerException;
+            }
         }
 
         public override void InjectProperties(object target)
         {
-            for (var i = 0; i < properties.Length; ++i)
+            try
             {
-                properties[i].SetValue(target, propertyBindings[i].Get(), null);
-            }
+                for (var i = 0; i < properties.Length; ++i)
+                {
+                    properties[i].SetValue(target, propertyBindings[i].Get(), null);
+                }
 
-            if (baseTypeBinding != null)
+                if (baseTypeBinding != null)
+                {
+                    baseTypeBinding.InjectProperties(target);
+                }
+            }
+            catch (TargetInvocationException ex)
             {
-                baseTypeBinding.InjectProperties(target);
+                throw ex.InnerException;
             }
         }
 
