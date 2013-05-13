@@ -66,6 +66,9 @@ namespace Abra.Fody
                     moduleTypes.Add(t);
                 } else if (IsInject(t)) {
                     injectTypes.Add(t);
+                } else if (PluginGenerator.GeneratedPluginName.Equals(t.Name, StringComparison.Ordinal)) {
+                    LogWarning("This assembly has already had injectors generated, will not continue.");
+                    return;
                 }
             }
 
@@ -155,6 +158,8 @@ namespace Abra.Fody
 
         private void Initialize()
         {
+            LogWarning = LogWarning ?? Console.WriteLine;
+            LogError = LogError ?? Console.WriteLine;
             References.Initialize(ModuleDefinition);
         }
 

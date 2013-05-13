@@ -27,7 +27,9 @@ namespace Abra.Fody
     {
         public static void Main(string[] args)
         {
-            var asm = @"/Users/ben/Development/abra-ioc/Abra.Test/bin/Debug/Abra.Test.dll";
+            var asm = args.Length > 0
+                ? args[0]
+                : @"C:\Users\ben\Development\Abra\Example\bin\Debug\Example.exe";
             var ad = AssemblyDefinition.ReadAssembly(asm, new ReaderParameters { ReadSymbols = true });
             var md = ad.MainModule;
 

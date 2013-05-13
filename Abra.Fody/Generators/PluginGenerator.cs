@@ -25,6 +25,8 @@ namespace Abra.Fody.Generators
 {
     public class PluginGenerator : Generator
     {
+        public const string GeneratedPluginName = "$CompiledPlugin$";
+
         private readonly IEnumerable<KeyedCtor> injectBindingCtors;
         private readonly IEnumerable<KeyedCtor> lazyBindingCtors;
         private readonly IEnumerable<KeyedCtor> providerBindingCtors;
@@ -127,7 +129,7 @@ namespace Abra.Fody.Generators
         {
             plugin = new TypeDefinition(
                 ModuleDefinition.Assembly.Name.Name,
-                "$CompiledPlugin$",
+                GeneratedPluginName,
                 TypeAttributes.Public | TypeAttributes.Sealed,
                 ModuleDefinition.TypeSystem.Object);
 
