@@ -8,9 +8,8 @@
     <ProjectGuid>{D2A6D060-F0C0-4618-9D0F-B9D592053689}</ProjectGuid>
     <ProjectTypeGuids>{6BC8ED88-2882-458C-8E55-DFD12B67127B};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
-    <RootNamespace>Abra.Monotouch</RootNamespace>
+    <RootNamespace>Abra</RootNamespace>
     <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
-    <AssemblyName>Abra.Monotouch</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,6 +20,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
+    <AssemblyName>Abra</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
@@ -30,9 +30,18 @@
     <WarningLevel>4</WarningLevel>
     <ConsolePause>false</ConsolePause>
     <DefineConstants>MONOTOUCH;</DefineConstants>
+    <AssemblyName>Abra</AssemblyName>
   </PropertyGroup>
   <PropertyGroup>
     <DefineConstants>MONOTOUCH;</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CodegenDebug|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\CodegenDebug</OutputPath>
+    <DefineConstants>MONOTOUCH;</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <AssemblyName>Abra</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
