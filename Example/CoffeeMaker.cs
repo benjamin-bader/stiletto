@@ -1,5 +1,6 @@
 ﻿using System;
 using Abra;
+using LibraryExample;
 
 namespace Example
 {
@@ -11,11 +12,14 @@ namespace Example
         [Inject]
         public IPump Pump { get; set; }
 
+        [Inject]
+        public IBeans Beans { get; set; }
+
         public void Brew()
         {
             Heater.Value.On();
             Pump.Pump();
-            Console.WriteLine("[_]P coffee is ready!");
+            Console.WriteLine("[_]P coffee from {0} is ready!", Beans.Origin);
             Heater.Value.Off();
         }
     }

@@ -26,6 +26,7 @@ namespace Abra.Fody.Generators
         private readonly MethodDefinition providerMethod;
         private readonly TypeDefinition moduleType;
         private readonly string key;
+        private readonly bool isLibrary;
 
         public MethodDefinition ProviderMethod
         {
@@ -42,41 +43,80 @@ namespace Abra.Fody.Generators
             get { return key; }
         }
 
+        public bool IsLibrary
+        {
+            get { return isLibrary; }
+        }
+
+        public bool IsSingleton { get; private set; }
+        public IList<string> ParamKeys { get; private set; } 
+
         public MethodDefinition GeneratedCtor { get; private set; }
 
         // Sadness, but this won't be available at construction time and needs to be provided via a property.
         public TypeDefinition RuntimeModuleType { get; set; }
 
-        public ProviderMethodBindingGenerator(ModuleDefinition moduleDefinition, TypeDefinition moduleType, MethodDefinition providerMethod)
-            : base(moduleDefinition)
+        public ProviderMethodBindingGenerator(
+            ModuleDefinition moduleDefinition,
+            References references,
+            TypeDefinition moduleType,
+            MethodDefinition providerMethod,
+            bool isLibrary)
+            : base(moduleDefinition, references)
         {
             this.providerMethod = Conditions.CheckNotNull(providerMethod, "providerMethod");
             this.moduleType = Conditions.CheckNotNull(moduleType, "moduleType");
+            this.isLibrary = isLibrary;
 
             var name = ProviderMethod.GetNamedAttributeName();
             key = CompilerKeys.ForType(ProviderMethod.ReturnType, name);
         }
 
-        public override void Validate(IWeaver weaver)
+        public override void Validate(IErrorReporter errorReporter)
         {
+            ParamKeys = new List<string>();
+            foreach (var param in ProviderMethod.Parameters) {
+                ParamKeys.Add(CompilerKeys.ForParam(param));
+            }
+
             if (ProviderMethod.HasGenericParameters) {
-                weaver.LogError("Provider methods cannot be generic: " + ProviderMethod.FullName);
+                errorReporter.LogError("Provider methods cannot be generic: " + ProviderMethod.FullName);
+            }
+
+            if (ProviderMethod.IsStatic) {
+                errorReporter.LogError("Provider methods cannot be static: " + ProviderMethod.FullName);
+            }
+
+            if (ProviderMethod.MethodReturnType.ReturnType.Name == "Lazy`1") {
+                errorReporter.LogError("Provider methods cannot return System.Lazy<T> directly: " + ProviderMethod.FullName);
+            }
+
+            if (ProviderMethod.ReturnType.Name == "IProvider`1") {
+                errorReporter.LogError("Provider methods cannot return IProvider<T> directly: " + ProviderMethod.FullName);
+            }
+
+            if (ProviderMethod.IsPrivate) {
+                errorReporter.LogError("Provider methods cannot be private: " + ProviderMethod.FullName);
+            }
+
+            if (ProviderMethod.IsAbstract) {
+                errorReporter.LogError("Provider methods cannot be abstract: " + ProviderMethod.FullName);
             }
         }
 
-        public override TypeDefinition Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IErrorReporter errorReporter)
         {
             Conditions.CheckNotNull(RuntimeModuleType, "RuntimeModuleType");
             var providerType = new TypeDefinition(
                 RuntimeModuleType.Namespace,
                 "ProviderBinding_" + RuntimeModuleType.NestedTypes.Count,
                 TypeAttributes.NestedPublic,
-                References.Binding);
+                References.ProviderMethodBindingBase);
 
             providerType.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
             providerType.DeclaringType = RuntimeModuleType;
 
-            var isSingleton = ProviderMethod.CustomAttributes.Any(Attributes.IsSingletonAttribute);
+            IsSingleton = ProviderMethod.CustomAttributes.Any(Attributes.IsSingletonAttribute);
             var moduleField = new FieldDefinition("module", FieldAttributes.Private, ModuleType);
             providerType.Fields.Add(moduleField);
 
@@ -87,9 +127,10 @@ namespace Abra.Fody.Generators
                 providerType.Fields.Add(field);
                 parameters.Add(param);
                 fields.Add(field);
+                ParamKeys.Add(CompilerKeys.ForParam(param));
             }
 
-            EmitCtor(providerType, moduleField, isSingleton);
+            EmitCtor(providerType, moduleField);
             EmitResolve(providerType, parameters, fields);
             EmitGetDependencies(providerType, fields);
             EmitGet(providerType, moduleField, parameters, fields);
@@ -105,7 +146,7 @@ namespace Abra.Fody.Generators
             return null;
         }
 
-        private void EmitCtor(TypeDefinition providerBindingType, FieldReference moduleField, bool singleton)
+        private void EmitCtor(TypeDefinition providerBindingType, FieldReference moduleField)
         {
             var ctor = new MethodDefinition(
                 ".ctor",
@@ -118,13 +159,22 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldstr, Key);
             il.Emit(OpCodes.Ldnull);
-            il.EmitBoolean(singleton);
-            il.EmitType(ModuleType);
-            il.Emit(OpCodes.Call, References.Binding_Ctor);
+            il.EmitBoolean(IsSingleton);
+            il.Emit(OpCodes.Ldtoken, ModuleType);
+            il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
+            il.Emit(OpCodes.Ldstr, ModuleType.FullName);
+            il.Emit(OpCodes.Ldstr, ProviderMethod.Name);
+            il.Emit(OpCodes.Call, References.ProviderMethodBindingBase_Ctor);
 
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Stfld, moduleField);
+
+            if (IsLibrary) {
+                il.Emit(OpCodes.Ldarg_0);
+                il.EmitBoolean(true);
+                il.Emit(OpCodes.Callvirt, References.Binding_IsLibrarySetter);
+            }
 
             il.Emit(OpCodes.Ret);
 
@@ -152,9 +202,11 @@ namespace Abra.Fody.Generators
 
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldarg_1);
-                il.Emit(OpCodes.Ldstr, CompilerKeys.ForParam(param));
-                il.EmitType(ModuleType);
+                il.Emit(OpCodes.Ldstr, ParamKeys[i]);
+                il.Emit(OpCodes.Ldtoken, ModuleType);
+                il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
                 il.EmitBoolean(true);
+                il.EmitBoolean(IsLibrary);
                 il.Emit(OpCodes.Callvirt, References.Resolver_RequestBinding);
                 il.Emit(OpCodes.Stfld, field);
             }

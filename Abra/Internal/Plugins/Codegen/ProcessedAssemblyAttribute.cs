@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,21 +15,15 @@
  */
 
 ﻿using System;
-﻿using Mono.Cecil;
 
-namespace Abra.Fody
+namespace Abra.Internal.Plugins.Codegen
 {
-    public static class Extensions
+    /// <summary>
+    /// Represents a marker indicating that the annotated module has already
+    /// been processed and contains compiler-generated code.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Module)]
+    public class ProcessedAssemblyAttribute : Attribute
     {
-        public static TResult Maybe<TInput, TResult>(this TInput input, Func<TInput, TResult> result)
-            where TInput : class
-            where TResult : class
-        {
-            if (input == null) {
-                return null;
-            }
-
-            return result(input);
-        }
     }
 }

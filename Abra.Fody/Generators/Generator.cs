@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -28,19 +28,22 @@ namespace Abra.Fody.Generators
     public abstract class Generator
     {
         private readonly ModuleDefinition moduleDefinition;
+        private readonly References references;
 
         public ModuleDefinition ModuleDefinition
         {
             get { return moduleDefinition; }
         }
 
-        protected Generator(ModuleDefinition moduleDefinition)
+        protected References References
         {
-            if (moduleDefinition == null) {
-                throw new ArgumentNullException("moduleDefinition");
-            }
+            get { return references; }
+        }
 
-            this.moduleDefinition = moduleDefinition;
+        protected Generator(ModuleDefinition moduleDefinition, References references)
+        {
+            this.moduleDefinition = Conditions.CheckNotNull(moduleDefinition, "moduleDefinition");
+            this.references = Conditions.CheckNotNull(references, "references");
         }
 
         protected TypeReference Import(Type t)
@@ -85,8 +88,8 @@ namespace Abra.Fody.Generators
                 .MakeHostInstanceGeneric(genericArguments);
         }
 
-        public abstract void Validate(IWeaver weaver);
-        public abstract TypeDefinition Generate(IWeaver weaver);
+        public abstract void Validate(IErrorReporter errorReporter);
+        public abstract TypeDefinition Generate(IErrorReporter errorReporter);
         public abstract KeyedCtor GetKeyedCtor();
     }
 }

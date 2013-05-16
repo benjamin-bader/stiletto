@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-﻿using System;
+ using System;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -25,6 +25,7 @@ namespace Abra.Fody.Generators
 {
     public class LazyBindingGenerator : Generator
     {
+        private readonly string key;
         private readonly string lazyKey;
         private readonly TypeReference lazyElementType;
         private readonly MethodReference lazyCtor;
@@ -32,9 +33,13 @@ namespace Abra.Fody.Generators
 
         private MethodReference generatedCtor;
 
-        public LazyBindingGenerator(ModuleDefinition moduleDefinition, string lazyKey, TypeReference lazyElementType)
-            : base(moduleDefinition)
+        public string Key { get { return key; } }
+        public string LazyKey { get { return lazyKey; } }
+
+        public LazyBindingGenerator(ModuleDefinition moduleDefinition, References references, string key, string lazyKey, TypeReference lazyElementType)
+            : base(moduleDefinition, references)
         {
+            this.key = Conditions.CheckNotNull(key, "key");
             this.lazyKey = Conditions.CheckNotNull(lazyKey, "lazyKey");
             this.lazyElementType = Conditions.CheckNotNull(lazyElementType, "lazyElementType");
 
@@ -50,11 +55,11 @@ namespace Abra.Fody.Generators
                 lazyElementType);
         }
 
-        public override void Validate(IWeaver weaver)
+        public override void Validate(IErrorReporter errorReporter)
         {
         }
 
-        public override TypeDefinition Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IErrorReporter errorReporter)
         {
             var t = new TypeDefinition(
                 lazyElementType.Namespace,
@@ -127,6 +132,7 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ldfld, lazyKeyField);
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Callvirt, References.Binding_RequiredByGetter);
+            il.EmitBoolean(true);
             il.EmitBoolean(true);
             il.Emit(OpCodes.Callvirt, References.Resolver_RequestBinding);
             il.Emit(OpCodes.Stfld, delegateBindingField);

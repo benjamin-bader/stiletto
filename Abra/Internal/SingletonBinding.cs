@@ -42,6 +42,12 @@ namespace Abra.Internal
             set { binding.IsVisiting = value; }
         }
 
+        public override bool IsLibrary
+        {
+            get { return binding.IsLibrary; }
+            set { binding.IsLibrary = value; }
+        }
+
         internal SingletonBinding(Binding binding)
             : base(binding.ProviderKey, binding.MembersKey, true, binding.RequiredBy)
         {

@@ -18,7 +18,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Mono.Cecil;
+﻿using Abra.Internal.Plugins.Codegen;
+﻿using Mono.Cecil;
 
 namespace Abra.Fody
 {
@@ -53,6 +54,11 @@ namespace Abra.Fody
         public static bool IsSingletonAttribute(this CustomAttribute attribute)
         {
             return Is(attribute, SingletonAttributeName);
+        }
+
+        public static bool IsProcessedAssemblyAttribute(this CustomAttribute attribute)
+        {
+            return Is(attribute, typeof(ProcessedAssemblyAttribute).FullName);
         }
 
         public static string GetNamedAttributeName(this MethodReturnType returnType)

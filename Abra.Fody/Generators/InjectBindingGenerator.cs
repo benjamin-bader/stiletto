@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -36,13 +34,13 @@ namespace Abra.Fody.Generators
         public string BaseTypeKey { get; private set; }
         public bool IsSingleton { get; private set; }
         public MethodDefinition InjectableCtor { get; private set; }
-        public IList<PropertyDefinition> InjectableProperties { get; private set; }
+        public IList<PropertyInfo> InjectableProperties { get; private set; }
         public bool IsEntryPoint { get { return isEntryPoint; } }
-        public IList<ParameterDefinition> CtorParams { get; private set; }
+        public IList<InjectMemberInfo> CtorParams { get; private set; }
         public TypeDefinition InjectedType { get { return injectedType; } }
 
-        public InjectBindingGenerator(ModuleDefinition moduleDefinition, TypeReference injectedType, bool isEntryPoint)
-            : base(moduleDefinition)
+        public InjectBindingGenerator(ModuleDefinition moduleDefinition, References references, TypeReference injectedType, bool isEntryPoint)
+            : base(moduleDefinition, references)
         {
             this.injectedType = injectedType.IsDefinition
                                     ? (TypeDefinition) injectedType
@@ -50,10 +48,10 @@ namespace Abra.Fody.Generators
             this.isEntryPoint = isEntryPoint;
         }
 
-        public override void Validate(IWeaver weaver)
+        public override void Validate(IErrorReporter errorReporter)
         {
             if (injectedType.HasGenericParameters) {
-                weaver.LogError("Open generic types may not be injected: " + injectedType.FullName);
+                errorReporter.LogError("Open generic types may not be injected: " + injectedType.FullName);
                 return;
             }
 
@@ -68,11 +66,11 @@ namespace Abra.Fody.Generators
 
             foreach (var ctor in injectableCtors) {
                 if (InjectableCtor != null) {
-                    weaver.LogError(string.Format("{0} has more than one injectable constructor.", injectedType.FullName));
+                    errorReporter.LogError(string.Format("{0} has more than one injectable constructor.", injectedType.FullName));
                 }
 
                 if (!ctor.Attributes.IsVisible()) {
-                    weaver.LogError("{0} has an injectable constructor, but it is not accessible.  Consider making it public.");
+                    errorReporter.LogError("{0} has an injectable constructor, but it is not accessible.  Consider making it public.");
                 }
 
                 InjectableCtor = ctor;
@@ -82,42 +80,36 @@ namespace Abra.Fody.Generators
                 .Properties
                 .Where(p => p.DeclaringType == injectedType)
                 .Where(p => p.CustomAttributes.Any(Attributes.IsInjectAttribute))
+                .Select(p => new PropertyInfo(p))
                 .ToList();
 
             foreach (var p in InjectableProperties) {
-                if (p.SetMethod == null) {
-                    weaver.LogError(string.Format("{0} is marked [Inject] but has no setter.", p.FullName));
+                if (p.Setter == null) {
+                    errorReporter.LogError(string.Format("{0} is marked [Inject] but has no setter.", p.MemberName));
                     continue;
                 }
 
-                if (!p.SetMethod.Attributes.IsVisible()) {
+                if (!p.Setter.Attributes.IsVisible()) {
                     const string msg = "{0}.{1} is marked [Inject], but has no visible setter.  Consider adding a public setter.";
-                    weaver.LogError(string.Format(msg, injectedType.FullName, p.Name));
-                    continue;
+                    errorReporter.LogError(string.Format(msg, injectedType.FullName, p.PropertyName));
                 }
-
-                EnqueueParameterizedBindings(weaver, CompilerKeys.ForProperty(p), p.PropertyType);
             }
 
             if (InjectableCtor == null) {
                 if (InjectableProperties.Count == 0 && !IsEntryPoint) {
-                    weaver.LogError("No injectable constructors or properties found on " + injectedType.FullName);
+                    errorReporter.LogError("No injectable constructors or properties found on " + injectedType.FullName);
                 }
 
                 var defaultCtor = injectedType.GetConstructors().FirstOrDefault(ctor => !ctor.HasParameters);
                 if (defaultCtor == null) {
-                    weaver.LogError("Type " + injectedType.FullName + " has no [Inject] constructors and no default constructor.");
+                    errorReporter.LogError("Type " + injectedType.FullName + " has no [Inject] constructors and no default constructor.");
                     return;
                 }
 
                 InjectableCtor = defaultCtor;
             }
 
-            CtorParams = InjectableCtor.Parameters.ToList();
-
-            foreach (var param in CtorParams) {
-                EnqueueParameterizedBindings(weaver, CompilerKeys.ForParam(param), param.ParameterType);
-            }
+            CtorParams = InjectableCtor.Parameters.Select(p => new InjectMemberInfo(p)).ToList();
 
             var baseType = injectedType.BaseType;
             var baseTypeAsmName = baseType.Maybe(type => type.Scope)
@@ -139,7 +131,7 @@ namespace Abra.Fody.Generators
             }
         }
 
-        public override TypeDefinition Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IErrorReporter errorReporter)
         {
             var injectBinding = new TypeDefinition(
                 injectedType.Namespace,
@@ -152,7 +144,7 @@ namespace Abra.Fody.Generators
             var propertyFields = new List<FieldDefinition>(InjectableProperties.Count);
 
             foreach (var property in InjectableProperties) {
-                var propertyBinding = new FieldDefinition(property.Name, FieldAttributes.Private, References.Binding);
+                var propertyBinding = new FieldDefinition(property.PropertyName, FieldAttributes.Private, References.Binding);
                 injectBinding.Fields.Add(propertyBinding);
                 propertyFields.Add(propertyBinding);
             }
@@ -199,7 +191,8 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Ldstr, Key);
             il.Emit(OpCodes.Ldstr, MembersKey);
             il.EmitBoolean(IsSingleton);
-            il.EmitType(ModuleDefinition.Import(injectedType));
+            il.Emit(OpCodes.Ldtoken, injectedType);
+            il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
             il.Emit(OpCodes.Call, References.Binding_Ctor);
 
             il.Emit(OpCodes.Ret);
@@ -251,9 +244,10 @@ namespace Abra.Fody.Generators
 
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldarg_1);
-                il.Emit(OpCodes.Ldstr, CompilerKeys.ForProperty(property));
-                il.Emit(OpCodes.Ldstr, property.FullName);
-                il.EmitBoolean(true);
+                il.Emit(OpCodes.Ldstr, property.Key);
+                il.Emit(OpCodes.Ldstr, property.MemberName);
+                il.EmitBoolean(true);  // mustBeInjectable
+                il.EmitBoolean(false); // isLibrary
                 il.Emit(OpCodes.Callvirt, References.Resolver_RequestBinding);
                 il.Emit(OpCodes.Stfld, field);
             }
@@ -269,8 +263,9 @@ namespace Abra.Fody.Generators
                     il.Emit(OpCodes.Ldloc, vParamsArray);
                     il.Emit(OpCodes.Ldc_I4, i);
                     il.Emit(OpCodes.Ldarg_1);
-                    il.Emit(OpCodes.Ldstr, CompilerKeys.ForParam(param));
+                    il.Emit(OpCodes.Ldstr, param.Key);
                     il.Emit(OpCodes.Ldstr, InjectableCtor.FullName);
+                    il.EmitBoolean(true);
                     il.EmitBoolean(true);
                     il.Emit(OpCodes.Callvirt, References.Resolver_RequestBinding);
                     il.Emit(OpCodes.Stelem_Ref);
@@ -285,8 +280,10 @@ namespace Abra.Fody.Generators
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Ldstr, BaseTypeKey);
-                il.EmitType(injectedType.BaseType);
+                il.Emit(OpCodes.Ldtoken, injectedType.BaseType);
+                il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
                 il.EmitBoolean(false);
+                il.EmitBoolean(true);
                 il.Emit(OpCodes.Callvirt, References.Resolver_RequestBinding);
                 il.Emit(OpCodes.Stfld, baseTypeField);
             }
@@ -359,7 +356,7 @@ namespace Abra.Fody.Generators
                 il.Emit(OpCodes.Ldc_I4, i);
                 il.Emit(OpCodes.Ldelem_Ref);
                 il.Emit(OpCodes.Callvirt, References.Binding_Get);
-                il.Cast(param.ParameterType);
+                il.Cast(param.Type);
             }
 
             il.Emit(OpCodes.Newobj, ModuleDefinition.Import(InjectableCtor));
@@ -402,15 +399,14 @@ namespace Abra.Fody.Generators
             for (var i = 0; i < InjectableProperties.Count; ++i) {
                 var property = InjectableProperties[i];
                 var field = propertyFields[i];
-                var setter = property.SetMethod;
 
                 il.Emit(OpCodes.Ldloc, vObj);
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, field);
                 il.Emit(OpCodes.Callvirt, References.Binding_Get);
-                il.Cast(property.PropertyType);
+                il.Cast(property.Type);
                 
-                il.Emit(OpCodes.Callvirt, ModuleDefinition.Import(setter));
+                il.Emit(OpCodes.Callvirt, ModuleDefinition.Import(property.Setter));
             }
 
             if (baseTypeField != null) {
@@ -424,23 +420,6 @@ namespace Abra.Fody.Generators
 
             injectBinding.Methods.Add(injectProperties);
             return injectProperties;
-        }
-
-        private static void EnqueueParameterizedBindings(IWeaver weaver, string key, TypeReference typeref)
-        {
-            var providerKey = CompilerKeys.GetProviderKey(key);
-            if (providerKey != null)
-            {
-                var genericParamType = (GenericInstanceType) typeref;
-                weaver.EnqueueProviderBinding(providerKey, genericParamType.GenericArguments.Single());
-            }
-
-            var lazyKey = CompilerKeys.GetLazyKey(key);
-            if (lazyKey != null)
-            {
-                var genericParamType = (GenericInstanceType) typeref;
-                weaver.EnqueueLazyBinding(lazyKey, genericParamType.GenericArguments.Single());
-            }
         }
     }
 }

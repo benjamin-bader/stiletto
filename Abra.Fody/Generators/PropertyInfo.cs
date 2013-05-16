@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,19 +14,30 @@
  * limitations under the License.
  */
 
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Mono.Cecil;
 
-namespace Abra.Fody
+namespace Abra.Fody.Generators
 {
-    public interface IWeaver
+    public class PropertyInfo : InjectMemberInfo
     {
-        void EnqueueProviderBinding(string providerKey, TypeReference providedType);
-        void EnqueueLazyBinding(string lazyKey, TypeReference lazyType);
-        void LogWarning(string message);
-        void LogError(string message);
+        private readonly MethodDefinition setter;
+        private readonly string propertyName;
+
+        public MethodDefinition Setter
+        {
+            get { return setter; }
+        }
+
+        public string PropertyName
+        {
+            get { return propertyName; }
+        }
+
+        public PropertyInfo(PropertyDefinition property)
+            : base(property)
+        {
+            setter = property.SetMethod;
+            propertyName = property.Name;
+        }
     }
 }

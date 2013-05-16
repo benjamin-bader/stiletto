@@ -63,7 +63,7 @@ namespace Abra.Internal
             return new Dictionary<string, Binding>(bindings, Key.Comparer);
         }
 
-        public Binding RequestBinding(string key, object requiredBy, bool mustBeInjectable = true)
+        public Binding RequestBinding(string key, object requiredBy, bool mustBeInjectable = true, bool isLibrary = false)
         {
             Binding binding = null;
             for (var resolver = this; resolver != null; resolver = resolver.baseResolver)
@@ -81,6 +81,8 @@ namespace Abra.Internal
             if (binding == null)
             {
                 var deferredBinding = new DeferredBinding(key, requiredBy, mustBeInjectable);
+                deferredBinding.IsLibrary = isLibrary;
+                deferredBinding.IsDependedOn = true;
                 bindingsToResolve.Enqueue(deferredBinding);
                 attachSuccess = false;
                 return null;
@@ -91,6 +93,8 @@ namespace Abra.Internal
                 bindingsToResolve.Enqueue(binding);
             }
 
+            binding.IsLibrary = isLibrary;
+            binding.IsDependedOn = true;
             return binding;
         }
 
@@ -115,6 +119,8 @@ namespace Abra.Internal
                     try
                     {
                         var jitBinding = CreateJitBinding(key, binding.RequiredBy, mustBeInjectable);
+                        jitBinding.IsLibrary = binding.IsLibrary;
+                        jitBinding.IsDependedOn = binding.IsDependedOn;
                         if (!key.Equals(jitBinding.ProviderKey) && !key.Equals(jitBinding.MembersKey))
                         {
                             var ex = new InvalidOperationException();

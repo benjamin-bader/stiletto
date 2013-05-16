@@ -47,15 +47,21 @@ namespace Abra
         /// </returns>
         public static Container Create(params object[] modules)
         {
-            var plugin = new RuntimeAggregationPlugin(
-                new CodegenPlugin(), new ReflectionPlugin());
+            var plugins = ReflectionUtils.GetCompiledPlugins();
+            plugins.Add(new CodegenPlugin());
+            plugins.Add(new ReflectionPlugin());
+
+            var plugin = new RuntimeAggregationPlugin(plugins.ToArray());
             return AbraContainer.MakeContainer(null, plugin, modules);
         }
 
-        public static Container CreateWithPlugin(object[] modules, IPlugin plugin)
+        public static Container CreateWithPlugins(object[] modules, IPlugin[] plugins)
         {
-            plugin = new RuntimeAggregationPlugin(plugin);
-            return AbraContainer.MakeContainer(null, plugin, modules);
+            var allPlugins = new IPlugin[plugins.Length + 2];
+            Array.Copy(plugins, allPlugins, plugins.Length);
+            allPlugins[plugins.Length] = new CodegenPlugin();
+            allPlugins[plugins.Length + 1] = new ReflectionPlugin();
+            return AbraContainer.MakeContainer(null, new RuntimeAggregationPlugin(allPlugins), modules);
         }
 
         private class AbraContainer : Container

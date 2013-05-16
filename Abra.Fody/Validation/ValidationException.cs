@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-﻿using System;
-﻿using Mono.Cecil;
+using System;
 
-namespace Abra.Fody
+namespace Abra.Fody.Validation
 {
-    public static class Extensions
+    public class ValidationException : ApplicationException
     {
-        public static TResult Maybe<TInput, TResult>(this TInput input, Func<TInput, TResult> result)
-            where TInput : class
-            where TResult : class
+        public ValidationException(string message)
+            : base(message)
         {
-            if (input == null) {
-                return null;
-            }
+        }
 
-            return result(input);
+        public ValidationException(string message, Exception innerException)
+            : base(message, innerException)
+        {
         }
     }
 }

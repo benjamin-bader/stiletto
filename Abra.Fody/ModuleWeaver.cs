@@ -16,18 +16,28 @@
 
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Xml.Linq;
+﻿using System.IO;
+﻿using System.Linq;
+﻿using System.Reflection;
+﻿using System.Xml.Linq;
 using Abra.Fody.Generators;
-using Mono.Cecil;
+﻿using Abra.Fody.Validation;
+﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 
 namespace Abra.Fody
 {
-    public class ModuleWeaver : IWeaver
+    public class ModuleWeaver
     {
+        private ErrorReporter errorReporter;
+
+        public bool IsPrimary { get; set; }
+        public bool HasError { get { return errorReporter.HasError; } }
+        public References References { get; set; }
+
+        #region Fody-provided members
+
         public XElement Config { get; set; }
         public ModuleDefinition ModuleDefinition { get; set; }
 
@@ -37,27 +47,58 @@ namespace Abra.Fody
         public Action<string, SequencePoint> LogWarningPoint { get; set; }
         public Action<string, SequencePoint> LogErrorPoint { get; set; }
 
-        private bool hasError;
-        private IList<ProviderBindingGenerator> providerGenerators = new List<ProviderBindingGenerator>();
-        private IList<LazyBindingGenerator> lazyGenerators = new List<LazyBindingGenerator>();
+        public List<string> ReferenceCopyLocalPaths { get; set; }
 
-        private Queue<Generator> generators = new Queue<Generator>();
+        #endregion
 
-        void IWeaver.LogError(string message)
+        public MethodReference GeneratedPluginConstructor { get; private set; }
+        public IList<ModuleGenerator> GeneratedModules { get; private set; }
+
+        private List<MethodReference> subweaverPluginConstructors = new List<MethodReference>();
+        private List<ModuleGenerator> subweaverModules = new List<ModuleGenerator>();
+
+        public ModuleWeaver()
+            : this(true, null)
         {
-            hasError = true;
-            LogError(message);
         }
 
-        void IWeaver.LogWarning(string message)
+        private ModuleWeaver(bool isPrimary, ErrorReporter errorReporter)
         {
-            LogWarning(message);
+            IsPrimary = isPrimary;
+            this.errorReporter = errorReporter ?? new ErrorReporter(this);
+            GeneratedModules = new List<ModuleGenerator>();
         }
 
+        /// <summary>
+        /// The entry point when invoked as part of the Fody pipeline.
+        /// </summary>
+        /// <remarks>
+        /// The workflow here is:
+        /// <list type="bullet">
+        /// Verify that the module is processable
+        /// Validate that injectable types and modules are individually valid as declared
+        /// Validate the object graph that they represent, i.e. that complete modules have no unsatisfied dependencies
+        /// Generate binding and module adapters
+        /// Generate an <see cref="Abra.Internal.IPlugin"/> implementation containing the generated adapters
+        /// Rewrite all Container.Create invocations in the module with Container.CreateWithPlugin invocations, using the generated plugin.
+        /// </list>
+        /// </remarks>
         public void Execute()
         {
-            Initialize();
+            References = new References(ModuleDefinition);
 
+            // Step 1: Make sure we haven't already processed this module.
+            if (!EnsureModuleIsProcessable()) {
+                return;
+            }
+
+            ForkSubsidiaryWeaversIfPrimary();
+
+            // Step 2: Discover and validate all injectable elements.  These are:
+            //         1. Types containing [Inject] members
+            //         2. Types with a [Module] attribute
+            //         3. [Inject] members of type System.Lazy<T>
+            //         4. [Inject] members of type IProvider<T>
             var moduleTypes = new List<TypeDefinition>();
             var injectTypes = new List<TypeDefinition>();
 
@@ -66,51 +107,56 @@ namespace Abra.Fody
                     moduleTypes.Add(t);
                 } else if (IsInject(t)) {
                     injectTypes.Add(t);
-                } else if (PluginGenerator.GeneratedPluginName.Equals(t.Name, StringComparison.Ordinal)) {
-                    LogWarning("This assembly has already had injectors generated, will not continue.");
-                    return;
                 }
             }
 
-            var internalInjectTypes = new HashSet<TypeReference>(injectTypes, new TypeReferenceComparer());
+            var moduleGenerators = moduleTypes.Select(m => new ModuleGenerator(ModuleDefinition, References, m)).ToList();
+            var injectGenerators = GatherInjectBindings(
+                injectTypes,
+                moduleGenerators.SelectMany(m => m.EntryPoints));
 
-            var moduleGenerators = moduleTypes.Select(m => new ModuleGenerator(ModuleDefinition, m)).ToList();
-
-            var entryPoints = from m in moduleGenerators
-                              from e in m.EntryPoints
-                              select e;
-
-            var injectGenerators = new List<Generator>();
-            foreach (var e in entryPoints) {
-                if (internalInjectTypes.Contains(e)) {
-                    internalInjectTypes.Remove(e);
-                }
-
-                injectGenerators.Add(new InjectBindingGenerator(ModuleDefinition, e, true));
-            }
-
-            foreach (var i in internalInjectTypes) {
-                injectGenerators.Add(new InjectBindingGenerator(ModuleDefinition, i, false));
-            }
-
+            var generators = new Queue<Generator>();
             foreach (var m in moduleGenerators) {
-                m.Validate(this);
+                m.Validate(errorReporter);
                 generators.Enqueue(m);
             }
 
             foreach (var i in injectGenerators) {
-                i.Validate(this);
+                i.Validate(errorReporter);
                 generators.Enqueue(i);
             }
 
-            if (hasError) {
+            IList<LazyBindingGenerator> lazyGenerators;
+            IList<ProviderBindingGenerator> providerGenerators;
+            GetherParameterizedBindings(injectGenerators, out lazyGenerators, out providerGenerators);
+
+            foreach (var g in lazyGenerators) {
+                g.Validate(errorReporter);
+                generators.Enqueue(g);
+            }
+
+            foreach (var g in providerGenerators) {
+                g.Validate(errorReporter);
+                generators.Enqueue(g);
+            }
+
+            if (errorReporter.HasError) {
                 return;
             }
 
+            // Step 3: Now that we know individual elements are all valid, validate the object graph as a whole.
+            new Validator(errorReporter, injectGenerators, lazyGenerators, providerGenerators, moduleGenerators.Concat(subweaverModules))
+                .ValidateCompleteModules();
+
+            if (errorReporter.HasError) {
+                return;
+            }
+
+            // Step 4: The graph is valid, emit generated adapters.
             var generatedTypes = new HashSet<TypeDefinition>(new TypeReferenceComparer());
             while (generators.Count > 0) {
                 var current = generators.Dequeue();
-                var newType = current.Generate(this);
+                var newType = current.Generate(errorReporter);
 
                 if (!generatedTypes.Add(newType)) {
                     continue;
@@ -123,58 +169,285 @@ namespace Abra.Fody
                 }
             }
 
-            generators = null;
+            if (errorReporter.HasError) {
+                return;
+            }
 
+            // Step 5: Emit a plugin that uses the generated adapters[
             var pluginGenerator = new PluginGenerator(
                 ModuleDefinition,
+                References,
                 injectGenerators.Select(gen => gen.GetKeyedCtor()),
                 lazyGenerators.Select(gen => gen.GetKeyedCtor()),
                 providerGenerators.Select(gen => gen.GetKeyedCtor()),
                 moduleGenerators.Select(gen => gen.GetModuleTypeAndGeneratedCtor()));
 
-            pluginGenerator.Validate(this);
-            ModuleDefinition.Types.Add(pluginGenerator.Generate(this));
+            ModuleDefinition.Types.Add(pluginGenerator.Generate(errorReporter));
+            
+            subweaverPluginConstructors.Insert(0, pluginGenerator.GeneratedCtor);
 
+            if (errorReporter.HasError) {
+                return;
+            }
+
+            // Step 6: Rewrite uses of Container to use the generated plugin.
             foreach (var method in GetContainerCreateInvocations()) {
-                RewriteContainerCreateInvocations(method, pluginGenerator.GeneratedCtor);
+                RewriteContainerCreateInvocations(method);
+            }
+
+            GeneratedPluginConstructor = pluginGenerator.GeneratedCtor;
+            GeneratedModules = moduleGenerators;
+
+            // Done!
+        }
+
+        private IList<InjectBindingGenerator> GatherInjectBindings(
+            IEnumerable<TypeDefinition> injectTypes,
+            IEnumerable<TypeReference> entryPoints)
+        {
+            var internalInjectTypes = new HashSet<TypeReference>(injectTypes, new TypeReferenceComparer());
+            var injectGenerators = new List<InjectBindingGenerator>();
+
+            foreach (var e in entryPoints) {
+                if (internalInjectTypes.Contains(e)) {
+                    internalInjectTypes.Remove(e);
+                }
+
+                injectGenerators.Add(new InjectBindingGenerator(ModuleDefinition, References, e, true));
+            }
+
+            injectGenerators.AddRange(internalInjectTypes.Select(i => new InjectBindingGenerator(ModuleDefinition, References, i, false)));
+
+            return injectGenerators;
+        }
+
+        private void GetherParameterizedBindings(
+            IEnumerable<InjectBindingGenerator> injectBindings,
+            out IList<LazyBindingGenerator> lazyBindings,
+            out IList<ProviderBindingGenerator> providerBindings)
+        {
+            lazyBindings = new List<LazyBindingGenerator>();
+            providerBindings = new List<ProviderBindingGenerator>();
+
+            foreach (var inject in injectBindings) {
+                LazyBindingGenerator lazyGenerator;
+                ProviderBindingGenerator providerGenerator;
+
+                foreach (var param in inject.CtorParams) {
+                    if (TryGetLazyBinding(param, inject.InjectedType, "Constructor parameter", out lazyGenerator)) {
+                        lazyBindings.Add(lazyGenerator);
+                    }
+
+                    if (TryGetProviderBinding(param, inject.InjectedType, "Constructor parameter", out providerGenerator)) {
+                        providerBindings.Add(providerGenerator);
+                    }
+                }
+
+                foreach (var prop in inject.InjectableProperties) {
+                    if (TryGetLazyBinding(prop, inject.InjectedType, "Property", out lazyGenerator)) {
+                        lazyBindings.Add(lazyGenerator);
+                    }
+
+                    if (TryGetProviderBinding(prop, inject.InjectedType, "Property", out providerGenerator)) {
+                        providerBindings.Add(providerGenerator);
+                    }
+                }
             }
         }
 
-        public void EnqueueProviderBinding(string providerKey, TypeReference providedType)
+        private void ForkSubsidiaryWeaversIfPrimary()
         {
-            var gen = new ProviderBindingGenerator(ModuleDefinition, providerKey, providedType);
-            gen.Validate(this);
-            providerGenerators.Add(gen);
-            generators.Enqueue(gen);
+            if (!IsPrimary) {
+                return;
+            }
+
+            Initialize();
+
+            var copyLocalAssemblies = new Dictionary<string, bool>(StringComparer.Ordinal);
+            var queue = new Queue<string>();
+            foreach (var copyLocal in ReferenceCopyLocalPaths) {
+                if (copyLocal.EndsWith(".pdb") || copyLocal.EndsWith(".mdb")) {
+                    queue.Enqueue(copyLocal);
+                    continue;
+                }
+
+                if (copyLocal.EndsWith(".exe") || copyLocal.EndsWith(".dll")) {
+                    copyLocalAssemblies[copyLocal] = false;
+                }
+            }
+
+            while (queue.Count > 0) {
+                var pdb = queue.Dequeue();
+                var rawPath = Path.Combine(Path.GetDirectoryName(pdb), Path.GetFileNameWithoutExtension(pdb));
+                var dll = rawPath + ".dll";
+                var exe = rawPath + ".exe";
+                
+                if (copyLocalAssemblies.ContainsKey(dll)) {
+                    copyLocalAssemblies[dll] = true;
+                }
+
+                if (copyLocalAssemblies.ContainsKey(exe)) {
+                    copyLocalAssemblies[exe] = true;
+                }
+            }
+
+            foreach (var pathAndHasPdb in copyLocalAssemblies) {
+                var path = pathAndHasPdb.Key;
+                var hasPdb = pathAndHasPdb.Value;
+                var assembly = AssemblyDefinition.ReadAssembly(path, new ReaderParameters {ReadSymbols = hasPdb});
+
+                foreach (var module in assembly.Modules) {
+                    var subWeaver = new ModuleWeaver(false, errorReporter)
+                                        {
+                                            LogWarning = LogWarning,
+                                            LogError = LogError,
+                                            ModuleDefinition = module
+                                        };
+
+                    subWeaver.Execute();
+
+                    if (subWeaver.HasError) {
+                        return;
+                    }
+
+                    subweaverPluginConstructors.Add(ModuleDefinition.Import(subWeaver.GeneratedPluginConstructor));
+                    subweaverModules.AddRange(subWeaver.GeneratedModules);
+                }
+
+                assembly.Write(path, new WriterParameters {WriteSymbols = hasPdb});
+            }
         }
 
-        public void EnqueueLazyBinding(string lazyKey, TypeReference lazyType)
+        private bool TryGetProviderBinding(InjectMemberInfo injectMemberInfo, TypeDefinition containingType, string memberTypeName, out ProviderBindingGenerator generator)
         {
-            var gen = new LazyBindingGenerator(ModuleDefinition, lazyKey, lazyType);
-            gen.Validate(this);
-            lazyGenerators.Add(gen);
-            generators.Enqueue(gen);
+            return TryGetParameterizedBinding(
+                injectMemberInfo,
+                containingType,
+                memberTypeName,
+                "IProvider<T>",
+                imi => imi.HasProviderKey,
+                (imi, t) => new ProviderBindingGenerator(ModuleDefinition, References, imi.Key, imi.ProviderKey, t),
+                out generator);
         }
 
+        private bool TryGetLazyBinding(InjectMemberInfo injectMemberInfo, TypeReference containingType, string memberTypeName, out LazyBindingGenerator generator)
+        {
+            return TryGetParameterizedBinding(
+                injectMemberInfo,
+                containingType,
+                memberTypeName,
+                "Lazy<T>",
+                imi => imi.HasLazyKey,
+                (imi, t) => new LazyBindingGenerator(ModuleDefinition, References, imi.Key, imi.LazyKey, t),
+                out generator);
+        }
+
+        private bool TryGetParameterizedBinding<TGenerator>(
+            InjectMemberInfo injectMemberInfo,
+            TypeReference containingType,
+            string memberTypeName,
+            string providedTypeName,
+            Predicate<InjectMemberInfo> isParameterizedBinding,
+            Func<InjectMemberInfo, TypeReference, TGenerator> selector,
+            out TGenerator generator)
+        {
+            generator = default(TGenerator);
+
+            if (!isParameterizedBinding(injectMemberInfo)) {
+                return false;
+            }
+
+            var memberType = injectMemberInfo.Type as GenericInstanceType;
+            if (memberType == null || memberType.GenericArguments.Count != 1)
+            {
+                var error = string.Format(
+                    "{0} '{1}' of type '{2}' was detected as '{3}' but is actually a '{4}'; please report this as a bug.",
+                    memberTypeName,
+                    injectMemberInfo.MemberName,
+                    containingType.FullName,
+                    providedTypeName,
+                    injectMemberInfo.Type.FullName);
+                errorReporter.LogError(error);
+                return false;
+            }
+
+            generator = selector(injectMemberInfo, memberType.GenericArguments[0]);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Prepares the weaving environment.
+        /// </summary>
         private void Initialize()
         {
             LogWarning = LogWarning ?? Console.WriteLine;
             LogError = LogError ?? Console.WriteLine;
-            References.Initialize(ModuleDefinition);
         }
 
+        /// <summary>
+        /// Checks the current module for the presence of a marker attribute.
+        /// If the attribute is present, then the current module has already
+        /// been processed by this weaver, and processing should halt. 
+        /// </summary>
+        /// <returns>
+        /// Returns <see langword="true"/> if the module is processable, and
+        /// <see langword="false"/> otherwise.
+        /// </returns>
+        private bool EnsureModuleIsProcessable()
+        {
+            if (ModuleDefinition.CustomAttributes.Any(Attributes.IsProcessedAssemblyAttribute)) {
+                LogWarning("This assembly has already had injectors generated, will not continue.");
+                return false;
+            }
+
+            ModuleDefinition.CustomAttributes.Add(new CustomAttribute(References.ProcessedAssemblyAttribute_Ctor));
+            return true;
+        }
+
+        /// <summary>
+        /// Checks if a given <paramref name="type"/> is a module.
+        /// </summary>
+        /// <remarks>
+        /// To be a module, a type must be decorated with a [Module] attribute.
+        /// </remarks>
+        /// <param name="type">
+        /// The possible module.
+        /// </param>
+        /// <returns>
+        /// Returns <see langword="true"/> if the give <paramref name="type"/>
+        /// is a module, and <see langword="false"/> otherwise.
+        /// </returns>
         private static bool IsModule(TypeDefinition type)
         {
             return type.HasCustomAttributes
                 && type.CustomAttributes.Any(Attributes.IsModuleAttribute);
         }
 
+        /// <summary>
+        /// Checks if a given <paramref name="type"/> is injectable.
+        /// </summary>
+        /// <remarks>
+        /// To be "injectable", a type needs to have at least one property
+        /// or constructor decorated with an [Inject] attribute.
+        /// </remarks>
+        /// <param name="type">
+        /// The possibly-injectable type.
+        /// </param>
+        /// <returns>
+        /// Returns <see langword="true"/> if the given <paramref name="type"/>
+        /// is injectable, and <see langword="false"/> otherwise.
+        /// </returns>
         private static bool IsInject(TypeDefinition type)
         {
             return type.GetConstructors().Any(c => c.CustomAttributes.Any(Attributes.IsInjectAttribute))
                 || type.Properties.Any(p => p.CustomAttributes.Any(Attributes.IsInjectAttribute));
         }
-
+         
+        /// <summary>
+        /// Gets all method definitions in the current module that contain calls
+        /// to <see cref="Container.Create"/>.
+        /// </summary>
         private IEnumerable<MethodDefinition> GetContainerCreateInvocations()
         {
             return from t in ModuleDefinition.GetTypes()
@@ -187,17 +460,22 @@ namespace Abra.Fody
                    select m;
         }
 
-        private void RewriteContainerCreateInvocations(MethodDefinition method, MethodReference pluginCtor)
+        /// <summary>
+        /// Replaces all invocations of <see cref="Container.Create"/> with a
+        /// call to <see cref="Container.CreateWithPlugin"/> using the given
+        /// generated plugin.
+        /// </summary>
+        /// <param name="method">
+        /// The method whose container creations are to be rewritten.
+        /// </param>
+        private void RewriteContainerCreateInvocations(MethodDefinition method)
         {
             if (!method.HasBody) {
                 return;
             }
 
+            VariableDefinition pluginsArray = null;
             for (var instr = method.Body.Instructions.First(); instr != null; instr = instr.Next) {
-                if (instr == null) {
-                    break;
-                }
-
                 if (instr.OpCode != OpCodes.Call && instr.OpCode != OpCodes.Callvirt) {
                     continue;
                 }
@@ -208,9 +486,35 @@ namespace Abra.Fody
                     continue;
                 }
 
+                if (pluginsArray == null) {
+                    pluginsArray = new VariableDefinition(
+                        "plugins",
+                        ModuleDefinition.Import(new ArrayType(References.IPlugin)));
+                    method.Body.Variables.Add(pluginsArray);
+                    method.Body.InitLocals = true;
+                }
+
                 // Container.Create(object[]) -> Container.CreateWithPlugin(object[], IPlugin);
-                method.Body.GetILProcessor().InsertBefore(instr, Instruction.Create(OpCodes.Newobj, pluginCtor));
-                instr.Operand = References.Container_CreateWithPlugin;
+                var instrs = new List<Instruction>();
+                instrs.Add(Instruction.Create(OpCodes.Ldc_I4, subweaverPluginConstructors.Count));
+                instrs.Add(Instruction.Create(OpCodes.Newarr, References.IPlugin));
+                instrs.Add(Instruction.Create(OpCodes.Stloc, pluginsArray));
+
+                for (var i = 0; i < subweaverPluginConstructors.Count; ++i) {
+                    instrs.Add(Instruction.Create(OpCodes.Ldloc, pluginsArray));
+                    instrs.Add(Instruction.Create(OpCodes.Ldc_I4, i));
+                    instrs.Add(Instruction.Create(OpCodes.Newobj, subweaverPluginConstructors[i]));
+                    instrs.Add(Instruction.Create(OpCodes.Stelem_Ref));
+                }
+
+                instrs.Add(Instruction.Create(OpCodes.Ldloc, pluginsArray));
+
+                var il = method.Body.GetILProcessor();
+                foreach (var instruction in instrs) {
+                    il.InsertBefore(instr, instruction);
+                }
+
+                instr.Operand = References.Container_CreateWithPlugins;
             }
         }
 
@@ -229,6 +533,29 @@ namespace Abra.Fody
             public int GetHashCode(TypeReference obj)
             {
                 return obj.FullName.GetHashCode();
+            }
+        }
+
+        private class ErrorReporter : IErrorReporter
+        {
+            private readonly ModuleWeaver weaver;
+
+            public bool HasError { get; private set; }
+
+            public ErrorReporter(ModuleWeaver weaver)
+            {
+                this.weaver = weaver;
+            }
+
+            public void LogWarning(string message)
+            {
+                weaver.LogWarning(message);
+            }
+
+            public void LogError(string message)
+            {
+                weaver.LogError(message);
+                HasError = true;
             }
         }
     }

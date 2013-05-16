@@ -27,6 +27,7 @@ namespace Abra.Internal
         private readonly string[] entryPoints;
         private readonly Type[] includes;
         private readonly bool complete;
+        private readonly bool isLibrary;
 
         protected Type ModuleType
         {
@@ -48,9 +49,14 @@ namespace Abra.Internal
             get { return complete; }
         }
 
+        public bool IsLibrary
+        {
+            get { return isLibrary; }
+        }
+
         public object Module { get; set; }
 
-        protected RuntimeModule(Type moduleType, string[] entryPoints, Type[] includes, bool complete)
+        protected RuntimeModule(Type moduleType, string[] entryPoints, Type[] includes, bool complete, bool isLibrary)
         {
             Conditions.CheckNotNull(moduleType, "moduleType");
             Conditions.CheckNotNull(entryPoints, "entryPoints");
@@ -60,6 +66,7 @@ namespace Abra.Internal
             this.entryPoints = entryPoints;
             this.includes = includes;
             this.complete = complete;
+            this.isLibrary = isLibrary;
         }
 
         public virtual void GetBindings(IDictionary<string, Binding> bindings)

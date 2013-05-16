@@ -17,39 +17,46 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Abra.Internal;
-using Mono.Cecil;
+﻿using Abra.Fody.Generators;
+﻿using Abra.Internal;
 
 namespace Abra.Fody.Validation
 {
     public class CompilerPlugin : IPlugin
     {
-        private IDictionary<string, TypeDefinition> bindings;
- 
-        public CompilerPlugin(IDictionary<string, TypeDefinition> bindings)
+        private readonly IDictionary<string, CompilerBinding> bindings;
+        private readonly IDictionary<string, CompilerParameterizedBinding> lazyBindings;
+        private readonly IDictionary<string, CompilerParameterizedBinding> providerBindings;
+
+        public CompilerPlugin(
+            IEnumerable<InjectBindingGenerator> bindings,
+            IEnumerable<LazyBindingGenerator> lazyBindings,
+            IEnumerable<ProviderBindingGenerator> providerBindings)
         {
-            
+            var comparer = StringComparer.Ordinal;
+            this.bindings = bindings.ToDictionary(b => b.Key, b => new CompilerBinding(b), comparer);
+            this.lazyBindings = lazyBindings.ToDictionary(b => b.Key, b => new CompilerParameterizedBinding(b), comparer);
+            this.providerBindings = providerBindings.ToDictionary(b => b.Key, b => new CompilerParameterizedBinding(b), comparer);
         }
 
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
-            throw new NotImplementedException();
+            return bindings[key];
         }
 
         public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
         {
-            throw new NotImplementedException();
+            return lazyBindings[key];
         }
 
         public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
         {
-            throw new NotImplementedException();
+            return providerBindings[key];
         }
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException("Compile-time validation should never call IPlugin.GetRuntimeModule().");
         }
     }
 }

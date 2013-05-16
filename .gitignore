@@ -5,8 +5,10 @@ obj/
 _ReSharper*/
 *.user
 TopHat.Generated.cs
-*.psses
+*.psess
 *.vspx
+
+.nuget/
 
 # MonoDevelop Files
 *.userprefs

@@ -31,12 +31,6 @@ namespace Abra.Fody
             processor.Emit(opcode);
         }
 
-        public static void EmitType(this ILProcessor processor, TypeReference type)
-        {
-            processor.Emit(OpCodes.Ldtoken, type);
-            processor.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
-        }
-
         public static void Cast(this ILProcessor processor, TypeReference type)
         {
             if (type.IsGenericParameter) {

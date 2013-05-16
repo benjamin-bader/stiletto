@@ -15,12 +15,13 @@
  */
 
 ﻿using System;
+﻿using System.Collections.Generic;
 
 namespace Abra.Internal
 {
     internal class RuntimeAggregationPlugin : IPlugin
     {
-        private readonly IPlugin[] plugins;
+        private readonly List<IPlugin> plugins;
 
         internal RuntimeAggregationPlugin(params IPlugin[] plugins)
         {
@@ -34,7 +35,7 @@ namespace Abra.Internal
                 throw new ArgumentException("At least one plugin must be provided.");
             }
 
-            this.plugins = plugins;
+            this.plugins = new List<IPlugin>(plugins);
         }
 
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
@@ -67,12 +68,12 @@ namespace Abra.Internal
 
         private T GetSomethingFromPlugins<T>(Func<IPlugin, T> func)
         {
-            for (var i = 0; i < plugins.Length; ++i) {
+            for (var i = 0; i < plugins.Count; ++i) {
                 try {
                     return func(plugins[i]);
                 }
                 catch (Exception) {
-                    if (i == plugins.Length - 1) {
+                    if (i == plugins.Count - 1) {
                         throw;
                     }
                 }

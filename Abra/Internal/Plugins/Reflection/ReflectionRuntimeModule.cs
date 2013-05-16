@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-﻿using System;
+ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -29,7 +29,8 @@ namespace Abra.Internal.Plugins.Reflection
             : base(moduleType,
                    Array.ConvertAll(attribute.EntryPoints, Key.GetMemberKey),
                    attribute.IncludedModules,
-                   attribute.IsComplete)
+                   attribute.IsComplete,
+                   attribute.IsLibrary)
         {
         }
 
@@ -75,20 +76,23 @@ namespace Abra.Internal.Plugins.Reflection
 
         private void AddNewBinding(IDictionary<string, Binding> bindings, string key, MethodInfo method)
         {
-            bindings[key] = new ProviderMethodBinding(method, key, Module);
+            bindings[key] = new ProviderMethodBinding(method, key, Module, IsLibrary);
         }
 
-        private class ProviderMethodBinding : Binding
+        private class ProviderMethodBinding : ProviderMethodBindingBase
         {
             private readonly MethodInfo method;
             private readonly object target;
             private Binding[] methodParameterBindings;
 
-            public ProviderMethodBinding(MethodInfo method, string providerKey, object target)
-                : base(providerKey, null, method.HasAttribute<SingletonAttribute>(), method)
+            public ProviderMethodBinding(MethodInfo method, string providerKey, object target, bool isLibrary)
+                : base(providerKey, null, method.HasAttribute<SingletonAttribute>(), method,
+                       method.DeclaringType.FullName, method.Name)
             {
                 this.method = method;
                 this.target = target;
+
+                IsLibrary = isLibrary;
             }
 
             public override void Resolve(Resolver resolver)

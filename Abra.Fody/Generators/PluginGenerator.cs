@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,8 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using System.Collections.Generic;
+
+using Abra.Internal.Plugins.Codegen;
 
 namespace Abra.Fody.Generators
 {
@@ -51,11 +53,12 @@ namespace Abra.Fody.Generators
 
         public PluginGenerator(
             ModuleDefinition moduleDefinition,
+            References references,
             IEnumerable<KeyedCtor> injectBindingCtors,
             IEnumerable<KeyedCtor> lazyBindingCtors,
             IEnumerable<KeyedCtor> providerBindingCtors,
             IEnumerable<Tuple<TypeReference, MethodReference>> runtimeModuleCtors)
-            : base(moduleDefinition)
+            : base(moduleDefinition, references)
         {
             var bindingFns = GetFnMethods(References.FuncOfT, References.Binding);
             var lazyFns = GetFnMethods(
@@ -110,7 +113,7 @@ namespace Abra.Fody.Generators
             return Tuple.Create(ctor, invoke);
         }
 
-        public override void Validate(IWeaver weaver)
+        public override void Validate(IErrorReporter errorReporter)
         {
         }
 
@@ -125,11 +128,11 @@ namespace Abra.Fody.Generators
         /// dictionaries of keys to factory Funcs; at runtime, either the proper Func is looked
         /// up or a KeyNotFoundException is thrown, passing the job off to other plugins.
         /// </remarks>
-        public override TypeDefinition Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IErrorReporter errorReporter)
         {
             plugin = new TypeDefinition(
-                ModuleDefinition.Assembly.Name.Name,
-                GeneratedPluginName,
+                CodegenPlugin.CompiledPluginNamespace,
+                CodegenPlugin.CompiledPluginName,
                 TypeAttributes.Public | TypeAttributes.Sealed,
                 ModuleDefinition.TypeSystem.Object);
 
@@ -245,7 +248,8 @@ namespace Abra.Fody.Generators
                 // Different because we don't care about keys for modules, we can just dispatch on type.
                 il.Emit (OpCodes.Ldarg_0);
                 il.Emit (OpCodes.Ldfld, modulesField);
-                il.EmitType(tuple.Item1);
+                il.Emit (OpCodes.Ldtoken, tuple.Item1);
+                il.Emit (OpCodes.Call, References.Type_GetTypeFromHandle);
                 il.Emit (OpCodes.Ldarg_0);
                 il.Emit (OpCodes.Ldftn, factory);
                 il.Emit (OpCodes.Newobj, moduleFnCtor);

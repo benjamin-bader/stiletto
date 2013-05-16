@@ -20,6 +20,10 @@ namespace Abra.Internal.Plugins.Codegen
 {
     public class CodegenPlugin : IPlugin
     {
+        public const string CompiledPluginNamespace = "Abra.Generated";
+        public const string CompiledPluginName = "$CompiledPlugin$";
+        public const string CompiledPluginFullName = CompiledPluginNamespace + "." + CompiledPluginName;
+
         public const string InjectSuffix    = "_CompiledBinding";
         public const string ModuleSuffix    = "_CompiledModule";
         public const string LazySuffix      = "_CompiledLazyBinding";

@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 
-﻿using System;
-﻿using Mono.Cecil;
-
 namespace Abra.Fody
 {
-    public static class Extensions
+    /// <summary>
+    /// Represents an object that can be used to report warnings and errors.
+    /// </summary>
+    public interface IErrorReporter
     {
-        public static TResult Maybe<TInput, TResult>(this TInput input, Func<TInput, TResult> result)
-            where TInput : class
-            where TResult : class
-        {
-            if (input == null) {
-                return null;
-            }
-
-            return result(input);
-        }
+        void LogWarning(string message);
+        void LogError(string message);
     }
 }

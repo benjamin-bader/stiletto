@@ -30,8 +30,10 @@ namespace Abra.Fody.Generators
         private IList<MethodDefinition> baseProvidesMethods;
         private MethodReference moduleCtor;
 
+        public TypeReference ModuleType { get { return moduleType; } }
         public bool IsComplete { get; private set; }
         public bool IsOverride { get; private set; }
+        public bool IsLibrary { get; private set; }
         public ISet<string> ProvidedKeys { get; private set; } 
         public IList<TypeReference> IncludedModules { get; private set; }
         public IList<TypeReference> EntryPoints { get; private set; }
@@ -40,8 +42,8 @@ namespace Abra.Fody.Generators
 
         private MethodReference generatedCtor;
 
-        public ModuleGenerator(ModuleDefinition moduleDefinition, TypeDefinition moduleType)
-            : base(moduleDefinition)
+        public ModuleGenerator(ModuleDefinition moduleDefinition, References references, TypeDefinition moduleType)
+            : base(moduleDefinition, references)
         {
             this.moduleType = Conditions.CheckNotNull(moduleType, "moduleType");;
 
@@ -54,7 +56,8 @@ namespace Abra.Fody.Generators
             CustomAttributeNamedArgument? argComplete = null,
                                           argEntryPoints = null,
                                           argIncludes = null,
-                                          argOverrides = null;
+                                          argOverrides = null,
+                                          argIsLibrary = null;
 
             foreach (var arg in attr.Properties) {
                 switch (arg.Name) {
@@ -70,6 +73,9 @@ namespace Abra.Fody.Generators
                     case "IsOverride":
                         argOverrides = arg;
                         break;
+                    case "IsLibrary":
+                        argIsLibrary = arg;
+                        break;
                     default:
                         throw new Exception("WTF, unexpected ModuleAttribute property: " + arg.Name);
                 }
@@ -77,6 +83,7 @@ namespace Abra.Fody.Generators
 
             IsComplete = argComplete == null || (bool) argComplete.Value.Argument.Value;
             IsOverride = argOverrides != null && (bool) argOverrides.Value.Argument.Value;
+            IsLibrary = argIsLibrary != null && (bool) argIsLibrary.Value.Argument.Value;
 
             EntryPoints = new List<TypeReference>();
             if (argEntryPoints != null) {
@@ -100,27 +107,27 @@ namespace Abra.Fody.Generators
                 .ToList();
 
             ProviderGenerators = baseProvidesMethods
-                .Select(m => new ProviderMethodBindingGenerator(ModuleDefinition, moduleType, m))
+                .Select(m => new ProviderMethodBindingGenerator(ModuleDefinition, References, moduleType, m, IsLibrary))
                 .ToList();
         }
 
-        public override void Validate(IWeaver weaver)
+        public override void Validate(IErrorReporter errorReporter)
         {
             if (moduleType.BaseType != null && moduleType.BaseType.FullName != ModuleDefinition.TypeSystem.Object.FullName) {
-                weaver.LogError("Modules must inherit from System.Object");
+                errorReporter.LogError("Modules must inherit from System.Object");
             }
 
             if (moduleType.IsAbstract) {
-                weaver.LogError("Modules cannot be abstract.");
+                errorReporter.LogError("Modules cannot be abstract.");
             }
 
             moduleCtor = moduleType.GetConstructors().FirstOrDefault(m => m.Parameters.Count == 0);
             if (moduleCtor == null) {
-                weaver.LogError(moduleType.FullName + " is marked as a [Module], but no default constructor is visible.");
+                errorReporter.LogError(moduleType.FullName + " is marked as a [Module], but no default constructor is visible.");
             }
 
             if (IncludedModules.Count == 0 && baseProvidesMethods.Count == 0) {
-                weaver.LogError("Modules must expose at least one [Provides] method.");
+                errorReporter.LogError("Modules must expose at least one [Provides] method.");
             }
 
             ProvidedKeys = new HashSet<string>(StringComparer.Ordinal);
@@ -129,7 +136,7 @@ namespace Abra.Fody.Generators
                 var key = CompilerKeys.ForType(method.ReturnType, name);
 
                 if (!ProvidedKeys.Add(key)) {
-                    weaver.LogError("Duplicate provider key for method " + moduleType.FullName + "." + method.Name);
+                    errorReporter.LogError("Duplicate provider key for method " + moduleType.FullName + "." + method.Name);
                 }
             }
 
@@ -142,18 +149,18 @@ namespace Abra.Fody.Generators
                         if (!ProvidedKeys.Contains(key)) {
                             var msg = "Module type {0} is a complete module but has an unsatisfied dependency on {1}{2}";
                             var nameDescr = name == null ? string.Empty : "[Named(\"" + name + "\")] ";
-                            weaver.LogError(string.Format(msg, moduleType.FullName, nameDescr, param.ParameterType.FullName));
+                            errorReporter.LogError(string.Format(msg, moduleType.FullName, nameDescr, param.ParameterType.FullName));
                         }
                     }
                 }
             }
 
             foreach (var gen in ProviderGenerators) {
-                gen.Validate(weaver);
+                gen.Validate(errorReporter);
             }
         }
 
-        public override TypeDefinition Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IErrorReporter errorReporter)
         {
             var name = moduleType.Name + Internal.Plugins.Codegen.CodegenPlugin.ModuleSuffix;
             var t = new TypeDefinition(moduleType.Namespace, name, moduleType.Attributes, References.RuntimeModule);
@@ -162,7 +169,7 @@ namespace Abra.Fody.Generators
 
             foreach (var gen in ProviderGenerators) {
                 gen.RuntimeModuleType = t;
-                gen.Generate(weaver);
+                gen.Generate(errorReporter);
             }
 
             EmitCtor(t);
@@ -265,16 +272,19 @@ namespace Abra.Fody.Generators
             for (var i = 0; i < IncludedModules.Count; ++i) {
                 il.Emit(OpCodes.Ldloc, vIncludes);
                 il.Emit(OpCodes.Ldc_I4, i);
-                il.EmitType(IncludedModules[i]);
+                il.Emit(OpCodes.Ldtoken, IncludedModules[i]);
+                il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
                 il.Emit(OpCodes.Stelem_Ref);
             }
 
             // Push args (this, moduleType, entryPoints, includes, complete) and call base ctor
             il.Emit(OpCodes.Ldarg_0);
-            il.EmitType(moduleType);
+            il.Emit(OpCodes.Ldtoken, moduleType);
+            il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
             il.Emit(OpCodes.Ldloc, vEntryPoints);
             il.Emit(OpCodes.Ldloc, vIncludes);
             il.EmitBoolean(IsComplete);
+            il.EmitBoolean(IsLibrary);
             il.Emit(OpCodes.Call, References.RuntimeModule_Ctor);
 
             il.Emit(OpCodes.Ret);

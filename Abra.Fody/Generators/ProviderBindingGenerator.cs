@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-﻿using System.Linq;
+ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -24,22 +24,34 @@ namespace Abra.Fody.Generators
     public class ProviderBindingGenerator : Generator
     {
         private readonly TypeReference providedType;
+        private readonly string key;
         private readonly string providerKey;
 
         private MethodReference ctor;
 
-        public ProviderBindingGenerator(ModuleDefinition moduleDefinition, string providerKey, TypeReference providedType)
-            : base(moduleDefinition)
+        public string Key
         {
+            get { return key; }
+        }
+
+        public string ProviderKey
+        {
+            get { return providerKey; }
+        }
+
+        public ProviderBindingGenerator(ModuleDefinition moduleDefinition, References references, string key, string providerKey, TypeReference providedType)
+            : base(moduleDefinition, references)
+        {
+            this.key = Conditions.CheckNotNull(key, "key");
             this.providerKey = Conditions.CheckNotNull(providerKey, "providerKey");
             this.providedType = Conditions.CheckNotNull(providedType, "providedType");
         }
 
-        public override void Validate(IWeaver weaver)
+        public override void Validate(IErrorReporter errorReporter)
         {
         }
 
-        public override TypeDefinition Generate(IWeaver weaver)
+        public override TypeDefinition Generate(IErrorReporter errorReporter)
         {
             var t = new TypeDefinition(
                 providedType.Namespace,
@@ -132,6 +144,7 @@ namespace Abra.Fody.Generators
             il.Emit(OpCodes.Callvirt, References.Binding_RequiredByGetter);
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldfld, mustBeInjectableField);
+            il.EmitBoolean(true);
             il.Emit(OpCodes.Callvirt, References.Resolver_RequestBinding);
             il.Emit(OpCodes.Stfld, delegateBindingField);
             il.Emit(OpCodes.Ret);

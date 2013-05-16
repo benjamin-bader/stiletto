@@ -19,15 +19,18 @@ using System.Collections.Generic;
 
 namespace Abra.Internal
 {
-    public abstract class Binding : Visitable
+    public abstract class Binding
     {
-        public static readonly Binding Unresolved = new UnresolvedBinding();
-
         [Flags]
         private enum BindingState
         {
             IsSingleton = 1,
             IsResolved = 2,
+            IsVisiting = 4,
+            IsCycleFree = 8,
+            IsLibrary = 16,
+            IsDependedOn = 32,
+
         }
 
         private readonly string providerKey;
@@ -49,6 +52,50 @@ namespace Abra.Internal
                 state = value
                     ? (state | BindingState.IsResolved)
                     : (state & ~BindingState.IsResolved);
+            }
+        }
+
+        public virtual bool IsVisiting
+        {
+            get { return (state & BindingState.IsVisiting) == BindingState.IsVisiting; }
+            set
+            {
+                state = value
+                    ? (state | BindingState.IsVisiting)
+                    : (state & ~BindingState.IsVisiting);
+            }
+        }
+
+        public virtual bool IsCycleFree
+        {
+            get { return (state & BindingState.IsCycleFree) == BindingState.IsCycleFree; }
+            set
+            {
+                state = value
+                    ? (state | BindingState.IsCycleFree)
+                    : (state & ~BindingState.IsCycleFree);
+            }
+        }
+
+        public virtual bool IsLibrary
+        {
+            get { return (state & BindingState.IsLibrary) == BindingState.IsLibrary; }
+            set
+            {
+                state = value
+                    ? (state | BindingState.IsLibrary)
+                    : (state & ~BindingState.IsLibrary);
+            }
+        }
+
+        public virtual bool IsDependedOn
+        {
+            get { return (state & BindingState.IsDependedOn) == BindingState.IsDependedOn; }
+            set
+            {
+                state = value
+                    ? (state | BindingState.IsDependedOn)
+                    : (state & ~BindingState.IsDependedOn);
             }
         }
 

@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Abra.Internal.Plugins.Codegen;
 using Mono.Cecil;
 using System.Runtime.CompilerServices;
 
@@ -28,83 +29,90 @@ namespace Abra.Fody
     /// Exposes references to external types and methods scoped to the module
     /// being woven.
     /// </summary>
-    public static class References
+    public class References
     {
-        public static TypeReference Binding { get; private set; }
-        public static MethodReference Binding_Ctor { get; private set; }
-        public static MethodReference Binding_Resolve { get; private set; }
-        public static MethodReference Binding_GetDependencies { get; private set; }
-        public static MethodReference Binding_Get { get; private set; }
-        public static MethodReference Binding_InjectProperties { get; private set; }
-        public static MethodReference Binding_RequiredByGetter { get; private set; }
+        public TypeReference Binding { get; private set; }
+        public MethodReference Binding_Ctor { get; private set; }
+        public MethodReference Binding_Resolve { get; private set; }
+        public MethodReference Binding_GetDependencies { get; private set; }
+        public MethodReference Binding_Get { get; private set; }
+        public MethodReference Binding_InjectProperties { get; private set; }
+        public MethodReference Binding_RequiredByGetter { get; private set; }
+        public MethodReference Binding_IsLibrarySetter { get; private set; }
 
-        public static TypeReference BindingArray { get; private set; }
+        public TypeReference ProviderMethodBindingBase { get; private set; }
+        public MethodReference ProviderMethodBindingBase_Ctor { get; private set; }
 
-        public static TypeReference RuntimeModule { get; private set; }
-        public static MethodReference RuntimeModule_Ctor { get; private set; }
-        public static MethodReference RuntimeModule_Module { get; private set; }
+        public TypeReference BindingArray { get; private set; }
 
-        public static TypeReference Container { get; private set; }
-        public static MethodReference Container_Create { get; private set; }
-        public static MethodReference Container_CreateWithPlugin { get; private set; }
+        public TypeReference RuntimeModule { get; private set; }
+        public MethodReference RuntimeModule_Ctor { get; private set; }
+        public MethodReference RuntimeModule_Module { get; private set; }
 
-        public static TypeReference IPlugin { get; private set; }
-        public static MethodReference IPlugin_GetInjectBinding { get; private set; }
-        public static MethodReference IPlugin_GetLazyInjectBinding { get; private set; }
-        public static MethodReference IPlugin_GetIProviderInjectBinding { get; private set; }
-        public static MethodReference IPlugin_GetRuntimeModue { get; private set; }
+        public TypeReference Container { get; private set; }
+        public MethodReference Container_Create { get; private set; }
+        public MethodReference Container_CreateWithPlugins { get; private set; }
 
-        public static TypeReference SetOfBindings { get; private set; }
-        public static MethodReference SetOfBindings_Add { get; private set; }
-        public static MethodReference SetOfBindings_UnionWith { get; private set; }
+        public TypeReference IPlugin { get; private set; }
+        public MethodReference IPlugin_GetInjectBinding { get; private set; }
+        public MethodReference IPlugin_GetLazyInjectBinding { get; private set; }
+        public MethodReference IPlugin_GetIProviderInjectBinding { get; private set; }
+        public MethodReference IPlugin_GetRuntimeModue { get; private set; }
 
-        public static TypeReference DictionaryOfStringToBinding { get; private set; }
-        public static MethodReference DictionaryOfStringToBinding_Add { get; private set; }
+        public TypeReference SetOfBindings { get; private set; }
+        public MethodReference SetOfBindings_Add { get; private set; }
+        public MethodReference SetOfBindings_UnionWith { get; private set; }
 
-        public static TypeReference DictionaryOfStringToBindingFn { get; private set; }
-        public static MethodReference DictionaryOfStringToBindingFn_New { get; private set; }
-        public static MethodReference DictionaryOfStringToBindingFn_Add { get; private set; }
-        public static MethodReference DictionaryOfStringToBindingFn_Get { get; private set; }
+        public TypeReference DictionaryOfStringToBinding { get; private set; }
+        public MethodReference DictionaryOfStringToBinding_Add { get; private set; }
 
-        public static TypeReference DictionaryOfStringToLazyBindingFn { get; private set; }
-        public static MethodReference DictionaryOfStringToLazyBindingFn_New { get; private set; }
-        public static MethodReference DictionaryOfStringToLazyBindingFn_Add { get; private set; }
-        public static MethodReference DictionaryOfStringToLazyBindingFn_Get { get; private set; }
+        public TypeReference DictionaryOfStringToBindingFn { get; private set; }
+        public MethodReference DictionaryOfStringToBindingFn_New { get; private set; }
+        public MethodReference DictionaryOfStringToBindingFn_Add { get; private set; }
+        public MethodReference DictionaryOfStringToBindingFn_Get { get; private set; }
 
-        public static TypeReference DictionaryOfStringToProviderBindingFn { get; private set; }
-        public static MethodReference DictionaryOfStringToProviderBindingFn_New { get; private set; }
-        public static MethodReference DictionaryOfStringToProviderBindingFn_Add { get; private set; }
-        public static MethodReference DictionaryOfStringToProviderBindingFn_Get { get; private set; }
+        public TypeReference DictionaryOfStringToLazyBindingFn { get; private set; }
+        public MethodReference DictionaryOfStringToLazyBindingFn_New { get; private set; }
+        public MethodReference DictionaryOfStringToLazyBindingFn_Add { get; private set; }
+        public MethodReference DictionaryOfStringToLazyBindingFn_Get { get; private set; }
 
-        public static TypeReference DictionaryOfTypeToModuleFn { get; private set; }
-        public static MethodReference DictionaryOfTypeToModuleFn_New { get; private set; }
-        public static MethodReference DictionaryOfTypeToModuleFn_Add { get; private set; }
-        public static MethodReference DictionaryOfTypeToModuleFn_Get { get; private set; }
+        public TypeReference DictionaryOfStringToProviderBindingFn { get; private set; }
+        public MethodReference DictionaryOfStringToProviderBindingFn_New { get; private set; }
+        public MethodReference DictionaryOfStringToProviderBindingFn_Add { get; private set; }
+        public MethodReference DictionaryOfStringToProviderBindingFn_Get { get; private set; }
 
-        public static TypeReference Resolver { get; private set; }
-        public static MethodReference Resolver_RequestBinding { get; private set; }
+        public TypeReference DictionaryOfTypeToModuleFn { get; private set; }
+        public MethodReference DictionaryOfTypeToModuleFn_New { get; private set; }
+        public MethodReference DictionaryOfTypeToModuleFn_Add { get; private set; }
+        public MethodReference DictionaryOfTypeToModuleFn_Get { get; private set; }
 
-        public static TypeReference Type { get; private set; }
-        public static MethodReference Type_GetTypeFromHandle { get; private set; }
+        public TypeReference Resolver { get; private set; }
+        public MethodReference Resolver_RequestBinding { get; private set; }
 
-        public static TypeReference InjectAttribute { get; private set; }
-        public static TypeReference ModuleAttribute { get; private set; }
-        public static TypeReference NamedAttribute { get; private set; }
-        public static TypeReference ProvidesAttribute { get; private set; }
-        public static TypeReference SingletonAttribute { get; private set; }
+        public TypeReference Type { get; private set; }
+        public MethodReference Type_GetTypeFromHandle { get; private set; }
 
-        public static TypeReference LazyOfT { get; private set; }
+        public TypeReference InjectAttribute { get; private set; }
+        public TypeReference ModuleAttribute { get; private set; }
+        public TypeReference NamedAttribute { get; private set; }
+        public TypeReference ProvidesAttribute { get; private set; }
+        public TypeReference SingletonAttribute { get; private set; }
 
-        public static TypeReference FuncOfT { get; private set; }
-        public static TypeReference FuncOfT4 { get; private set; }
-        public static TypeReference FuncOfT5 { get; private set; }
+        public TypeReference LazyOfT { get; private set; }
 
-        public static TypeReference IProviderOfT { get; private set; }
-        public static MethodReference IProviderOfT_Get { get; private set; }
+        public TypeReference FuncOfT { get; private set; }
+        public TypeReference FuncOfT4 { get; private set; }
+        public TypeReference FuncOfT5 { get; private set; }
 
-        public static MethodReference CompilerGeneratedAttribute { get; private set; }
+        public TypeReference IProviderOfT { get; private set; }
+        public MethodReference IProviderOfT_Get { get; private set; }
 
-        public static void Initialize(ModuleDefinition module)
+        public MethodReference CompilerGeneratedAttribute { get; private set; }
+
+        public TypeReference ProcessedAssemblyAttribute { get; private set; }
+        public MethodReference ProcessedAssemblyAttribute_Ctor { get; private set; }
+
+        public References(ModuleDefinition module)
         {
             Binding = module.Import(typeof (Internal.Binding));
             Binding_Ctor = module.Import(typeof(Internal.Binding).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(string), typeof(string), typeof(bool), typeof(object) }, null));
@@ -113,6 +121,10 @@ namespace Abra.Fody
             Binding_Get = module.Import(typeof (Internal.Binding).GetMethod("Get"));
             Binding_InjectProperties = module.Import(typeof (Internal.Binding).GetMethod("InjectProperties"));
             Binding_RequiredByGetter = module.Import(typeof (Internal.Binding).GetProperty("RequiredBy").GetGetMethod());
+            Binding_IsLibrarySetter = module.Import(typeof (Internal.Binding).GetProperty("IsLibrary").GetSetMethod());
+
+            ProviderMethodBindingBase = module.Import(typeof (Internal.ProviderMethodBindingBase));
+            ProviderMethodBindingBase_Ctor = module.Import(typeof(Internal.ProviderMethodBindingBase).GetConstructor(new[] { typeof(string), typeof(string), typeof(bool), typeof(object), typeof(string), typeof(string) }));
 
             BindingArray = module.Import(typeof (Internal.Binding[]));
 
@@ -120,13 +132,13 @@ namespace Abra.Fody
             RuntimeModule_Ctor = module.Import(typeof(Internal.RuntimeModule)
                 .GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic,
                                 null,
-                                new[] { typeof(Type), typeof(string[]), typeof(Type[]), typeof(bool) },
+                                new[] { typeof(Type), typeof(string[]), typeof(Type[]), typeof(bool), typeof(bool) },
                                 null));
             RuntimeModule_Module = module.Import(typeof (Internal.RuntimeModule).GetProperty("Module").GetGetMethod());
 
             Container = module.Import(typeof (Container));
             Container_Create = module.Import(typeof (Container).GetMethod("Create", new[] {typeof (object[])}));
-            Container_CreateWithPlugin = module.Import(typeof (Container).GetMethod("CreateWithPlugin"));
+            Container_CreateWithPlugins = module.Import(typeof (Container).GetMethod("CreateWithPlugins"));
 
             IPlugin = module.Import(typeof (Internal.IPlugin));
             IPlugin_GetInjectBinding = module.Import (typeof (Internal.IPlugin).GetMethod("GetInjectBinding"));
@@ -187,6 +199,9 @@ namespace Abra.Fody
             IProviderOfT_Get = module.Import(typeof (IProvider<>).GetMethod("Get"));
 
             CompilerGeneratedAttribute = module.Import(typeof(CompilerGeneratedAttribute).GetConstructor(new Type[0]));
+
+            ProcessedAssemblyAttribute = module.Import(typeof (ProcessedAssemblyAttribute));
+            ProcessedAssemblyAttribute_Ctor = module.Import(typeof (ProcessedAssemblyAttribute).GetConstructor(new Type[0]));
         }
     }
 }

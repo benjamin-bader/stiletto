@@ -29,14 +29,20 @@ namespace Abra.Fody
         {
             var asm = args.Length > 0
                 ? args[0]
-                : @"C:\Users\ben\Development\Abra\Example\bin\Debug\Example.exe";
+                : @"C:\Users\ben\Development\abra-ioc\Example\bin\Debug\Example.exe";
             var ad = AssemblyDefinition.ReadAssembly(asm, new ReaderParameters { ReadSymbols = true });
             var md = ad.MainModule;
 
             var weaver = new ModuleWeaver()
                              {
                                  LogError = Console.WriteLine,
-                                 ModuleDefinition = md
+                                 ModuleDefinition = md,
+                                 ReferenceCopyLocalPaths = new List<string>
+                                                               {
+                                                                   @"C:\Users\ben\Development\abra-ioc\Example\bin\Debug\LibraryExample.dll",
+                                                                   @"C:\Users\ben\Development\abra-ioc\Example\bin\Debug\LibraryExample.pdb"
+                                                               },
+
                              };
 
             weaver.Execute();

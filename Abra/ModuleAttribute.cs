@@ -31,6 +31,7 @@ namespace Abra
     public class ModuleAttribute : Attribute
     {
         private bool complete = true;
+        private bool library;
         private Type[] entryPoints;
         private Type[] includedModules;
 
@@ -67,6 +68,20 @@ namespace Abra
         {
             get { return complete; }
             set { complete = value; }
+        }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether this module is part of a library
+        /// to be included in other projects.
+        /// </summary>
+        /// <remarks>
+        /// A module that is marked as a library is allowed to have unsatisfied dependencies,
+        /// on the assumption that they will be provided by the projects that include it.
+        /// </remarks>
+        public bool IsLibrary
+        {
+            get { return library; }
+            set { library = value; }
         }
     }
 }
