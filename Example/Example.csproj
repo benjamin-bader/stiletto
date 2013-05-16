@@ -45,7 +45,6 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Coffee.Generated.cs" />
     <Compile Include="CoffeeApp.cs" />
     <Compile Include="CoffeeMaker.cs" />
     <Compile Include="DripCoffeeModule.cs" />
