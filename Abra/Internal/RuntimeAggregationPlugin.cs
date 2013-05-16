@@ -1,10 +1,27 @@
+/*
+ * Copyright © 2013 Ben Bader
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 ﻿using System;
+﻿using System.Collections.Generic;
 
 namespace Abra.Internal
 {
     internal class RuntimeAggregationPlugin : IPlugin
     {
-        private readonly IPlugin[] plugins;
+        private readonly List<IPlugin> plugins;
 
         internal RuntimeAggregationPlugin(params IPlugin[] plugins)
         {
@@ -18,7 +35,7 @@ namespace Abra.Internal
                 throw new ArgumentException("At least one plugin must be provided.");
             }
 
-            this.plugins = plugins;
+            this.plugins = new List<IPlugin>(plugins);
         }
 
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
@@ -51,12 +68,12 @@ namespace Abra.Internal
 
         private T GetSomethingFromPlugins<T>(Func<IPlugin, T> func)
         {
-            for (var i = 0; i < plugins.Length; ++i) {
+            for (var i = 0; i < plugins.Count; ++i) {
                 try {
                     return func(plugins[i]);
                 }
                 catch (Exception) {
-                    if (i == plugins.Length - 1) {
+                    if (i == plugins.Count - 1) {
                         throw;
                     }
                 }

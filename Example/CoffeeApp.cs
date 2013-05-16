@@ -16,44 +16,31 @@ namespace Example
 
         static void Main()
         {
-            // prime the JIT
-            Container.Create(new DripCoffeeModule()).Get<CoffeeApp>();
-
-            Console.Write("100000 iterations (three gets):    ");
-            var sw = new Stopwatch();
-            sw.Start();
-            OneGet();
-
-            sw.Stop();
-            Console.WriteLine("{0} ms", sw.ElapsedMilliseconds);
-            
-            /*Console.Write("10000 iterations (one create, three gets): ");
-
-            sw.Reset();
-            sw.Start();
-            OneGet();
-            sw.Stop();
-
-            Console.WriteLine("{0} ms", sw.ElapsedMilliseconds);*/
-        }
-
-        private static void OneGet()
-        {
-            for (var i = 0; i < 100000; ++i)
-            {
-                var container = Container.Create(new DripCoffeeModule());
-                container.Get<CoffeeApp>().ToString();
-            }
-        }
-
-        private static void ThreeGets()
-        {
+            Test();
             var container = Container.Create(new DripCoffeeModule());
             for (var i = 0; i < 100000; ++i) {
                 container.Get<CoffeeApp>();
                 container.Get<CoffeeApp>();
                 container.Get<CoffeeApp>();
             }
+        }
+
+        static void Test()
+        {
+            var container = Container.Create(new DripCoffeeModule());
+            container.Get<CoffeeApp>();
+
+            var sw = new Stopwatch();
+
+            var hash = 0;
+            sw.Start();
+            for (var i = 0; i < 10000; ++i) {
+                container = Container.Create(new DripCoffeeModule());
+                hash += container.Get<CoffeeApp>().GetHashCode();
+            }
+            sw.Stop();
+
+            Console.WriteLine("Hash {0}, {1} iters, {2} ms", hash, 10000, sw.ElapsedMilliseconds);
         }
     }
 }

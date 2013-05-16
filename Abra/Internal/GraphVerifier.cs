@@ -1,3 +1,19 @@
+/*
+ * Copyright © 2013 Ben Bader
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,33 +21,23 @@ using System.Text;
 
 namespace Abra.Internal
 {
-    internal class GraphVerifier
+    public class GraphVerifier
     {
-        internal void VerifyModuleSpecs(IEnumerable<ModuleAttribute> modules)
+        public void Verify(ICollection<Binding> bindings)
         {
-            DetectCircularDependencies(
-                modules.Select(VisitableWrapper.Wrap),
-                w => GetIncludedModules(w.Data).Select(VisitableWrapper.Wrap),
-                new Stack<VisitableWrapper<ModuleAttribute>>());
+            DetectCircularDependencies(bindings);
+            DetectUnusedBindings(bindings);
         }
 
-        internal void Verify(IEnumerable<Binding> bindings)
+        public void DetectCircularDependencies(IEnumerable<Binding> bindings)
         {
-            DetectCircularDependencies(bindings, GetDependencies, new Stack<Binding>());
-        }
-
-        private void DetectCircularDependencies<T>(
-            IEnumerable<T> items,
-            Func<T, IEnumerable<T>> getConnectedItems,
-            Stack<T> path)
-            where T : Visitable
-        {
-            foreach (var item in items) {
-                if (item.IsCycleFree) {
+            var path = new Stack<Binding>();
+            foreach (var binding in bindings) {
+                if (binding.IsCycleFree) {
                     continue;
                 }
 
-                if (item.IsVisiting) {
+                if (binding.IsVisiting) {
                     var sb = new StringBuilder("Cycle detected:").AppendLine();
                     var message = Enumerable.Range(1, path.Count)
                         .Zip(path.Reverse(), Tuple.Create)
@@ -45,29 +51,42 @@ namespace Abra.Internal
                     throw new InvalidOperationException(message);
                 }
 
-                item.IsVisiting = true;
-                path.Push(item);
+                binding.IsVisiting = true;
+                path.Push(binding);
 
                 try {
-                    DetectCircularDependencies(getConnectedItems(item), getConnectedItems, path);
-                    item.IsCycleFree = true;
+                    var dependencies = new HashSet<Binding>();
+                    binding.GetDependencies(dependencies, dependencies);
+                    DetectCircularDependencies(dependencies);
                 }
                 finally {
-                    item.IsVisiting = false;
+                    binding.IsVisiting = false;
+                    path.Pop();
                 }
             }
         }
 
-        private static IEnumerable<ModuleAttribute> GetIncludedModules(ModuleAttribute attr)
+        public void DetectUnusedBindings(IEnumerable<Binding> bindings)
         {
-            return attr.IncludedModules.Select(t => t.GetSingleAttribute<ModuleAttribute>());
-        }
+            var unusedBindings = bindings
+                .Where(b => !b.IsLibrary && !b.IsDependedOn)
+                .Cast<ProviderMethodBindingBase>()
+                .ToList();
 
-        private static IEnumerable<Binding> GetDependencies(Binding binding)
-        {
-            var dependencies = new HashSet<Binding>();
-            binding.GetDependencies(dependencies, dependencies);
-            return dependencies;
+            if (unusedBindings.Count == 0) {
+                return;
+            }
+
+            var sb = new StringBuilder()
+                .AppendLine("The following [Provides] methods are unused;")
+                .AppendLine("set 'IsLibrary = true' on their modules to suppress this error.");
+
+            for (var i = 0; i < unusedBindings.Count; ++i) {
+                sb.AppendFormat("{0}. {1}", i, unusedBindings[i].ProviderMethodName)
+                  .AppendLine();
+            }
+
+            throw new InvalidOperationException(sb.ToString());
         }
     }
 }

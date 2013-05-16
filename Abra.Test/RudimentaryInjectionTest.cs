@@ -84,6 +84,18 @@ namespace Abra.Test
             Expect.The(derived.Name).ToEqual("Joe");
         }
 
+        [Test, ExpectedException(typeof(PlatformNotSupportedException))]
+        public void ConstructorExceptionsPropagate()
+        {
+            GetWithModules<ThrowsOnNew>(new ThrowableModule());
+        }
+
+        [Test, ExpectedException(typeof(PlatformNotSupportedException))]
+        public void PropertySetterExceptionsPropagate()
+        {
+            GetWithModules<ThrowsOnSet>(new ThrowableModule());
+        }
+
         private T GetWithModules<T>(params object[] modules)
         {
             return Container.Create(modules).Get<T>();
@@ -231,6 +243,37 @@ namespace Abra.Test
             public DerivedInjectable(string name)
             {
                 this.name = name;
+            }
+        }
+
+        public class ThrowsOnNew
+        {
+            [Inject]
+            public ThrowsOnNew(int arg)
+            {
+                throw new PlatformNotSupportedException();
+            }
+        }
+
+        public class ThrowsOnSet
+        {
+            private int n;
+
+            [Inject]
+            public int Dependency
+            {
+                get { return n; }
+                set { n = value; throw new PlatformNotSupportedException(); }
+            }
+        }
+
+        [Module(EntryPoints = new[] { typeof(ThrowsOnNew), typeof(ThrowsOnSet) })]
+        public class ThrowableModule
+        {
+            [Provides]
+            public int GetInt()
+            {
+                return 0;
             }
         }
     }

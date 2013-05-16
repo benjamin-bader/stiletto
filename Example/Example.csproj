@@ -32,6 +32,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CodegenDebug|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\CodegenDebug</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -55,6 +62,10 @@
     <ProjectReference Include="..\Abra\Abra.csproj">
       <Project>{b661e302-2234-48d3-8be4-684c0963eb35}</Project>
       <Name>Abra</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\LibraryExample\LibraryExample.csproj">
+      <Project>{16f8cad4-1072-472d-919f-8266a250e9e4}</Project>
+      <Name>LibraryExample</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

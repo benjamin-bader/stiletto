@@ -28,6 +28,15 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CodegenDebug|AnyCPU' ">
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\CodegenDebug</OutputPath>
+    <WarningLevel>4</WarningLevel>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>DEBUG;NO_REFLECTION_PLUGIN;</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -40,19 +49,20 @@
     <Compile Include="Internal\Conditions.cs" />
     <Compile Include="Internal\GraphVerifier.cs" />
     <Compile Include="Internal\Plugins\Codegen\CodegenPlugin.cs" />
+    <Compile Include="Internal\Plugins\Codegen\ProcessedAssemblyAttribute.cs" />
     <Compile Include="Internal\Plugins\Reflection\ReflectionProviderBinding.cs" />
     <Compile Include="Internal\Plugins\Reflection\ReflectionLazyBinding.cs" />
     <Compile Include="Internal\Plugins\Reflection\ReflectionRuntimeModule.cs" />
     <Compile Include="Internal\IPlugin.cs" />
     <Compile Include="Internal\Plugins\Reflection\ReflectionInjectBinding.cs" />
     <Compile Include="Internal\Plugins\Reflection\ReflectionPlugin.cs" />
+    <Compile Include="Internal\ProviderMethodBindingBase.cs" />
     <Compile Include="Internal\ReflectionUtils.cs" />
     <Compile Include="Internal\RuntimeAggregationPlugin.cs" />
     <Compile Include="Internal\RuntimeModule.cs" />
     <Compile Include="Internal\Resolver.cs" />
     <Compile Include="Internal\SingletonBinding.cs" />
     <Compile Include="Internal\TypeExtensions.cs" />
-    <Compile Include="Internal\Visitable.cs" />
     <Compile Include="IProvider.cs" />
     <Compile Include="Key.cs" />
     <Compile Include="NamedAttribute.cs" />
