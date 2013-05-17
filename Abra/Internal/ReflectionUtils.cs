@@ -26,6 +26,7 @@ namespace Abra.Internal
     internal class ReflectionUtils
     {
         private static HashSet<Assembly> knownAssemblies = new HashSet<Assembly>(new AssemblyComparer());
+        private static Dictionary<string, Type> knownTypes = new Dictionary<string, Type>(StringComparer.Ordinal);
         private static IList<IPlugin> plugins;
 
         static ReflectionUtils()
@@ -112,38 +113,14 @@ namespace Abra.Internal
             }
         }
 
-        public static IList<IPlugin> FindCompiledPlugins()
-        {
-            lock (knownAssemblies) {
-                if (pluginTypes.Count != 0) {
-                    return pluginTypes
-                        .Select(Activator.CreateInstance)
-                        .Cast<IPlugin>()
-                        .ToList();
-                }
-
-                ScanLoadedAssemblies();
-
-                return pluginTypes
-                    .Select(Activator.CreateInstance)
-                    .Cast<IPlugin>()
-                    .ToList();
-            }
-        }
-
         private static void ScanLoadedAssemblies()
         {
-            var pluginType = typeof (IPlugin);
-
-            var containingAssembly = Assembly.GetExecutingAssembly();
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             for (var i = 0; i < assemblies.Length; ++i) {
                 var asm = assemblies[i];
                 if (!knownAssemblies.Add(asm)) {
                     continue;
                 }
-
-                var isInternalAsm = asm.FullName.Equals(containingAssembly.FullName, StringComparison.Ordinal);
 
                 var types = asm.GetTypes();
                 for (var j = 0; j < types.Length; ++j) {
@@ -154,18 +131,6 @@ namespace Abra.Internal
                     }
 
                     knownTypes[t.FullName] = t;
-
-                    if (isInternalAsm) {
-                        continue;
-                    }
-
-                    var iface = t.GetInterface(pluginType.FullName);
-                    
-                    if (iface == null) {
-                        continue;
-                    }
-
-                    pluginTypes.Add(t);
                 }
             }
         }
