@@ -40,37 +40,90 @@ namespace Abra.Internal
 
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
-            return GetSomethingFromPlugins(plugin =>
-                plugin.GetInjectBinding(key, className, mustBeInjectable));
+            for (var i = 0; i < plugins.Count; ++i) {
+                try {
+                    var binding = plugins[i].GetInjectBinding(key, className, mustBeInjectable);
+                    if (binding == null) {
+                        if (i == plugins.Count - 1) {
+                            throw new InvalidOperationException("Could not load inject binding: " + key);
+                        }
+
+                        continue;
+                    }
+                    return binding;
+                }
+                catch (Exception) {
+                    if (i == plugins.Count - 1) {
+                        throw;
+                    }
+                }
+            }
+            throw new InvalidOperationException("Control should never reach this point.");
         }
 
         public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
         {
-            return GetSomethingFromPlugins(plugin =>
-                plugin.GetLazyInjectBinding(key, requiredBy, lazyKey));
+            for (var i = 0; i < plugins.Count; ++i) {
+                try {
+                    var binding = plugins[i].GetLazyInjectBinding(key, requiredBy, lazyKey);
+                    if (binding == null) {
+                        if (i == plugins.Count - 1) {
+                            throw new InvalidOperationException("Could not load lazy binding " + key);
+                        }
+
+                        continue;
+                    }
+                    return binding;
+                }
+                catch (Exception) {
+                    if (i == plugins.Count - 1) {
+                        throw;
+                    }
+                }
+            }
+            throw new InvalidOperationException("Control should never reach this point.");
         }
 
         public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable,
                                                  string delegateKey)
         {
-            return GetSomethingFromPlugins(plugin =>
-                plugin.GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, delegateKey));
+            for (var i = 0; i < plugins.Count; ++i) {
+                try {
+                    var binding = plugins[i].GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, delegateKey);
+                    if (binding == null) {
+                        if (i == plugins.Count - 1) {
+                            throw new InvalidOperationException("Could not load provider binding: " + key);
+                        }
+
+                        continue;
+                    }
+                    return binding;
+                }
+                catch (Exception) {
+                    if (i == plugins.Count - 1) {
+                        throw;
+                    }
+                }
+            }
+            throw new InvalidOperationException("Control should never reach this point.");
         }
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
         {
-            return GetSomethingFromPlugins(plugin => {
-                var m = plugin.GetRuntimeModule(moduleType, moduleInstance);
-                m.Module = moduleInstance ?? m.CreateModule();
-                return m;
-            });
-        }
-
-        private T GetSomethingFromPlugins<T>(Func<IPlugin, T> func)
-        {
             for (var i = 0; i < plugins.Count; ++i) {
                 try {
-                    return func(plugins[i]);
+                    var m = plugins[i].GetRuntimeModule(moduleType, moduleInstance);
+
+                    if (m == null) {
+                        if (i == plugins.Count - 1) {
+                            throw new InvalidOperationException("Could not load runtime module: " + moduleType);
+                        }
+
+                        continue;
+                    }
+
+                    m.Module = moduleInstance ?? m.CreateModule();
+                    return m;
                 }
                 catch (Exception) {
                     if (i == plugins.Count - 1) {
