@@ -42,6 +42,11 @@ namespace Abra.Fody.Generators
         private readonly MethodReference moduleFnCtor;
         private readonly MethodReference moduleFnInvoke;
 
+        private readonly TypeReference bindingFnType;
+        private readonly TypeReference lazyFnType;
+        private readonly TypeReference providerFnType;
+        private readonly TypeReference moduleFnType;
+
         private TypeDefinition plugin;
         private FieldDefinition injectsField;
         private FieldDefinition lazyInjectsField;
@@ -76,17 +81,21 @@ namespace Abra.Fody.Generators
                 References.Binding);
             var moduleFns = GetFnMethods(References.FuncOfT, References.RuntimeModule);
 
-            bindingFnCtor = bindingFns.Item1;
-            bindingFnInvoke = bindingFns.Item2;
+            bindingFnType = bindingFns.Item1;
+            bindingFnCtor = bindingFns.Item2;
+            bindingFnInvoke = bindingFns.Item3;
 
-            lazyFnCtor = lazyFns.Item1;
-            lazyFnInvoke = lazyFns.Item2;
+            lazyFnType = lazyFns.Item1;
+            lazyFnCtor = lazyFns.Item2;
+            lazyFnInvoke = lazyFns.Item3;
 
-            providerFnCtor = providerFns.Item1;
-            providerFnInvoke = providerFns.Item2;
+            providerFnType = providerFns.Item1;
+            providerFnCtor = providerFns.Item2;
+            providerFnInvoke = providerFns.Item3;
 
-            moduleFnCtor = moduleFns.Item1;
-            moduleFnInvoke = moduleFns.Item2;
+            moduleFnType = moduleFns.Item1;
+            moduleFnCtor = moduleFns.Item2;
+            moduleFnInvoke = moduleFns.Item3;
 
             this.injectBindingCtors = Conditions.CheckNotNull(injectBindingCtors, "injectBindingCtors");
             this.lazyBindingCtors = Conditions.CheckNotNull(lazyBindingCtors, "lazyBindingCtors");
@@ -94,10 +103,12 @@ namespace Abra.Fody.Generators
             this.runtimeModuleCtors = Conditions.CheckNotNull(runtimeModuleCtors, "runtimeModuleCtors");
         }
 
-        private Tuple<MethodReference, MethodReference> GetFnMethods(
+        private Tuple<TypeReference, MethodReference, MethodReference> GetFnMethods(
             TypeReference tFn,
             params TypeReference[] generics)
         {
+            var t = Import(tFn.MakeGenericInstanceType(generics));
+
             var ctor = ImportGeneric(
                 tFn,
                 m => m.IsConstructor
@@ -110,7 +121,7 @@ namespace Abra.Fody.Generators
                 m => m.Name == "Invoke",
                 generics);
 
-            return Tuple.Create(ctor, invoke);
+            return Tuple.Create(t, ctor, invoke);
         }
 
         public override void Validate(IErrorReporter errorReporter)
@@ -392,13 +403,25 @@ namespace Abra.Fody.Generators
             getInjectBinding.Parameters.Add(new ParameterDefinition("className", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
             getInjectBinding.Parameters.Add(new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, ModuleDefinition.TypeSystem.Boolean));
 
+            var vBindingFn = new VariableDefinition("bindingFn", bindingFnType);
+            getInjectBinding.Body.Variables.Add(vBindingFn);
+            getInjectBinding.Body.InitLocals = true;
+
+            var endOfFn = Instruction.Create(OpCodes.Ret);
+            var loadBindingFn = Instruction.Create(OpCodes.Ldloc, vBindingFn);
+
             var il = getInjectBinding.Body.GetILProcessor();
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldfld, injectsField);
             il.Emit(OpCodes.Ldarg_1);
-            il.Emit(OpCodes.Callvirt, References.DictionaryOfStringToBindingFn_Get);
+            il.Emit(OpCodes.Ldloca, vBindingFn);
+            il.Emit(OpCodes.Callvirt, References.DictionaryOfStringToBindingFn_TryGetValue);
+            il.Emit(OpCodes.Brtrue, loadBindingFn);
+            il.Emit(OpCodes.Ldnull);
+            il.Emit(OpCodes.Br, endOfFn);
+            il.Append(loadBindingFn);
             il.Emit(OpCodes.Callvirt, bindingFnInvoke);
-            il.Emit(OpCodes.Ret);
+            il.Append(endOfFn);
 
             plugin.Methods.Add(getInjectBinding);
         }
@@ -420,16 +443,28 @@ namespace Abra.Fody.Generators
             getLazy.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, ModuleDefinition.TypeSystem.Object));
             getLazy.Parameters.Add(new ParameterDefinition("lazyKey", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
 
+            var vLazyBindingFn = new VariableDefinition(lazyFnType);
+            getLazy.Body.Variables.Add(vLazyBindingFn);
+            getLazy.Body.InitLocals = true;
+
+            var loadLazyFn = Instruction.Create(OpCodes.Ldloc, vLazyBindingFn);
+            var endOfFn = Instruction.Create(OpCodes.Ret);
+
             var il = getLazy.Body.GetILProcessor();
             il.Emit (OpCodes.Ldarg_0);
             il.Emit (OpCodes.Ldfld, lazyInjectsField);
             il.Emit (OpCodes.Ldarg_3);
-            il.Emit (OpCodes.Callvirt, References.DictionaryOfStringToLazyBindingFn_Get);
+            il.Emit (OpCodes.Ldloca, vLazyBindingFn);
+            il.Emit (OpCodes.Callvirt, References.DictionaryOfStringToLazyBindingFn_TryGetValue);
+            il.Emit (OpCodes.Brtrue, loadLazyFn);
+            il.Emit (OpCodes.Ldnull);
+            il.Emit (OpCodes.Br, endOfFn);
+            il.Append(loadLazyFn);
             il.Emit (OpCodes.Ldarg_1);
             il.Emit (OpCodes.Ldarg_2);
             il.Emit (OpCodes.Ldarg_3);
             il.Emit (OpCodes.Callvirt, lazyFnInvoke);
-            il.Emit (OpCodes.Ret);
+            il.Append(endOfFn);
 
             plugin.Methods.Add(getLazy);
         }
@@ -454,17 +489,29 @@ namespace Abra.Fody.Generators
 
             var providerKeyArg = getProvider.Parameters.Last();
 
+            var vProviderFn = new VariableDefinition(providerFnType);
+            getProvider.Body.Variables.Add(vProviderFn);
+            getProvider.Body.InitLocals = true;
+
+            var loadProviderFn = Instruction.Create(OpCodes.Ldloc, vProviderFn);
+            var endOfFn = Instruction.Create(OpCodes.Ret);
+
             var il = getProvider.Body.GetILProcessor();
             il.Emit (OpCodes.Ldarg_0);
             il.Emit (OpCodes.Ldfld, providersField);
             il.Emit (OpCodes.Ldarg_S, providerKeyArg);
-            il.Emit (OpCodes.Callvirt, References.DictionaryOfStringToProviderBindingFn_Get);
+            il.Emit (OpCodes.Ldloca, vProviderFn);
+            il.Emit (OpCodes.Callvirt, References.DictionaryOfStringToProviderBindingFn_TryGetValue);
+            il.Emit (OpCodes.Brtrue, loadProviderFn);
+            il.Emit (OpCodes.Ldnull);
+            il.Emit (OpCodes.Br, endOfFn);
+            il.Append(loadProviderFn);
             il.Emit (OpCodes.Ldarg_1);
             il.Emit (OpCodes.Ldarg_2);
             il.Emit (OpCodes.Ldarg_3);
             il.Emit (OpCodes.Ldarg_S, providerKeyArg);
             il.Emit (OpCodes.Callvirt, providerFnInvoke);
-            il.Emit (OpCodes.Ret);
+            il.Append(endOfFn);
 
             plugin.Methods.Add(getProvider);
         }
@@ -485,13 +532,25 @@ namespace Abra.Fody.Generators
             getModule.Parameters.Add(new ParameterDefinition("type", ParameterAttributes.None, References.Type));
             getModule.Parameters.Add(new ParameterDefinition("instance", ParameterAttributes.None, ModuleDefinition.TypeSystem.Object));
 
+            var vModuleFn = new VariableDefinition(moduleFnType);
+            getModule.Body.Variables.Add(vModuleFn);
+            getModule.Body.InitLocals = true;
+
+            var endOfFn = Instruction.Create(OpCodes.Ret);
+            var loadModuleFn = Instruction.Create(OpCodes.Ldloc, vModuleFn);
+
             var il = getModule.Body.GetILProcessor();
             il.Emit (OpCodes.Ldarg_0);
             il.Emit (OpCodes.Ldfld, modulesField);
             il.Emit (OpCodes.Ldarg_1);
-            il.Emit (OpCodes.Callvirt, References.DictionaryOfTypeToModuleFn_Get);
+            il.Emit (OpCodes.Ldloca, vModuleFn);
+            il.Emit (OpCodes.Callvirt, References.DictionaryOfTypeToModuleFn_TryGetValue);
+            il.Emit (OpCodes.Brtrue, loadModuleFn);
+            il.Emit (OpCodes.Ldnull);
+            il.Emit (OpCodes.Br, endOfFn);
+            il.Append (loadModuleFn);
             il.Emit (OpCodes.Callvirt, moduleFnInvoke);
-            il.Emit (OpCodes.Ret);
+            il.Append (endOfFn);
 
             plugin.Methods.Add (getModule);
         }

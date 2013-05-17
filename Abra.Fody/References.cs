@@ -70,21 +70,25 @@ namespace Abra.Fody
         public MethodReference DictionaryOfStringToBindingFn_New { get; private set; }
         public MethodReference DictionaryOfStringToBindingFn_Add { get; private set; }
         public MethodReference DictionaryOfStringToBindingFn_Get { get; private set; }
+        public MethodReference DictionaryOfStringToBindingFn_TryGetValue { get; private set; }
 
         public TypeReference DictionaryOfStringToLazyBindingFn { get; private set; }
         public MethodReference DictionaryOfStringToLazyBindingFn_New { get; private set; }
         public MethodReference DictionaryOfStringToLazyBindingFn_Add { get; private set; }
         public MethodReference DictionaryOfStringToLazyBindingFn_Get { get; private set; }
+        public MethodReference DictionaryOfStringToLazyBindingFn_TryGetValue { get; private set; }
 
         public TypeReference DictionaryOfStringToProviderBindingFn { get; private set; }
         public MethodReference DictionaryOfStringToProviderBindingFn_New { get; private set; }
         public MethodReference DictionaryOfStringToProviderBindingFn_Add { get; private set; }
         public MethodReference DictionaryOfStringToProviderBindingFn_Get { get; private set; }
+        public MethodReference DictionaryOfStringToProviderBindingFn_TryGetValue { get; private set; }
 
         public TypeReference DictionaryOfTypeToModuleFn { get; private set; }
         public MethodReference DictionaryOfTypeToModuleFn_New { get; private set; }
         public MethodReference DictionaryOfTypeToModuleFn_Add { get; private set; }
         public MethodReference DictionaryOfTypeToModuleFn_Get { get; private set; }
+        public MethodReference DictionaryOfTypeToModuleFn_TryGetValue { get; private set; }
 
         public TypeReference Resolver { get; private set; }
         public MethodReference Resolver_RequestBinding { get; private set; }
@@ -158,24 +162,28 @@ namespace Abra.Fody
             DictionaryOfStringToBindingFn_New = module.Import (tDictOfStringToBindingFn.GetConstructor(new[] { typeof(StringComparer) }));
             DictionaryOfStringToBindingFn_Add = module.Import (tDictOfStringToBindingFn.GetMethod("Add"));
             DictionaryOfStringToBindingFn_Get = module.Import (tDictOfStringToBindingFn.GetProperty("Item").GetGetMethod());
+            DictionaryOfStringToBindingFn_TryGetValue = module.Import(tDictOfStringToBindingFn.GetMethod("TryGetValue"));
 
             var tLazyBindingDict = typeof(Dictionary<string, Func<string, object, string, Internal.Binding>>);
             DictionaryOfStringToLazyBindingFn = module.Import (tLazyBindingDict);
             DictionaryOfStringToLazyBindingFn_New = module.Import(tLazyBindingDict.GetConstructor(new[] { typeof(StringComparer) }));
             DictionaryOfStringToLazyBindingFn_Add = module.Import(tLazyBindingDict.GetMethod("Add"));
             DictionaryOfStringToLazyBindingFn_Get = module.Import(tLazyBindingDict.GetProperty("Item").GetGetMethod());
+            DictionaryOfStringToLazyBindingFn_TryGetValue = module.Import(tLazyBindingDict.GetMethod("TryGetValue"));
 
             var tProviderDict = typeof(Dictionary<string, Func<string, object, bool, string, Internal.Binding>>);
             DictionaryOfStringToProviderBindingFn = module.Import (tProviderDict);
             DictionaryOfStringToProviderBindingFn_New = module.Import(tProviderDict.GetConstructor(new[] { typeof(StringComparer) }));
             DictionaryOfStringToProviderBindingFn_Add = module.Import(tProviderDict.GetMethod("Add"));
             DictionaryOfStringToProviderBindingFn_Get = module.Import(tProviderDict.GetProperty("Item").GetGetMethod());
+            DictionaryOfStringToProviderBindingFn_TryGetValue = module.Import(tProviderDict.GetMethod("TryGetValue"));
 
             var tModuleDict = typeof(Dictionary<Type, Func<Internal.RuntimeModule>>);
             DictionaryOfTypeToModuleFn = module.Import (tModuleDict);
             DictionaryOfTypeToModuleFn_New = module.Import(tModuleDict.GetConstructor(new Type[0]));
             DictionaryOfTypeToModuleFn_Add = module.Import(tModuleDict.GetMethod("Add"));
             DictionaryOfTypeToModuleFn_Get = module.Import(tModuleDict.GetProperty("Item").GetGetMethod());
+            DictionaryOfTypeToModuleFn_TryGetValue = module.Import(tModuleDict.GetMethod("TryGetValue"));
 
             Resolver = module.Import(typeof (Internal.Resolver));
             Resolver_RequestBinding = module.Import(typeof (Internal.Resolver).GetMethod("RequestBinding"));

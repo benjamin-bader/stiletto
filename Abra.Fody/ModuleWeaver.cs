@@ -85,7 +85,7 @@ namespace Abra.Fody
         /// </remarks>
         public void Execute()
         {
-            References = new References(ModuleDefinition);
+            Initialize();
 
             // Step 1: Make sure we haven't already processed this module.
             if (!EnsureModuleIsProcessable()) {
@@ -110,12 +110,12 @@ namespace Abra.Fody
                 }
             }
 
-            var moduleGenerators = moduleTypes.Select(m => new ModuleGenerator(ModuleDefinition, References, m)).ToList();
-            var injectGenerators = GatherInjectBindings(
+            moduleGenerators = moduleTypes.Select(m => new ModuleGenerator(ModuleDefinition, References, m)).ToList();
+            injectGenerators = GatherInjectBindings(
                 injectTypes,
                 moduleGenerators.SelectMany(m => m.EntryPoints));
 
-            var generators = new Queue<Generator>();
+            generators = new Queue<Generator>();
             foreach (var m in moduleGenerators) {
                 m.Validate(errorReporter);
                 generators.Enqueue(m);
@@ -126,8 +126,6 @@ namespace Abra.Fody
                 generators.Enqueue(i);
             }
 
-            IList<LazyBindingGenerator> lazyGenerators;
-            IList<ProviderBindingGenerator> providerGenerators;
             GetherParameterizedBindings(injectGenerators, out lazyGenerators, out providerGenerators);
 
             foreach (var g in lazyGenerators) {
@@ -144,6 +142,13 @@ namespace Abra.Fody
                 return;
             }
 
+            GeneratedModules = moduleGenerators;
+
+            // We can only validate a full graph once all dependencies have been analyzed.
+            if (!IsPrimary) {
+                return;
+            }
+
             // Step 3: Now that we know individual elements are all valid, validate the object graph as a whole.
             new Validator(errorReporter, injectGenerators, lazyGenerators, providerGenerators, moduleGenerators.Concat(subweaverModules))
                 .ValidateCompleteModules();
@@ -152,6 +157,45 @@ namespace Abra.Fody
                 return;
             }
 
+            foreach (var subWeaver in subWeavers) {
+                subWeaver.GenerateAdapters();
+                subweaverPluginConstructors.Add(ModuleDefinition.Import(subWeaver.GeneratedPluginConstructor));
+            }
+
+            if (HasError) {
+                return;
+            }
+
+            GenerateAdapters();
+
+            if (HasError) {
+                return;
+            }
+
+            subweaverPluginConstructors.Insert(0, GeneratedPluginConstructor);
+
+            if (errorReporter.HasError) {
+                return;
+            }
+
+            foreach (var subWeaver in subWeavers) {
+                subWeaver.RewriteContainerCreateInvocations(subweaverPluginConstructors);
+            }
+
+            RewriteContainerCreateInvocations(subweaverPluginConstructors);
+
+            foreach (var kvp in dependencies) {
+                var path = kvp.Key;
+                var assembly = kvp.Value.Item1;
+                var hasPdb = kvp.Value.Item2;
+
+                assembly.Write(path, new WriterParameters {WriteSymbols = hasPdb});
+            }
+            // Done!
+        }
+
+        private void GenerateAdapters()
+        {
             // Step 4: The graph is valid, emit generated adapters.
             var generatedTypes = new HashSet<TypeDefinition>(new TypeReferenceComparer());
             while (generators.Count > 0) {
@@ -169,10 +213,6 @@ namespace Abra.Fody
                 }
             }
 
-            if (errorReporter.HasError) {
-                return;
-            }
-
             // Step 5: Emit a plugin that uses the generated adapters[
             var pluginGenerator = new PluginGenerator(
                 ModuleDefinition,
@@ -183,22 +223,8 @@ namespace Abra.Fody
                 moduleGenerators.Select(gen => gen.GetModuleTypeAndGeneratedCtor()));
 
             ModuleDefinition.Types.Add(pluginGenerator.Generate(errorReporter));
-            
-            subweaverPluginConstructors.Insert(0, pluginGenerator.GeneratedCtor);
-
-            if (errorReporter.HasError) {
-                return;
-            }
-
-            // Step 6: Rewrite uses of Container to use the generated plugin.
-            foreach (var method in GetContainerCreateInvocations()) {
-                RewriteContainerCreateInvocations(method);
-            }
 
             GeneratedPluginConstructor = pluginGenerator.GeneratedCtor;
-            GeneratedModules = moduleGenerators;
-
-            // Done!
         }
 
         private IList<InjectBindingGenerator> GatherInjectBindings(
@@ -255,14 +281,21 @@ namespace Abra.Fody
             }
         }
 
+        private IDictionary<string, Tuple<AssemblyDefinition, bool>> dependencies;
+        private IList<ModuleWeaver> subWeavers = new List<ModuleWeaver>(); 
+        private Queue<Generator> generators;
+        private IList<ModuleGenerator> moduleGenerators;
+        private IList<InjectBindingGenerator> injectGenerators;
+        private IList<LazyBindingGenerator> lazyGenerators;
+        private IList<ProviderBindingGenerator> providerGenerators;
+
         private void ForkSubsidiaryWeaversIfPrimary()
         {
             if (!IsPrimary) {
                 return;
             }
 
-            Initialize();
-
+            dependencies = new Dictionary<string, Tuple<AssemblyDefinition, bool>>();
             var copyLocalAssemblies = new Dictionary<string, bool>(StringComparer.Ordinal);
             var queue = new Queue<string>();
             foreach (var copyLocal in ReferenceCopyLocalPaths) {
@@ -296,6 +329,8 @@ namespace Abra.Fody
                 var hasPdb = pathAndHasPdb.Value;
                 var assembly = AssemblyDefinition.ReadAssembly(path, new ReaderParameters {ReadSymbols = hasPdb});
 
+                dependencies[path] = Tuple.Create(assembly, hasPdb);
+
                 foreach (var module in assembly.Modules) {
                     var subWeaver = new ModuleWeaver(false, errorReporter)
                                         {
@@ -310,11 +345,9 @@ namespace Abra.Fody
                         return;
                     }
 
-                    subweaverPluginConstructors.Add(ModuleDefinition.Import(subWeaver.GeneratedPluginConstructor));
+                    subWeavers.Add(subWeaver);
                     subweaverModules.AddRange(subWeaver.GeneratedModules);
                 }
-
-                assembly.Write(path, new WriterParameters {WriteSymbols = hasPdb});
             }
         }
 
@@ -383,6 +416,7 @@ namespace Abra.Fody
         {
             LogWarning = LogWarning ?? Console.WriteLine;
             LogError = LogError ?? Console.WriteLine;
+            References = new References(ModuleDefinition);
         }
 
         /// <summary>
@@ -462,59 +496,66 @@ namespace Abra.Fody
 
         /// <summary>
         /// Replaces all invocations of <see cref="Container.Create"/> with a
-        /// call to <see cref="Container.CreateWithPlugin"/> using the given
-        /// generated plugin.
+        /// call to <see cref="Container.CreateWithPlugins"/> using the given
+        /// generated plugins.
         /// </summary>
-        /// <param name="method">
+        /// <param name="pluginCtors">
         /// The method whose container creations are to be rewritten.
         /// </param>
-        private void RewriteContainerCreateInvocations(MethodDefinition method)
+        private void RewriteContainerCreateInvocations(IList<MethodReference> pluginCtors)
         {
-            if (!method.HasBody) {
-                return;
-            }
+            var methods = from t in ModuleDefinition.GetTypes()
+                          from m in t.Methods
+                          where m.HasBody
+                          let instrs = m.Body.Instructions
+                          where instrs.Any(i => i.OpCode == OpCodes.Call
+                                             && i.Operand is MethodReference
+                                             && ((MethodReference)i.Operand).AreSame(References.Container_Create))
+                          select m;
 
-            VariableDefinition pluginsArray = null;
-            for (var instr = method.Body.Instructions.First(); instr != null; instr = instr.Next) {
-                if (instr.OpCode != OpCodes.Call && instr.OpCode != OpCodes.Callvirt) {
-                    continue;
-                }
+            foreach (var method in methods) {
+                VariableDefinition pluginsArray = null;
+                for (var instr = method.Body.Instructions.First(); instr != null; instr = instr.Next) {
+                    if (instr.OpCode != OpCodes.Call && instr.OpCode != OpCodes.Callvirt) {
+                        continue;
+                    }
 
-                var methodReference = (MethodReference) instr.Operand;
+                    var methodReference = (MethodReference) instr.Operand;
 
-                if (!methodReference.AreSame(References.Container_Create)) {
-                    continue;
-                }
+                    if (!methodReference.AreSame(References.Container_Create)) {
+                        continue;
+                    }
 
-                if (pluginsArray == null) {
-                    pluginsArray = new VariableDefinition(
-                        "plugins",
-                        ModuleDefinition.Import(new ArrayType(References.IPlugin)));
-                    method.Body.Variables.Add(pluginsArray);
-                    method.Body.InitLocals = true;
-                }
+                    if (pluginsArray == null) {
+                        pluginsArray = new VariableDefinition(
+                            "plugins",
+                            ModuleDefinition.Import(new ArrayType(References.IPlugin)));
+                        method.Body.Variables.Add(pluginsArray);
+                        method.Body.InitLocals = true;
+                    }
 
-                // Container.Create(object[]) -> Container.CreateWithPlugin(object[], IPlugin);
-                var instrs = new List<Instruction>();
-                instrs.Add(Instruction.Create(OpCodes.Ldc_I4, subweaverPluginConstructors.Count));
-                instrs.Add(Instruction.Create(OpCodes.Newarr, References.IPlugin));
-                instrs.Add(Instruction.Create(OpCodes.Stloc, pluginsArray));
+                    // Container.Create(object[]) -> Container.CreateWithPlugins(object[], IPlugin[]);
+                    var instrs = new List<Instruction>();
+                    instrs.Add(Instruction.Create(OpCodes.Ldc_I4, pluginCtors.Count));
+                    instrs.Add(Instruction.Create(OpCodes.Newarr, References.IPlugin));
+                    instrs.Add(Instruction.Create(OpCodes.Stloc, pluginsArray));
 
-                for (var i = 0; i < subweaverPluginConstructors.Count; ++i) {
+                    for (var i = 0; i < pluginCtors.Count; ++i) {
+                        instrs.Add(Instruction.Create(OpCodes.Ldloc, pluginsArray));
+                        instrs.Add(Instruction.Create(OpCodes.Ldc_I4, i));
+                        instrs.Add(Instruction.Create(OpCodes.Newobj, pluginCtors[i]));
+                        instrs.Add(Instruction.Create(OpCodes.Stelem_Ref));
+                    }
+
                     instrs.Add(Instruction.Create(OpCodes.Ldloc, pluginsArray));
-                    instrs.Add(Instruction.Create(OpCodes.Ldc_I4, i));
-                    instrs.Add(Instruction.Create(OpCodes.Newobj, subweaverPluginConstructors[i]));
-                    instrs.Add(Instruction.Create(OpCodes.Stelem_Ref));
+
+                    var il = method.Body.GetILProcessor();
+                    foreach (var instruction in instrs) {
+                        il.InsertBefore(instr, instruction);
+                    }
+
+                    instr.Operand = References.Container_CreateWithPlugins;
                 }
-
-                instrs.Add(Instruction.Create(OpCodes.Ldloc, pluginsArray));
-
-                var il = method.Body.GetILProcessor();
-                foreach (var instruction in instrs) {
-                    il.InsertBefore(instr, instruction);
-                }
-
-                instr.Operand = References.Container_CreateWithPlugins;
             }
         }
 
@@ -557,6 +598,24 @@ namespace Abra.Fody
                 weaver.LogError(message);
                 HasError = true;
             }
+        }
+    }
+
+    internal class AssemblyComparer : IEqualityComparer<AssemblyDefinition>
+    {
+        public bool Equals(AssemblyDefinition x, AssemblyDefinition y)
+        {
+            if (ReferenceEquals(x, y)) return true;
+            if (ReferenceEquals(x, null)) return false;
+            if (ReferenceEquals(y, null)) return false;
+            return x.FullName.Equals(y.FullName, StringComparison.Ordinal);
+        }
+
+        public int GetHashCode(AssemblyDefinition obj)
+        {
+            if (ReferenceEquals(obj, null)) return 0;
+
+            return obj.FullName.GetHashCode();
         }
     }
 }
