@@ -1,4 +1,4 @@
-abra-ioc
+Stiletto
 ========
 
 A C# port of Square's Dagger IoC library: [http://square.github.io/dagger].
@@ -33,9 +33,10 @@ public class CoffeeMaker
 }
 ```
 
-Abra supports:
+Stiletto supports:
 - property and constructor injection.
 - disambiguation of identical types via `[Named("resourceName")]`
 - the specification of classes and provider methods as `[Singleton]` resources.
+- the specification of dependencies as Lazy<>
 
 More is coming.
