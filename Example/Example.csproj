@@ -57,9 +57,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Abra\Abra.csproj">
+    <ProjectReference Include="..\Stiletto\Stiletto.csproj">
       <Project>{b661e302-2234-48d3-8be4-684c0963eb35}</Project>
-      <Name>Abra</Name>
+      <Name>Stiletto</Name>
     </ProjectReference>
     <ProjectReference Include="..\LibraryExample\LibraryExample.csproj">
       <Project>{16f8cad4-1072-472d-919f-8266a250e9e4}</Project>

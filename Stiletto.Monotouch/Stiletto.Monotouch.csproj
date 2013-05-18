@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>12.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D2A6D060-F0C0-4618-9D0F-B9D592053689}</ProjectGuid>
+    <ProjectTypeGuids>{6BC8ED88-2882-458C-8E55-DFD12B67127B};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Stiletto</RootNamespace>
+    <IPhoneResourcePrefix>Resources</IPhoneResourcePrefix>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <AssemblyName>Stiletto</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>false</ConsolePause>
+    <DefineConstants>MONOTOUCH;</DefineConstants>
+    <AssemblyName>Stiletto</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DefineConstants>MONOTOUCH;</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'CodegenDebug|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\CodegenDebug</OutputPath>
+    <DefineConstants>MONOTOUCH;</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+    <AssemblyName>Stiletto</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="monotouch" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Stiletto\Container.cs" />
+    <Compile Include="..\Stiletto\InjectAttribute.cs" />
+    <Compile Include="..\Stiletto\Internal\Binding.cs" />
+    <Compile Include="..\Stiletto\Internal\Conditions.cs" />
+    <Compile Include="..\Stiletto\Internal\GraphVerifier.cs" />
+    <Compile Include="..\Stiletto\Internal\Plugins\Codegen\CodegenPlugin.cs" />
+    <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionProviderBinding.cs" />
+    <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionLazyBinding.cs" />
+    <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionRuntimeModule.cs" />
+    <Compile Include="..\Stiletto\Internal\IPlugin.cs" />
+    <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionInjectBinding.cs" />
+    <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionPlugin.cs" />
+    <Compile Include="..\Stiletto\Internal\ReflectionUtils.cs" />
+    <Compile Include="..\Stiletto\Internal\RuntimeAggregationPlugin.cs" />
+    <Compile Include="..\Stiletto\Internal\RuntimeModule.cs" />
+    <Compile Include="..\Stiletto\Internal\Resolver.cs" />
+    <Compile Include="..\Stiletto\Internal\SingletonBinding.cs" />
+    <Compile Include="..\Stiletto\Internal\TypeExtensions.cs" />
+    <Compile Include="..\Stiletto\Internal\Visitable.cs" />
+    <Compile Include="..\Stiletto\IProvider.cs" />
+    <Compile Include="..\Stiletto\Key.cs" />
+    <Compile Include="..\Stiletto\NamedAttribute.cs" />
+    <Compile Include="..\Stiletto\ModuleAttribute.cs" />
+    <Compile Include="..\Stiletto\Properties\AssemblyInfo.cs" />
+    <Compile Include="..\Stiletto\ProvidesAttribute.cs" />
+    <Compile Include="..\Stiletto\QualifierAttribute.cs" />
+    <Compile Include="..\Stiletto\SingletonAttribute.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.MonoTouch.CSharp.targets" />
+</Project>
