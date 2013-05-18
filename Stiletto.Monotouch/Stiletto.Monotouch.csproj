@@ -55,6 +55,7 @@
     <Compile Include="..\Stiletto\Container.cs" />
     <Compile Include="..\Stiletto\InjectAttribute.cs" />
     <Compile Include="..\Stiletto\Internal\Binding.cs" />
+    <Compile Include="..\Stiletto\Internal\BindingException.cs" />
     <Compile Include="..\Stiletto\Internal\Conditions.cs" />
     <Compile Include="..\Stiletto\Internal\GraphVerifier.cs" />
     <Compile Include="..\Stiletto\Internal\Plugins\Codegen\CodegenPlugin.cs" />
@@ -64,13 +65,13 @@
     <Compile Include="..\Stiletto\Internal\IPlugin.cs" />
     <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionInjectBinding.cs" />
     <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionPlugin.cs" />
+    <Compile Include="..\Stiletto\Internal\ProviderMethodBindingBase.cs" />
     <Compile Include="..\Stiletto\Internal\ReflectionUtils.cs" />
     <Compile Include="..\Stiletto\Internal\RuntimeAggregationPlugin.cs" />
     <Compile Include="..\Stiletto\Internal\RuntimeModule.cs" />
     <Compile Include="..\Stiletto\Internal\Resolver.cs" />
     <Compile Include="..\Stiletto\Internal\SingletonBinding.cs" />
     <Compile Include="..\Stiletto\Internal\TypeExtensions.cs" />
-    <Compile Include="..\Stiletto\Internal\Visitable.cs" />
     <Compile Include="..\Stiletto\IProvider.cs" />
     <Compile Include="..\Stiletto\Key.cs" />
     <Compile Include="..\Stiletto\NamedAttribute.cs" />
