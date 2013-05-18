@@ -4,7 +4,7 @@ Stiletto
 A C# port of Square's Dagger IoC library: [http://square.github.io/dagger].
 
 This is a vanilla port, intended to be usable everywhere C# is usable, including MonoTouch where `System.Reflection.Emit` is unavailable.
-As of this writing, some features (namely Lazy and IProvider injections) will not work on MonoTouch; once compile-time codegen is complete, this restriction will be lifted.
+Compile-time validation and code-generation is implemented as a Fody[1] weaver, to be installable via a NuGet package.
 
 Users of Dagger, Guice, or any other javax.inject-compatible IoC container will feel only slightly uncomfortable at the syntax:
 
