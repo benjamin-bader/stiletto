@@ -116,30 +116,21 @@ namespace Abra.Internal
                         continue;
                     }
 
-                    try
-                    {
+                    try {
                         var jitBinding = CreateJitBinding(key, binding.RequiredBy, mustBeInjectable);
                         jitBinding.IsLibrary = binding.IsLibrary;
                         jitBinding.IsDependedOn = binding.IsDependedOn;
-                        if (!key.Equals(jitBinding.ProviderKey) && !key.Equals(jitBinding.MembersKey))
-                        {
-                            var ex = new InvalidOperationException();
-                            ex.Data.Add("ResolveError", "Can't create binding for " + key);
-                            throw ex;
+                        if (!key.Equals(jitBinding.ProviderKey) && !key.Equals(jitBinding.MembersKey)) {
+                            throw new BindingException("Can't create binding for " + key);
                         }
 
                         var scopedJitBinding = Scope(jitBinding);
                         bindingsToResolve.Enqueue(scopedJitBinding);
                         AddBindingToDictionary(scopedJitBinding);
                     }
-                    catch (Exception ex)
-                    {
-                        var hasResolveError = ex.Data.Contains("ResolveError");
-
-                        if (!hasResolveError)
-                            throw;
-
-                        errors.Add((string)ex.Data["ResolveError"]);
+                    catch (BindingException ex) {
+                        errors.Add(ex.Message + " required by " + binding.RequiredBy);
+                        bindings[key] = Binding.Unresolved;
                     }
                 }
                 else

@@ -8,16 +8,6 @@ namespace Abra.Test
     [TestFixture]
     public class RudimentaryInjectionTest
     {
-        private static readonly object Foo = new object();
-
-        [Test]
-        public void CanGetFoo()
-        {
-            var container = Container.Create(typeof (TestModule));
-            var maybeFoo = container.Get<object>();
-            Expect.The(maybeFoo).ToBeTheSameAs(Foo);
-        }
-
         [Test]
         public void CanGetTheDude()
         {
@@ -96,20 +86,36 @@ namespace Abra.Test
             GetWithModules<ThrowsOnSet>(new ThrowableModule());
         }
 
+        [Test]
+        public void EntryPoint_Injected_WhenDepenencyNotProvided_GetsJitBinding()
+        {
+            var entryPoint = GetWithModules<NeedsA>(new EmptyModule());
+            Expect.The(entryPoint).Not.ToBeNull();
+        }
+
+        private class A
+        {
+            [Inject] public A() {}
+        }
+
+        private class B
+        {
+            [Inject] public B() {}
+        }
+
+        private class NeedsA
+        {
+            [Inject] public A A { get; set; }
+        }
+
+        [Module(EntryPoints = new[] { typeof(NeedsA) })]
+        private class EmptyModule
+        {
+        }
+
         private T GetWithModules<T>(params object[] modules)
         {
             return Container.Create(modules).Get<T>();
-        }
-
-        [Module(
-            EntryPoints = new[] { typeof(object) })]
-        public class TestModule
-        {
-            [Provides]
-            public object ProvideFoo()
-            {
-                return Foo;
-            }
         }
 
         [Module(
@@ -176,16 +182,6 @@ namespace Abra.Test
             }
         }
 
-        [Module]
-        public class ArrayModule
-        {
-            [Provides]
-            public object[,] ProvidesStringArray()
-            {
-                return new object[0,0];
-            }
-        }
-
         [Module(IncludedModules = new[] { typeof(TestNamedModule) })]
         public class TestIncludedModules
         {
@@ -205,6 +201,8 @@ namespace Abra.Test
             [Inject, Named("bar")]
             public DateTime Birthday { get; set; }
 
+            [Inject]
+            public DateTime FavoriteTimeOfDay { get; set; }
 
             [Inject]
             public Dude(IList<string> hobbies)

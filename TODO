@@ -1,3 +1,4 @@
 * Integration tests for the compiler
-* Make MSBuild integration less manual, if possible.  Investigate whether NuGet can help, i.e. modify project file on package installation.
-* Stop stalling and test generics
+* Implement module overrides
+* Implement PreProcessedModuleProcessor that a) provides a plugin ctor and b) fixes up any Container.CreateWithPlugins calls.
+* Throw friendlier errors when injections or binding resolves fail.

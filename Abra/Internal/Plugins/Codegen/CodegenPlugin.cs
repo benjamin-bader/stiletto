@@ -56,13 +56,14 @@ namespace Abra.Internal.Plugins.Codegen
         }
 
         private T GetObjectOfTypeName<T>(string typeName, string suffix, object[] ctorArgs = null)
+            where T : class
         {
             typeName += suffix;
             //typeName = typeName.Replace('+', '.');
             var t = ReflectionUtils.GetType(typeName);
 
             if (t == null) {
-                throw new ArgumentException("Could not find generated class of type: " + typeName);
+                return null;
             }
 
             return (T) Activator.CreateInstance(t, ctorArgs);

@@ -46,6 +46,7 @@
     <Compile Include="Container.cs" />
     <Compile Include="InjectAttribute.cs" />
     <Compile Include="Internal\Binding.cs" />
+    <Compile Include="Internal\BindingException.cs" />
     <Compile Include="Internal\Conditions.cs" />
     <Compile Include="Internal\GraphVerifier.cs" />
     <Compile Include="Internal\Plugins\Codegen\CodegenPlugin.cs" />

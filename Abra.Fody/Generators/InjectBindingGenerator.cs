@@ -39,6 +39,8 @@ namespace Abra.Fody.Generators
         public IList<InjectMemberInfo> CtorParams { get; private set; }
         public TypeDefinition InjectedType { get { return injectedType; } }
 
+        public bool IsVisibleToPlugin { get; private set; }
+
         public InjectBindingGenerator(ModuleDefinition moduleDefinition, References references, TypeReference injectedType, bool isEntryPoint)
             : base(moduleDefinition, references)
         {
@@ -46,6 +48,10 @@ namespace Abra.Fody.Generators
                                     ? (TypeDefinition) injectedType
                                     : ModuleDefinition.Import(injectedType).Resolve();
             this.isEntryPoint = isEntryPoint;
+
+            CtorParams = new List<InjectMemberInfo>();
+            InjectableProperties = new List<PropertyInfo>();
+            IsVisibleToPlugin = true;
         }
 
         public override void Validate(IErrorReporter errorReporter)
@@ -53,6 +59,18 @@ namespace Abra.Fody.Generators
             if (injectedType.HasGenericParameters) {
                 errorReporter.LogError("Open generic types may not be injected: " + injectedType.FullName);
                 return;
+            }
+
+            switch (injectedType.Attributes & TypeAttributes.VisibilityMask) {
+                case TypeAttributes.NestedFamily:
+                case TypeAttributes.NestedFamANDAssem:
+                case TypeAttributes.NestedPrivate:
+                case TypeAttributes.NotPublic:
+                    // This type is not externally visible and can't be included in a compiled plugin.
+                    // It can still be loaded reflectively.
+                    IsVisibleToPlugin = false;
+                    errorReporter.LogWarning(injectedType.FullName + ": This type is private, and will be loaded reflectively.  Consider making it internal or public.");
+                    break;
             }
 
             Key = CompilerKeys.ForType(injectedType);

@@ -79,6 +79,7 @@
     <Compile Include="ILProcessorExtensions.cs" />
     <Compile Include="IErrorReporter.cs" />
     <Compile Include="MethodReferenceExtensions.cs" />
+    <Compile Include="ModuleProcessor.cs" />
     <Compile Include="ModuleWeaver.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

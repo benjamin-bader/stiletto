@@ -21,6 +21,8 @@ namespace Abra.Internal
 {
     public abstract class Binding
     {
+        public static Binding Unresolved = new UnresolvedBinding();
+
         [Flags]
         private enum BindingState
         {
@@ -147,7 +149,7 @@ namespace Abra.Internal
 
             public override object Get()
             {
-                throw new InvalidOperationException("Don't `Get` and unresolved binding");
+                throw new InvalidOperationException("Don't `Get` an unresolved binding");
             }
         }
     }

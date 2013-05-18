@@ -70,7 +70,7 @@ namespace Abra.Internal
         {
             var unusedBindings = bindings
                 .Where(b => !b.IsLibrary && !b.IsDependedOn)
-                .Cast<ProviderMethodBindingBase>()
+                .Select(CastOrUnwrapBinding)
                 .ToList();
 
             if (unusedBindings.Count == 0) {
@@ -87,6 +87,28 @@ namespace Abra.Internal
             }
 
             throw new InvalidOperationException(sb.ToString());
+        }
+
+        private static ProviderMethodBindingBase CastOrUnwrapBinding(Binding binding)
+        {
+            SingletonBinding singletonBinding;
+            ProviderMethodBindingBase providerMethodBindingBase;
+
+            providerMethodBindingBase = binding as ProviderMethodBindingBase;
+            if (binding != null) {
+                return providerMethodBindingBase;
+            }
+
+            singletonBinding = binding as SingletonBinding;
+            if (singletonBinding != null) {
+                providerMethodBindingBase = singletonBinding.DelegateBinding as ProviderMethodBindingBase;
+            }
+
+            if (providerMethodBindingBase == null) {
+                throw new InvalidOperationException("WTF, how is an unused binding not a provides binding?");
+            }
+
+            return providerMethodBindingBase;
         }
     }
 }

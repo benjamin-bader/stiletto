@@ -83,11 +83,13 @@ namespace Abra.Fody.Validation
             foreach (var module in allModules.Values) {
                 // Request entry-point bindings
                 foreach (var entryPointType in module.EntryPoints) {
-                    var key = CompilerKeys.ForType(entryPointType);
-                    resolver.RequestBinding(key, module.ModuleType.FullName, false);
+                    var key = CompilerKeys.GetMemberKey(entryPointType);
+                    resolver.RequestBinding(CompilerKeys.ForType(entryPointType), module.ModuleType.FullName, false, true);
+                    resolver.RequestBinding(key, module.ModuleType.FullName, false, true);
                 }
 
                 foreach (var providerGenerator in module.ProviderGenerators) {
+
                     var binding = new CompilerProvidesBinding(providerGenerator);
 
                     if (bindings.ContainsKey(binding.ProviderKey)) {

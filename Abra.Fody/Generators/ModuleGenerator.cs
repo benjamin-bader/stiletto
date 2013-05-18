@@ -38,7 +38,8 @@ namespace Abra.Fody.Generators
         public IList<TypeReference> IncludedModules { get; private set; }
         public IList<TypeReference> EntryPoints { get; private set; }
         public IList<MethodDefinition> BaseProvidesMethods { get { return baseProvidesMethods; }}
-        public IList<ProviderMethodBindingGenerator> ProviderGenerators { get; private set; } 
+        public IList<ProviderMethodBindingGenerator> ProviderGenerators { get; private set; }
+        public bool IsVisibleToPlugin { get; private set; }
 
         private MethodReference generatedCtor;
 
@@ -109,16 +110,18 @@ namespace Abra.Fody.Generators
             ProviderGenerators = baseProvidesMethods
                 .Select(m => new ProviderMethodBindingGenerator(ModuleDefinition, References, moduleType, m, IsLibrary))
                 .ToList();
+
+            IsVisibleToPlugin = true;
         }
 
         public override void Validate(IErrorReporter errorReporter)
         {
             if (moduleType.BaseType != null && moduleType.BaseType.FullName != ModuleDefinition.TypeSystem.Object.FullName) {
-                errorReporter.LogError("Modules must inherit from System.Object");
+                errorReporter.LogError(moduleType.FullName + ": Modules must inherit from System.Object");
             }
 
             if (moduleType.IsAbstract) {
-                errorReporter.LogError("Modules cannot be abstract.");
+                errorReporter.LogError(moduleType.FullName + ": Modules cannot be abstract.");
             }
 
             moduleCtor = moduleType.GetConstructors().FirstOrDefault(m => m.Parameters.Count == 0);
@@ -126,9 +129,10 @@ namespace Abra.Fody.Generators
                 errorReporter.LogError(moduleType.FullName + " is marked as a [Module], but no default constructor is visible.");
             }
 
-            if (IncludedModules.Count == 0 && baseProvidesMethods.Count == 0) {
-                errorReporter.LogError("Modules must expose at least one [Provides] method.");
-            }
+            // TODO: Is this check valuable?  It differs from dagger, but what use is an empty module with no includes?
+//            if (IncludedModules.Count == 0 && baseProvidesMethods.Count == 0) {
+//                errorReporter.LogError(moduleType.FullName + ": Modules must expose at least one [Provides] method.");
+//            }
 
             ProvidedKeys = new HashSet<string>(StringComparer.Ordinal);
             foreach (var method in baseProvidesMethods) {
@@ -136,7 +140,7 @@ namespace Abra.Fody.Generators
                 var key = CompilerKeys.ForType(method.ReturnType, name);
 
                 if (!ProvidedKeys.Add(key)) {
-                    errorReporter.LogError("Duplicate provider key for method " + moduleType.FullName + "." + method.Name);
+                    errorReporter.LogError(moduleType.FullName + ": Duplicate provider key for method " + moduleType.FullName + "." + method.Name);
                 }
             }
 
@@ -147,12 +151,24 @@ namespace Abra.Fody.Generators
                         var key = CompilerKeys.ForType(param.ParameterType, name);
 
                         if (!ProvidedKeys.Contains(key)) {
-                            var msg = "Module type {0} is a complete module but has an unsatisfied dependency on {1}{2}";
+                            const string msg = "{0}: Module is a complete module but has an unsatisfied dependency on {1}{2}";
                             var nameDescr = name == null ? string.Empty : "[Named(\"" + name + "\")] ";
                             errorReporter.LogError(string.Format(msg, moduleType.FullName, nameDescr, param.ParameterType.FullName));
                         }
                     }
                 }
+            }
+
+            switch (moduleType.Attributes & TypeAttributes.VisibilityMask) {
+                case TypeAttributes.NestedFamily:
+                case TypeAttributes.NestedFamANDAssem:
+                case TypeAttributes.NestedPrivate:
+                case TypeAttributes.NotPublic:
+                    // This type is not externally visible and can't be included in a compiled plugin.
+                    // It can still be loaded reflectively.
+                    IsVisibleToPlugin = false;
+                    errorReporter.LogWarning(moduleType.FullName + ": This type is private, and will be loaded reflectively.  Consider making it internal or public.");
+                    break;
             }
 
             foreach (var gen in ProviderGenerators) {
@@ -197,6 +213,13 @@ namespace Abra.Fody.Generators
 
         private void EmitCreateModule(TypeDefinition runtimeModule)
         {
+            /**
+             * public override object CreateModule()
+             * {
+             *     return new CompiledRuntimeModule();
+             * }
+             */
+
             var createModule = new MethodDefinition(
                 "CreateModule",
                 MethodAttributes.Public | MethodAttributes.Virtual,
@@ -211,6 +234,15 @@ namespace Abra.Fody.Generators
 
         private void EmitGetBindings(TypeDefinition runtimeModule)
         {
+            /**
+             * public override void GetBindings(Dictionary<string, Binding> bindings)
+             * {
+             *     var module = this.Module;
+             *     bindings.Add("keyof binding0", new ProviderBinding0(module));
+             *     ...
+             *     bindings.Add("keyof bindingN", new ProviderBindingN(module));
+             * }
+             */
             var getBindings = new MethodDefinition(
                 "GetBindings",
                 MethodAttributes.Public | MethodAttributes.Virtual,
@@ -224,7 +256,7 @@ namespace Abra.Fody.Generators
 
             var il = getBindings.Body.GetILProcessor();
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Callvirt, References.RuntimeModule_Module);
+            il.Emit(OpCodes.Callvirt, References.RuntimeModule_ModuleGetter);
             il.Emit(OpCodes.Castclass, moduleType);
             il.Emit(OpCodes.Stloc, vModule);
 
@@ -243,6 +275,17 @@ namespace Abra.Fody.Generators
 
         private void EmitCtor(TypeDefinition runtimeModule)
         {
+            /**
+             * public CompiledRuntimeModule()
+             *     : base(typeof(OriginalModule),
+             *            new[] { "key0", ..., "keyN" },
+             *            new[] { typeof(IncludedModule0), ..., typeof(IncludedModuleN) },
+             *            isComplete,
+             *            isLibrary)
+             * {
+             * }
+             */
+
             var ctor = new MethodDefinition(".ctor",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
                 ModuleDefinition.TypeSystem.Void);
@@ -277,7 +320,7 @@ namespace Abra.Fody.Generators
                 il.Emit(OpCodes.Stelem_Ref);
             }
 
-            // Push args (this, moduleType, entryPoints, includes, complete) and call base ctor
+            // Push args (this, moduleType, entryPoints, includes, complete, library) and call base ctor
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldtoken, moduleType);
             il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);

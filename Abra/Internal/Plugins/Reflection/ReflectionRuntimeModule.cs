@@ -61,14 +61,14 @@ namespace Abra.Internal.Plugins.Reflection
         {
             if (ModuleType.BaseType != typeof(object))
             {
-                throw new NotSupportedException("Modules must inherit only from System.Object.");
+                throw new BindingException("Modules must inherit only from System.Object.");
             }
 
             var ctor = ModuleType.GetConstructor(Type.EmptyTypes);
 
             if (ctor == null)
             {
-                throw new NotSupportedException("Modules must have a public default constructor.");
+                throw new BindingException("Modules must have a public default constructor.");
             }
 
             return ctor.Invoke(null);

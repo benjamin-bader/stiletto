@@ -118,9 +118,7 @@ namespace Abra.Internal
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             for (var i = 0; i < assemblies.Length; ++i) {
                 var asm = assemblies[i];
-                if (!knownAssemblies.Add(asm)) {
-                    continue;
-                }
+                knownAssemblies.Add(asm);
 
                 var types = asm.GetTypes();
                 for (var j = 0; j < types.Length; ++j) {

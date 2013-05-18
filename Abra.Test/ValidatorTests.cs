@@ -22,7 +22,7 @@ namespace Abra.Test
         public void Validate_WhenNoCyclesExist_DoesNotThrow()
         {
             var container = Container.Create(typeof(GoodModuleOne), typeof(GoodModuleTwo));
-            Expect.The(container.Validate).Not.ToThrow<Exception>();
+            container.Validate();
         }
 
         [Module(IsComplete = false)]
@@ -45,7 +45,7 @@ namespace Abra.Test
             }
         }
 
-        [Module(IsComplete = false)]
+        [Module(IsComplete = false, IsLibrary = true)]
         public class GoodModuleOne
         {
             [Provides]
@@ -55,7 +55,7 @@ namespace Abra.Test
             }
         }
 
-        [Module]
+        [Module(IsLibrary = true)]
         public class GoodModuleTwo
         {
             [Provides]

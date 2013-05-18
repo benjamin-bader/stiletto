@@ -41,17 +41,29 @@ namespace Abra.Fody.Validation
 
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
-            return bindings[key];
+            CompilerBinding binding;
+            if (!bindings.TryGetValue(key, out binding)) {
+                throw new BindingException("No binding for " + key);
+            }
+            return binding;
         }
 
         public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
         {
-            return lazyBindings[key];
+            CompilerParameterizedBinding binding;
+            if (!lazyBindings.TryGetValue(key, out binding)) {
+                throw new BindingException("No lazy binding for " + key);
+            }
+            return binding;
         }
 
         public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
         {
-            return providerBindings[key];
+            CompilerParameterizedBinding binding;
+            if (!providerBindings.TryGetValue(key, out binding)) {
+                throw new BindingException("No IProvider binding for " + key);
+            }
+            return binding;
         }
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)

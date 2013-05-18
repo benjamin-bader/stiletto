@@ -81,7 +81,7 @@ namespace Abra.Internal.Plugins.Reflection
         {
             if (ctor == null)
             {
-                throw new NotSupportedException("Reflection bindings must have a constructor to invoke.");
+                throw new BindingException("Reflection bindings must have a constructor to invoke.");
             }
 
             var args = new object[paramterBindings.Length];
@@ -149,7 +149,7 @@ namespace Abra.Internal.Plugins.Reflection
 
                 if (p.GetSetMethod() == null)
                 {
-                    throw new ArgumentException("[Inject]-able properties must have a public setter.");
+                    throw new BindingException("[Inject]-able properties must have a public setter.");
                 }
 
                 var namedAttribute = p.GetSingleAttribute<NamedAttribute>();
@@ -173,7 +173,7 @@ namespace Abra.Internal.Plugins.Reflection
 
                 if (injectableCtor != null)
                 {
-                    throw new InvalidOperationException("Only one constructor may be marked as [Inject]-able.");
+                    throw new BindingException("Only one constructor may be marked as [Inject]-able.");
                 }
 
                 injectableCtor = ctors[i];
@@ -183,14 +183,14 @@ namespace Abra.Internal.Plugins.Reflection
             {
                 if (injectableProperties.Count == 0 && mustBeInjectable)
                 {
-                    throw new ArgumentException("No injectable constructor or properties found on type " + t.FullName);
+                    throw new BindingException("No injectable constructor or properties found on type " + t.FullName);
                 }
 
                 var defaultCtor = t.GetConstructor(Type.EmptyTypes);
 
                 if (defaultCtor == null)
                 {
-                    throw new ArgumentException("No default constructor found and no constructors marked as [Inject]-able.");
+                    throw new BindingException("No default constructor found and no constructors marked as [Inject]-able.");
                 }
 
                 injectableCtor = defaultCtor;

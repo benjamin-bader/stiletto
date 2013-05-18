@@ -108,7 +108,7 @@ namespace Abra
         {
             var start = StartOfType(key);
 
-            return key.IndexOf('[') >= 0 || key.IndexOf('<') >= 0
+            return key.IndexOf('[') >= 0
                        ? null
                        : start < 0 ? key : key.Substring(start);
         }

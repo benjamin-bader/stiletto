@@ -21,16 +21,17 @@ using Abra.Internal;
 
 namespace Abra.Fody.Validation
 {
-    public class CompilerProvidesBinding : Binding
+    public class CompilerProvidesBinding : ProviderMethodBindingBase
     {
         private readonly ProviderMethodBindingGenerator generator;
 
         private IList<Binding> paramBindings; 
 
         public CompilerProvidesBinding(ProviderMethodBindingGenerator generator)
-            : base(generator.Key, null, generator.IsSingleton, generator)
+            : base(generator.Key, null, generator.IsSingleton, generator, generator.ModuleType.FullName, generator.ProviderMethod.Name)
         {
             this.generator = generator;
+            IsLibrary = generator.IsLibrary;
         }
 
         public override void Resolve(Resolver resolver)

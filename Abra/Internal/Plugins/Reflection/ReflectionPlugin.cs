@@ -52,7 +52,7 @@ namespace Abra.Internal.Plugins.Reflection
 
             if (moduleType.BaseType != typeof(object))
             {
-                throw new ArgumentException("Modules must inherit only from System.Object.");
+                throw new BindingException("Modules must inherit only from System.Object.");
             }
 
             return new ReflectionRuntimeModule(moduleType, attr);

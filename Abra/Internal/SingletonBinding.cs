@@ -24,6 +24,11 @@ namespace Abra.Internal
         private object instance;
         private bool initialized;
 
+        public Binding DelegateBinding
+        {
+            get { return binding; }
+        }
+
         public override bool IsResolved
         {
             get { return binding.IsResolved; }
