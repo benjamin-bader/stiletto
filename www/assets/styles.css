@@ -5,17 +5,58 @@
 
 body {
   position: relative;
-  padding-top: 40px;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 15px;
 }
 
-/* Code in headings */
-h3 code {
-  font-size: 14px;
-  font-weight: normal;
+pre,
+code {
+  font-family: 'Source Code Pro', sans-serif;
 }
 
 /* Sections
 -------------------------------------------------- */
+header {
+  min-height: 80px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #fff;
+}
+
+header h1 {
+  margin: 10px 0;
+  font-size: 60px;
+  line-height: 60px;
+  font-weight: 100;
+  text-rendering: auto;
+}
+
+header menu {
+  margin: 20px 0 0;
+  height: 40px;
+  padding: 0;
+}
+
+header menu ul {
+  float: right;
+}
+
+header menu li {
+  list-style: none;
+  float: left;
+}
+
+header menu li a {
+  display: inline-block;
+  height: 40px;
+  line-height: 40px;
+}
+
+section:first-child {
+  padding-top: 80px;
+}
 
 /* padding for in-page bookmarks and fixed navbar */
 section {
@@ -45,110 +86,9 @@ hr.soften {
   border: 0;
 }
 
-/* Jumbotrons
--------------------------------------------------- */
-
-/* Base class
-------------------------- */
-.jumbotron {
-  position: relative;
-  padding: 40px 0;
-  color: #fff;
-  text-align: center;
-  text-shadow: 0 1px 3px rgba(0,0,0,.4), 0 0 30px rgba(0,0,0,.075);
-  background: #020031; /* Old browsers */
-  background: -moz-linear-gradient(45deg,  #020031 0%, #6d3353 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left bottom, right top, color-stop(0%,#020031), color-stop(100%,#6d3353)); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(45deg,  #020031 0%,#6d3353 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(45deg,  #020031 0%,#6d3353 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(45deg,  #020031 0%,#6d3353 100%); /* IE10+ */
-  background: linear-gradient(45deg,  #020031 0%,#6d3353 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#020031', endColorstr='#6d3353',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
-  -webkit-box-shadow: inset 0 3px 7px rgba(0,0,0,.2), inset 0 -3px 7px rgba(0,0,0,.2);
-     -moz-box-shadow: inset 0 3px 7px rgba(0,0,0,.2), inset 0 -3px 7px rgba(0,0,0,.2);
-          box-shadow: inset 0 3px 7px rgba(0,0,0,.2), inset 0 -3px 7px rgba(0,0,0,.2);
-}
-.jumbotron h1 {
-  font-size: 80px;
-  font-weight: bold;
-  letter-spacing: -1px;
-  line-height: 1;
-}
-.jumbotron p {
-  font-size: 24px;
-  font-weight: 300;
-  line-height: 1.25;
-  margin-bottom: 30px;
-}
-
-/* Link styles (used on .masthead-links as well) */
-.jumbotron a {
-  color: #fff;
-  color: rgba(255,255,255,.5);
-  -webkit-transition: all .2s ease-in-out;
-     -moz-transition: all .2s ease-in-out;
-          transition: all .2s ease-in-out;
-}
-.jumbotron a:hover {
-  color: #fff;
-  text-shadow: 0 0 10px rgba(255,255,255,.25);
-}
-
-/* Pattern overlay
-------------------------- */
-.jumbotron .container {
-  position: relative;
-  z-index: 2;
-}
-.jumbotron:after {
-  content: '';
-  display: block;
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background: url(../img/bs-docs-masthead-pattern.png) repeat center center;
-  opacity: .4;
-}
-@media
-only screen and (-webkit-min-device-pixel-ratio: 2),
-only screen and (   min--moz-device-pixel-ratio: 2),
-only screen and (     -o-min-device-pixel-ratio: 2/1) {
-
-  .jumbotron:after {
-    background-size: 150px 150px;
-  }
-
-}
-
-/* Masthead (docs home)
-------------------------- */
-.masthead {
-  padding: 70px 0 80px;
-  margin-bottom: 0;
-  color: #fff;
-}
-.masthead h1 {
-  font-size: 120px;
-  line-height: 1;
-  letter-spacing: -2px;
-}
-.masthead p {
-  font-size: 40px;
-  font-weight: 200;
-  line-height: 1.25;
-}
-
-/* Textual links in masthead */
-.masthead-links {
-  margin: 0;
-  list-style: none;
-}
-.masthead-links li {
-  display: inline;
-  padding: 0 10px;
-  color: rgba(255,255,255,.25);
+.scroll-adjust {
+  padding-top: 380px;
+  margin-top: -380px;
 }
 
 /* Subhead (other pages)
@@ -160,14 +100,7 @@ only screen and (     -o-min-device-pixel-ratio: 2/1) {
 .subhead h1 {
   font-size: 60px;
 }
-.subhead p {
-  margin-bottom: 20px;
-}
-.subhead .navbar {
-  display: none;
-}
-
-/* Sidenav for Docs
+/* Sidenav
 -------------------------------------------------- */
 
 .sidenav {
@@ -228,10 +161,156 @@ only screen and (     -o-min-device-pixel-ratio: 2/1) {
   opacity: 1;
 }
 .sidenav.affix {
-  top: 40px;
+  position: fixed;
+  top: 75px;
 }
-.sidenav.affix-bottom {
+.sidenav.affix-top {
+  position: fixed;
+  top: 75px;
+}
+.sidenav-unused.affix-bottom {
   position: absolute;
   top: auto;
   bottom: 270px;
+}
+
+.nav-list>.active>a,
+.nav-list>.active>a:hover,
+.nav-list>.active>a:focus {
+  background-color: #008FD5;
+}
+
+/* Footer
+-------------------------------------------------- */
+
+.footer {
+  text-align: center;
+  padding: 30px 0;
+  margin-top: 70px;
+  border-top: 1px solid #e5e5e5;
+  background-color: #f5f5f5;
+}
+.footer p {
+  margin-bottom: 0;
+  color: #777;
+}
+.footer-links {
+  margin: 10px 0;
+}
+.footer-links li {
+  display: inline;
+  padding: 0 2px;
+}
+.footer-links li:first-child {
+  padding-left: 0;
+}
+
+/* Responsive
+-------------------------------------------------- */
+
+/* Desktop large
+------------------------- */
+@media (min-width: 1200px) {
+  .sidenav {
+    width: 258px;
+  }
+  .sidenav > li > a {
+    width: 230px \9; /* Override the previous IE8-9 hack */
+  }
+}
+
+/* Desktop
+------------------------- */
+@media (max-width: 980px) {
+  /* When affixed, space properly */
+  .sidenav {
+    top: 75px;
+    width: 218px;
+    margin-top: 30px;
+    margin-right: 0;
+  }
+
+  .subhead h1 {
+    margin-right: 0;
+  }
+
+}
+
+/* Tablet to desktop
+------------------------- */
+@media (min-width: 768px) and (max-width: 979px) {
+  /* Remove any padding from the body */
+  body {
+    padding-top: 80;
+  }
+  /* Adjust sidenav width */
+  .sidenav {
+    width: 166px;
+    margin-top: 30px;
+  }
+  .sidenav.affix {
+    top: 75px;
+  }
+}
+
+/* Tablet
+------------------------- */
+@media (max-width: 767px) {
+  /* Remove any padding from the body */
+  body {
+    padding-top: 80;
+  }
+
+  .subhead h1 {
+    text-align: center;
+  }
+  .subhead menu {
+    display: none;
+  }
+
+  /* Sidenav */
+  .sidenav {
+    display: none;
+    left: -1200px;
+  }
+  .sidenav.affix {
+    position: static;
+    width: auto;
+    top: 75px;
+  }
+
+  /* Unfloat the back to top link in footer */
+  .footer {
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .footer p {
+    margin-bottom: 9px;
+  }
+}
+
+/* Landscape phones
+------------------------- */
+@media (max-width: 480px) {
+  /* Remove padding above jumbotron */
+  body {
+    padding-top: 0;
+  }
+
+  /* center align subhead text like the masthead */
+  .subhead h1  {
+    text-align: center;
+  }
+
+  .subhead menu {
+    display: none;
+  }
+
+  /* Tighten up footer */
+  .footer {
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
 }
