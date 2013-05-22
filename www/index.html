@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Stiletto</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Stiletto, a fast IoC container for .NET">
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
+    <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+    <link href="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet"/>
+    <link href="./assets/js/google-code-prettify/prettify.css" rel="stylesheet" />
+    <link href="./assets/styles.css" rel="stylesheet"/>
+  </head>
+  <body data-target=".sidebar">
+    <header class="subhead">
+      <div class="container">
+        <div class="row">
+          <div class="span5">
+            <h1>Stiletto</h1>
+          </div>
+          <div class="span7">
+            <menu>
+              <ul>
+                <li><a href="https://github.com/benjamin-bader/stiletto">View GitHub Project</a></li>
+              </ul>
+            </menu>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="row">
+        <div class="span3 sidebar">
+          <ul class="nav nav-list sidenav" data-spy="affix">
+            <li><a href="#intro"><i class="icon-chevron-right"></i> Meet Stiletto</a></li>
+            <li><a href="#howto"><i class="icon-chevron-right"></i> Using Stiletto</a></li>
+            <li><a href="#compiler"><i class="icon-chevron-right"></i> Code Generation</a></li>
+            <li><a href="#getting"><i class="icon-chevron-right"></i> Getting Stiletto</a></li>
+            <li><a href="#contributing"><i class="icon-chevron-right"></i> Contributing</a></li>
+          </ul>
+        </div>
+
+        <div class="span9">
+          <section id="intro">
+            <div class="page-header">
+              <p><h1>Meet Stiletto</h1></p>
+              <p><h3>A fast dependency injector for .NET and Mono</h3></p>
+            </div>
+            <p>Stiletto is a .NET port of <a href="http://square.github.io/dagger">Dagger</a>, the lightweight Android dependency injector from Square.</p>
+            <p>Stiletto provides declarative, configure-where-needed dependency injection that runs everywhere .NET does, <em>including</em> platforms lacking support for <code>Reflection.Emit</code> like MonoTouch.  While some containers such as TinyIOC and Funq offer the same portability, they require large and brittle configuration methods to set up and use; Stiletto configuraton resides in modules that can be declared where they are used, and that can be easily reasoned about.</p>
+          </section>
+
+          <section id="howto">
+            <div class="page-header">
+              <h1>Using Stiletto</h1>
+            </div>
+            <h3>Basic Injection</h3>
+            <p>Stiletto both constructs your objects and satisfies their dependencies.  It relies on custom attributes on constructors and properties to determine what the dependencies are.</p>
+            <p>The <code>[Inject]</code> attribute on a constructor indicates that this constructor will be used to create that object, and its parameters are dependencies to be injected.</p>
+            <p><pre class="prettyprint lang-cs">public class Jukebox
+{
+    private readonly IRepository&lt;Album&gt; albumRepository;
+
+    [Inject]
+    public Jukebox(IRepository&lt;Album&gt; albumRepository)
+    {
+        this.albumRepository = albumRepository;
+    }
+
+    ...
+}</pre></p>
+            <p><code>[Inject]</code> can also be applied to properties that have both getters and setters:</p>
+            <p><pre class="prettyprint lang-cs">public class Jukebox
+{
+    [Inject]
+    public IRepository&lt;Album&gt; AlbumRepository { get; set; }
+
+    ...
+}</pre></p>
+            <p>Objects are obtained from Stiletto by using the <code>Container</code> class:</p>
+            <p><pre class="prettyprint lang-cs">
+var container = Container.Create(typeof(MusicModule));
+var jukebox = container.Get&lt;Jukebox&gt;();
+jukebox.PlayOne();</pre></p>
+            <p>Stiletto can automatically satisfy any dependency that has an <code>[Inject]</code> attribute on it.  While this is good, it is not sufficient: some objects require configuration, some are provided by third parties, etc.  For these cases, dependencies can be provided by methods in so-called modules:</p>
+            <p><pre class="prettyprint lang-cs">
+[Module]
+public class MusicModule
+{
+    [Provides]
+    public IRepository&lt;Album&gt; ProvideAlbumRepository(IWebService service)
+    {
+        return new WebServiceRepository&lt;Album&gt;(service, credentials);
+    }
+}</pre></p>
+            <p>A module is any class that derives from Object has a <code>[Module]</code> attribute.  Any public methods in a module that have a <code>[Provides]</code> attribute will be used by Stiletto to satisfy dependencies that couldn't otherwise be injected.</p>
+            <h3>Singletons</h3>
+            <p>Some objects naturally represent a one-of-a-kind entity that lives as long as your application does.  For these objects, it's a mistake to create more than one.  Stiletto supports such objects with the <code>[Singleton]</code> attribute.  It can be applied both to classes that are singletons, and to provider methods as well:</p>
+            <p><pre class="prettyprint lang-cs">
+[Singleton]
+public class AppConfiguration
+{
+    private readonly ISettings settings;
+
+    [Inject]
+    public AppConfiguration(ISettings settings)
+    {
+        this.settings = settings;
+    }
+}</pre>
+<pre class="prettyprint lang-cs">
+[Provides, Singleton]
+public ISettings ProvideSettings()
+{
+    return new FileBasedSettings("./settings.ini");
+}</pre></p>
+            <h3>Lazy Values</h3>
+            <p>Some objects are just expensive to build up, and aren't always needed right away.  If they are created eagerly, they might slow down application startup, detracting from the user experience and the perceived quality of your product.</p>
+            <p>For these objects, Stiletto supports injecting <code>System.Lazy&lt;T&gt;</code> instances.  All that is needed is to specify a dependency as such, and Stiletto knows how to do the rest:</p>
+            <p><pre class="prettyprint lang-cs">
+public class Application
+{
+    [Inject]
+    Lazy&lt;ISettings&gt; Settings { get; set; }
+
+    ...
+}</pre></p>
+            <h3>Provider Injection</h3>
+            <p>Unlike Guice, Stiletto does not support injecting its container directly.  Nevertheless, sometimes you need multiple instances of the same dependency.  To that end, dependencies can be declared of the type <code>Stiletto.IProvider&lt;T&gt;</code>, which will return a new instance of the provided type every time its <code>Get</code> method is invoked:</p>
+            <p><pre class="prettyprint lang-cs">
+public class ProviderExample
+{
+    [Inject]
+    public ProviderExample(IProvider&lt;Object&gt; objectProvider)
+    {
+        // objectProvider.Get() will return a new instance each time.
+        Debug.Assert(objectProvider.Get() != objectProvider.Get())
+    }
+}</pre></p>
+            <h4>Note</h4>
+            <p>When injecting Lazy or IProvider members, it is not necessary to explicitly provide Lazy or IProvider objects in modules; Stiletto will wrap the values itself.  It is, in fact, an error to provide Lazy or IProvider members:</p>
+            <p><pre class="prettyprint lang-cs">
+// NOT ALLOWED:
+[Provides]
+Lazy&lt;Object&gt; ProvideLazyObject()
+{
+    return new Lazy&lt;Object&gt;(() => new Object());
+}</pre></p>
+          </section>
+
+          <section id="compiler">
+            <div class="page-header">
+              <h1>Code Generation</h1>
+            </div>
+            <p>Stiletto employs an optional compile-time process that both statially analyzes the network of dependencies and modules, and generates CIL code to make the injections maximally efficent.</p>
+            <p>The compile-time process is implemented as a <a href="FODY">Fody</a> weaver.  Fody is a direct dependency</p>
+            <p>While the compiler plugin is technically optional in general, due to limitations of the Mono platform on iOS it is required for MonoTouch apps that make use of Lazy and IProvider injections.  Additionally, a large part of Stiletto's value comes from the quick feedback cycle enabled by compile-time validation of your dependency graph.  Not to mention the fact that, while reflection is powerful it is also very slow - using the compile-time plugin has been observed to provide a 100x reduction in time spent inside of Stiletto.</p>
+            <h3>Validation</h3>
+            <p>The dependencies and modules in your app can be thought of as a directed, acyclic graph.  The types that you explicitly get from the container can be thought of as "entry points" into the graph.  Starting from these entry points, Stiletto can analyze the graph and determine several useful things at compile-time.  First, it can validate that there are no unsatisfied dependencies; it is no longer necessary to wait until runtime to discover that some critical dependency has been left out.  Secondly, it can keep dead code out of your modules by detecting unused dependencies.</p>
+            <h3>Code Generation</h3>
+            <p>After your application's dependencies have been validated, Stiletto may modify your assemblies to make injection more efficient.  After processing, you may find classes in your assembly with names like "YourOwnClass_CompiledBinding" or "$CompiledPlugin$"; these compiler-generated classes help eliminate the need for reflection, but should be considered as implementation details and not directly relied upon.</p>
+          </section>
+
+          <section id="getting">
+            <div class="page-header">
+              <h1>Getting Stiletto</h1>
+            </div>
+            <p>To start using Stiletto, all that is required is to get the library from NuGet.</p>
+            <p>To start using the compiler plugin, install the Stiletto.Fody package in your app's root project.  If you are using Visual Studio, this is all that is required.  For those using MonoDevelop or Xamarin Studio, setup of the compiler product is a little more compilicated.  First, Fody must be installed and configured by itself; see <a href="https://github.com/Fody/Fody/wiki/Mono">the Fody setup for Mono</a> for those details.  Once xbuild and Fody are configured, get the Stiletto.Fody assembly and drop it in.  Add a <code>&lt;Stiletto /&gt;</code> tag to your project's FodyWeavers.xml file, and build.</p>
+          </section>
+
+          <section id="contributing">
+            <div class="page-header">
+              <h1>Contributing</h1>
+            </div>
+            <p>Contributions are welcome, whether in the form of pull requests, bug reports, or questions.  Join the discussion at <a href="https://github.com/benjamin-bader/stiletto">the GitHub project</a>.</p>
+            <p>Stiletto is made available under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache 2.0 license</a>; any contributions must be under the same license as well.</p>
+            <p><pre>
+Copyright 2013 Benjamin Bader
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</pre></p>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container">
+        <p>Copyright &copy; 2013 Benjamin Bader</p>
+        <p>Grateful acknowledgements to the teams at <a href="http://square.github.io">Square</a> (Dagger) and <a href="http://twitter.github.io">Twitter</a> (Bootstrap)</p>
+        <p><a href="http://glyphicons.com">Glyphicons Free</a> licensed under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.</p>
+      </div>
+    </footer>
+    <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+    <script type="text/javascript" src="./assets/js/jquery/jquery-2.0.0.min.js"></script>
+    <script type="text/javascript" src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="./assets/js/google-code-prettify/prettify.js"></script>
+    <script type="text/javascript">
+      prettyPrint();
+      $('body').scrollspy();
+
+      var offset = 50;
+
+      // Necessary because I can't get scrollspy to pick up data-offset attributes.
+      $('body').data().scrollspy.options.offset = offset;
+
+      !function ($) {
+        $(function(){
+          var $window = $(window)
+           // side bar
+          $('.sidenav').affix({
+            offset: {
+              top: function () { return $window.width() <= 980 ? 130 : 130 }
+            , bottom: 270
+            }
+          });
+
+          $('.sidenav a').click(function(evt) {
+            evt.preventDefault();
+            $($(this).attr('href'))[0].scrollIntoView();
+            scrollBy(0, -offset);
+          })
+        })
+      }(window.jQuery);
+    </script>
+  </body>
+</html>
