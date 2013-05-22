@@ -1,12 +1,12 @@
 Stiletto
 ========
 
-A C# port of Square's Dagger IoC library: [http://square.github.io/dagger].
+A fast dependency injector in C# for .NET and Mono; please see [the introductory website][0] for more information.
 
-This is a vanilla port, intended to be usable everywhere C# is usable, including MonoTouch where `System.Reflection.Emit` is unavailable.
+This is a port of the [Square's Dagger IoC library][1], intended to be usable everywhere C# is usable, including MonoTouch where `System.Reflection.Emit` is unavailable.
 Compile-time validation and code-generation is implemented as a Fody[1] weaver, to be installable via a NuGet package.
 
-Users of Dagger, Guice, or any other javax.inject-compatible IoC container will feel only slightly uncomfortable at the syntax:
+Users of Dagger, Guice, or any other javax.inject-compatible IoC container will feel at home:
 
 ```csharp
 [Module(
@@ -40,3 +40,6 @@ Stiletto supports:
 - the specification of dependencies as Lazy<>
 
 More is coming.
+
+[0]: http://stiletto.bendb.com
+[1]: http://square.github.io/dagger
