@@ -180,6 +180,12 @@ hr.soften {
   background-color: #008FD5;
 }
 
+/* Miscellaneous
+-------------------------------------------------- */
+pre.prettyprint {
+  border: 1px solid #e1e1e8;
+}
+
 /* Footer
 -------------------------------------------------- */
 
