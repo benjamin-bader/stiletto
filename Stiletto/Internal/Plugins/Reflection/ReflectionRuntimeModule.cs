@@ -16,7 +16,8 @@
 
  using System;
 using System.Collections.Generic;
-using System.Reflection;
+ using System.Linq;
+ using System.Reflection;
 
 namespace Stiletto.Internal.Plugins.Reflection
 {
@@ -27,7 +28,7 @@ namespace Stiletto.Internal.Plugins.Reflection
 
         public ReflectionRuntimeModule(Type moduleType, ModuleAttribute attribute)
             : base(moduleType,
-                   Array.ConvertAll(attribute.EntryPoints, Key.GetMemberKey),
+                   attribute.EntryPoints.Select(Key.GetMemberKey).ToArray(),
                    attribute.IncludedModules,
                    attribute.IsComplete,
                    attribute.IsLibrary)

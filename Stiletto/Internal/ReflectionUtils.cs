@@ -31,6 +31,21 @@ namespace Stiletto.Internal
 
         static ReflectionUtils()
         {
+#if SILVERLIGHT
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
+                if (!knownAssemblies.Add(assembly)) {
+                    continue;
+                }
+
+                var plugin = assembly.GetType(CodegenPlugin.CompiledPluginFullName, false);
+
+                if (plugin == null) {
+                    continue;
+                }
+
+                plugins.Insert(0, (IPlugin) Activator.CreateInstance(plugin));
+            }
+#else
             AppDomain.CurrentDomain.AssemblyLoad += (o, e) => {
                 lock (knownAssemblies) {
                     if (!knownAssemblies.Add(e.LoadedAssembly)) {
@@ -46,6 +61,7 @@ namespace Stiletto.Internal
                     plugins.Insert(0, (IPlugin) Activator.CreateInstance(plugin));
                 }
             };
+#endif
         }
 
         public static IList<IPlugin> GetCompiledPlugins()
