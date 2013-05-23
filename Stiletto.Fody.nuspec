@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>Stiletto.Fody</id>
+    <version>$version$</version>
+    <title>Stiletto.Fody</title>
+    <authors>Ben Bader</authors>
+    <owners>Ben Bader</owners>
+    <projectUrl>https://github.com/benjamin-bader/stiletto</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description></description>
+    <copyright>Copyright 2013 Ben Bader</copyright>
+    <iconUrl />
+    <tags>Stiletto IoC Dependency Injection Fody</tags>
+    <dependencies>
+      <dependency id="Fody" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Stiletto.Fody\bin\Release\Stiletto.Fody.dll" target="" />
+    <file src="install.ps1" target="Tools" />
+    <file src="uninstall.ps1" target="Tools" />
+  </files>
+</package>
