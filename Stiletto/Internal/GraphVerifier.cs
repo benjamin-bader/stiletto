@@ -58,6 +58,7 @@ namespace Stiletto.Internal
                     var dependencies = new HashSet<Binding>();
                     binding.GetDependencies(dependencies, dependencies);
                     DetectCircularDependencies(dependencies);
+                    binding.IsCycleFree = true;
                 }
                 finally {
                     binding.IsVisiting = false;
@@ -91,15 +92,12 @@ namespace Stiletto.Internal
 
         private static ProviderMethodBindingBase CastOrUnwrapBinding(Binding binding)
         {
-            SingletonBinding singletonBinding;
-            ProviderMethodBindingBase providerMethodBindingBase;
-
-            providerMethodBindingBase = binding as ProviderMethodBindingBase;
-            if (binding != null) {
+            var providerMethodBindingBase = binding as ProviderMethodBindingBase;
+            if (providerMethodBindingBase != null) {
                 return providerMethodBindingBase;
             }
 
-            singletonBinding = binding as SingletonBinding;
+            var singletonBinding = binding as SingletonBinding;
             if (singletonBinding != null) {
                 providerMethodBindingBase = singletonBinding.DelegateBinding as ProviderMethodBindingBase;
             }

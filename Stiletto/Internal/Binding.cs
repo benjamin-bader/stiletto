@@ -1,6 +1,6 @@
 /*
  * Copyright © 2013 Ben Bader
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,7 +21,7 @@ namespace Stiletto.Internal
 {
     public abstract class Binding
     {
-        public static Binding Unresolved = new UnresolvedBinding();
+        public static readonly Binding Unresolved = new UnresolvedBinding();
 
         [Flags]
         private enum BindingState

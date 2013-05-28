@@ -61,6 +61,19 @@ namespace Stiletto
             return Get(t, null);
         }
 
+        /// <summary>
+        /// Gets a key representation for the given type <paramref name="t"/>
+        /// identified with the given <paramref name="name"/>.
+        /// </summary>
+        /// <param name="t">
+        /// The type whose key is to be returned.
+        /// </param>
+        /// <param name="name">
+        /// The name of the dependency, or <see langword="null"/>.
+        /// </param>
+        /// <returns>
+        /// Returns a type key.
+        /// </returns>
         public static string Get(Type t, string name)
         {
             if (string.IsNullOrEmpty(name) && !t.IsGenericType)
@@ -94,11 +107,19 @@ namespace Stiletto
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Returns a value indicating whether the given <paramref name="key"/>
+        /// is for an object requiring property injection.
+        /// </summary>
         public static bool IsPropertyInjection(string key)
         {
             return key.StartsWith(MemberKeyPrefix, Comparison);
         }
 
+        /// <summary>
+        /// Returns a value indicating whether the given <paramref name="key"/>
+        /// is for a named dependency.
+        /// </summary>
         public static bool IsNamed(string key)
         {
             return key.IndexOf('@') >= 0;
@@ -113,6 +134,10 @@ namespace Stiletto
                        : start < 0 ? key : key.Substring(start);
         }
 
+        /// <summary>
+        /// Returns the key of the underlying binding of a <see cref="IProvider&lt;T&gt;"/>
+        /// binding, or <see langword="null"/> if the key is not a lazy binding.
+        /// </summary>
         public static string GetProviderKey(string key)
         {
             var start = StartOfType(key);
@@ -126,8 +151,6 @@ namespace Stiletto
         /// Returns the key of the underlying binding of a <see cref="Lazy&lt;T&gt;"/>
         /// binding, or <see langword="null"/> if the key is not a lazy binding.
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
         public static string GetLazyKey(string key)
         {
             var start = StartOfType(key);

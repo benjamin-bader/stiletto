@@ -31,18 +31,6 @@ namespace Stiletto.Internal
             return mi.GetCustomAttributes(typeof (TAttribute), false).Length > 0;
         }
 
-        internal static IEnumerable<TAttribute> GetAttributes<TAttribute>(this MemberInfo mi)
-            where TAttribute : Attribute
-        {
-            Conditions.CheckNotNull(mi, "mi");
-            var attrs = mi.GetCustomAttributes(typeof (TAttribute), false);
-
-            for (var i = 0; i < attrs.Length; ++i)
-            {
-                yield return (TAttribute) attrs[i];
-            }
-        }
-
         internal static TAttribute GetSingleAttribute<TAttribute>(this MemberInfo mi)
             where TAttribute : Attribute
         {
@@ -92,53 +80,6 @@ namespace Stiletto.Internal
         {
             var attr = pi.GetSingleAttribute<NamedAttribute>();
             return attr == null ? null : attr.Name;
-        }
-
-        internal static string ToCodeLiteral(this Type type)
-        {
-            if (!type.IsNested && !type.IsGenericType) {
-                return type.FullName;
-            }
-
-            var nestings = new List<Type> { type };
-            var t = type.DeclaringType;
-            while (t != null && t.IsNested) {
-                nestings.Add(t);
-                t = t.DeclaringType;
-            }
-
-            nestings.Reverse();
-            var sb = new StringBuilder(t.Namespace);
-            foreach (var nesting in nestings) {
-                ToCodeLiteral(nesting, sb);
-                sb.Append(".");
-            }
-
-            return sb.ToString(0, sb.Length - 1);
-        }
-
-        private static void ToCodeLiteral(Type t, StringBuilder sb, bool shortNameOnly = true)
-        {
-            sb.Append(shortNameOnly ? t.Name : t.FullName);
-
-            if (t.IsGenericType) {
-                // Truncate the `n portion just appended
-                var len = sb.Length - 1;
-                while (sb[len] != '`') {
-                    --len;
-                }
-                sb.Length = len;
-
-                sb.Append("<");
-                var args = t.GetGenericArguments();
-                for (var i = 0; i < args.Length; ++i) {
-                    if (i > 0) {
-                        sb.Append(",");
-                    }
-                    ToCodeLiteral(args[i], sb, false);
-                }
-                sb.Append(">");
-            }
         }
     }
 }
