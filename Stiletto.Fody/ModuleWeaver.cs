@@ -20,7 +20,6 @@ using System.Collections.Generic;
 ﻿using System.Linq;
 ﻿using System.Xml.Linq;
 ﻿using Stiletto.Fody.Validation;
-﻿using Stiletto.Internal.Plugins.Codegen;
 ﻿using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -45,6 +44,8 @@ namespace Stiletto.Fody
         public Action<string, SequencePoint> LogErrorPoint { get; set; }
 
         public List<string> ReferenceCopyLocalPaths { get; set; }
+
+        public IAssemblyResolver AssemblyResolver { get; set; }
 
         #endregion
 
@@ -166,6 +167,8 @@ namespace Stiletto.Fody
                 }
             }
 
+            var stilettoReferences = StilettoReferences.Create(AssemblyResolver);
+
             // Load assemblies and yield ModuleProcessors.
             foreach (var pathAndHasPdb in copyLocalAssemblies)
             {
@@ -180,12 +183,12 @@ namespace Stiletto.Fody
                         continue;
                     }
 
-                    processors.Add(new ModuleProcessor(errorReporter, module));
+                    processors.Add(new ModuleProcessor(errorReporter, module, stilettoReferences));
                 }
             }
 
             if (IsModuleProcessable(ModuleDefinition)) {
-                processors.Insert(0, new ModuleProcessor(errorReporter, ModuleDefinition));
+                processors.Insert(0, new ModuleProcessor(errorReporter, ModuleDefinition, stilettoReferences));
             }
 
             return processors;

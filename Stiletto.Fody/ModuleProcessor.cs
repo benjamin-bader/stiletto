@@ -41,12 +41,12 @@ namespace Stiletto.Fody
 
         public virtual MethodReference CompiledPluginConstructor { get; private set; }
 
-        public ModuleProcessor(IErrorReporter errorReporter, ModuleDefinition moduleDefinition)
+        public ModuleProcessor(IErrorReporter errorReporter, ModuleDefinition moduleDefinition, StilettoReferences stilettoReferences)
         {
             this.errorReporter = Conditions.CheckNotNull(errorReporter, "errorReporter");
             this.moduleDefinition = Conditions.CheckNotNull(moduleDefinition, "moduleDefinition");
 
-            references = new References(moduleDefinition);
+            references = new References(moduleDefinition, stilettoReferences);
             moduleGenerators = new List<ModuleGenerator>();
             injectGenerators = new List<InjectBindingGenerator>();
             lazyGenerators = new List<LazyBindingGenerator>();

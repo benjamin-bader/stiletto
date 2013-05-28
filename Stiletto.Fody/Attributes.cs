@@ -15,21 +15,19 @@
  */
 
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-﻿using Stiletto.Internal.Plugins.Codegen;
 ﻿using Mono.Cecil;
 
 namespace Stiletto.Fody
 {
     public static class Attributes
     {
-        private static readonly string InjectAttributeName = typeof (InjectAttribute).FullName;
-        private static readonly string ModuleAttributeName = typeof (ModuleAttribute).FullName;
-        private static readonly string ProvidesAttributeName = typeof (ProvidesAttribute).FullName;
-        private static readonly string NamedAttributeName = typeof (NamedAttribute).FullName;
-        private static readonly string SingletonAttributeName = typeof (SingletonAttribute).FullName;
+        private const string InjectAttributeName = "Stiletto.InjectAttribute";
+        private const string ModuleAttributeName = "Stiletto.ModuleAttribute";
+        private const string ProvidesAttributeName = "Stiletto.ProvidesAttribute";
+        private const string NamedAttributeName = "Stiletto.NamedAttribute";
+        private const string SingletonAttributeName = "Stiletto.SingletonAttribute";
+        private const string ProcessedAssemblyAttributeName = "Stiletto.Internal.Plugins.Codegen.ProcessedAssemblyAttribute";
 
         public static bool IsInjectAttribute(this CustomAttribute attribute)
         {
@@ -58,7 +56,7 @@ namespace Stiletto.Fody
 
         public static bool IsProcessedAssemblyAttribute(this CustomAttribute attribute)
         {
-            return Is(attribute, typeof(ProcessedAssemblyAttribute).FullName);
+            return Is(attribute, ProcessedAssemblyAttributeName);
         }
 
         public static string GetNamedAttributeName(this MethodReturnType returnType)

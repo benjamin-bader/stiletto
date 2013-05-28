@@ -15,6 +15,7 @@
  */
 
 ﻿using System;
+﻿using System.Linq;
 ﻿using Mono.Cecil;
 
 namespace Stiletto.Fody
@@ -30,6 +31,26 @@ namespace Stiletto.Fody
             }
 
             return result(input);
+        }
+
+        public static MethodDefinition GetMethod(this TypeDefinition type, string name)
+        {
+            return type.Methods.Single(m => m.Name == name);
+        }
+
+        public static MethodDefinition GetMethod(this TypeDefinition type, string name, Func<MethodDefinition, bool> predicate)
+        {
+            return type.Methods.Single(m => m.Name == name && predicate(m));
+        }
+
+        public static PropertyDefinition GetProperty(this TypeDefinition type, string name)
+        {
+            return type.Properties.Single(p => p.Name == name);
+        }
+
+        public static MethodDefinition GetDefaultConstructor(this TypeDefinition type)
+        {
+            return type.Methods.Single(m => m.IsConstructor && m.Parameters.Count == 0);
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Stiletto.Fody
         {
             var asm = args.Length > 0
                 ? args[0]
-                : @"C:\Users\ben\Development\abra-ioc\Stiletto.Test\bin\Debug\Stiletto.Test.dll";
+                : @"C:\Users\ben\Development\stiletto\Stiletto.Test\bin\Debug\Stiletto.Test.dll";
             var ad = AssemblyDefinition.ReadAssembly(asm, new ReaderParameters { ReadSymbols = true });
             var md = ad.MainModule;
 
@@ -38,7 +38,7 @@ namespace Stiletto.Fody
                                  LogError = Console.WriteLine,
                                  ModuleDefinition = md,
                                  ReferenceCopyLocalPaths = new List<string>(),
-
+                                 AssemblyResolver = new DefaultAssemblyResolver(),
                              };
 
             weaver.Execute();

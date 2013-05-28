@@ -84,6 +84,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="References.cs" />
+    <Compile Include="StilettoReferences.cs" />
     <Compile Include="Validation\CompilerBinding.cs" />
     <Compile Include="Validation\CompilerParameterizedBinding.cs" />
     <Compile Include="Validation\CompilerPlugin.cs" />
