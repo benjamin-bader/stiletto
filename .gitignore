@@ -12,3 +12,8 @@ TopHat.Generated.cs
 
 # MonoDevelop Files
 *.userprefs
+
+# Ignore the nuget build output
+NuGetBuild/
+*.nupkg
+Tools/Stiletto*

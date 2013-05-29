@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Stiletto</id>
+    <version>$version$</version>
+    <title>Stiletto</title>
+    <authors>Ben Bader</authors>
+    <owners>Ben Bader</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <projectUrl>http://stiletto.bendb.com</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A fast, declarative dependency injector for .NET and Mono</description>
+    <copyright>Copyright Ben Bader 2013</copyright>
+    <tags>Stiletto IoC dependency injection MonoTouch MonoDroid Silverlight</tags>
+  </metadata>
+</package>

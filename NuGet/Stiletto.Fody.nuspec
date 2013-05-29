@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Stiletto</id>
+    <version>$version$</version>
+    <title>Stiletto.Fody</title>
+    <authors>Ben Bader</authors>
+    <owners>Ben Bader</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <projectUrl>http://stiletto.bendb.com</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Compile-time static analysis and optimization for the Stiletto IoC library.</description>
+    <copyright>Copyright Ben Bader 2013</copyright>
+    <tags>DI IoC Fody iOS MonoTouch</tags>
+  </metadata>
+  <dependencies>
+    <dependency id="Fody" />
+  </dependencies>
+</package>

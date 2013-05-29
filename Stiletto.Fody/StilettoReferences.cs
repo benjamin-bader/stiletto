@@ -26,6 +26,8 @@ namespace Stiletto.Fody
     /// </summary>
     public class StilettoReferences
     {
+        // ReSharper disable InconsistentNaming
+
         public TypeDefinition Binding { get; private set; }
         public MethodDefinition Binding_Ctor { get; private set; }
         public MethodDefinition Binding_GetDependencies { get; private set; }
