@@ -12,43 +12,34 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <ConfigurationName>Release</ConfigurationName>
   </PropertyGroup>
-
   <PropertyGroup>
     <ToolsDir>$(SolutionDir)Tools\</ToolsDir>
     <NuGetDir>$(SolutionDir)NuGetBuild\</NuGetDir>
     <StilettoDir>$(NuGetDir)Stiletto\</StilettoDir>
     <FodyDir>$(NuGetDir)Stiletto.Fody\</FodyDir>
   </PropertyGroup>
-
   <ItemGroup>
-    <None Include="install.ps1" />
-    <None Include="uninstall.ps1" />
+    <None Include="Stiletto.Fody\install.ps1" />
+    <None Include="Stiletto.Fody\uninstall.ps1" />
     <None Include="Fody_ToBeDeleted.txt" />
     <None Include="Stiletto.nuspec" />
     <None Include="Stiletto.Fody.nuspec" />
+    <None Include="Stiletto\install.ps1" />
   </ItemGroup>
-
   <Target Name="Clean">
     <RemoveDir Directories="$(NuGetDir)" />
   </Target>
-  
   <Target Name="Build" DependsOnTargets="NuGetBuild" />
   <Target Name="ReBuild" DependsOnTargets="NuGetBuild" />
-
   <Target Name="NuGetBuild">
-    
     <MakeDir Directories="$(NuGetDir)" />
-    
     <!-- Stiletto.Fody -->
     <Copy SourceFiles="$(ProjectDir)Stiletto.Fody.nuspec" DestinationFolder="$(FodyDir)" />
-    <Copy SourceFiles="$(ToolsDir)Stiletto.Fody.dll" DestinationFolder="$(FodyDir)"/>
+    <Copy SourceFiles="$(ToolsDir)Stiletto.Fody.dll" DestinationFolder="$(FodyDir)" />
     <Copy SourceFiles="$(ProjectDir)Fody_ToBeDeleted.txt" DestinationFolder="$(FodyDir)Content" />
-    <Copy SourceFiles="$(ProjectDir)install.ps1" DestinationFolder="$(FodyDir)Tools" />
-    <Copy SourceFiles="$(ProjectDir)uninstall.ps1" DestinationFolder="$(FodyDir)Tools" />
-
+    <Copy SourceFiles="$(ProjectDir)Stiletto.Fody\install.ps1" DestinationFolder="$(FodyDir)Tools" />
+    <Copy SourceFiles="$(ProjectDir)Stiletto.Fody\uninstall.ps1" DestinationFolder="$(FodyDir)Tools" />
     <!-- Stiletto -->
-    <MakeDir Directories="$(StilettoDir)" />
-    <MakeDir Directories="$(StilettoDir)Lib" />
     <Copy SourceFiles="$(ProjectDir)Stiletto.nuspec" DestinationFolder="$(StilettoDir)" />
     <Copy SourceFiles="..\Stiletto\bin\$(ConfigurationName)\Stiletto.dll" DestinationFolder="$(StilettoDir)Lib\net40\" />
     <Copy SourceFiles="..\Stiletto\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\net40\" />
@@ -59,12 +50,11 @@
     <Copy SourceFiles="..\Stiletto.IOS\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\MonoTouch\" Condition="Exists('..\Stiletto.IOS\bin\$(ConfigurationName)\Stiletto.pdb')" />
     <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.dll" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" />
     <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.mdb" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" Condition="Exists('..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.mdb')" />
-    <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" Condition="Exists('..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.pdb')"  />
-    
+    <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" Condition="Exists('..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.pdb')" />
+    <Copy SourceFiles="$(ProjectDir)Stiletto\install.ps1" DestinationFolder="$(StilettoDir)Tools" />
   </Target>
-  
   <ItemGroup>
-    <ProjectReference Include="..\Stiletto.Android\Stiletto.IOS.csproj">
+    <ProjectReference Include="..\Stiletto.IOS\Stiletto.IOS.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Name>Stiletto.IOS</Name>
     </ProjectReference>
