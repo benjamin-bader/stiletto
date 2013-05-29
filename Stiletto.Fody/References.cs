@@ -29,6 +29,8 @@ namespace Stiletto.Fody
     /// </summary>
     public class References
     {
+        // ReSharper disable InconsistentNaming
+
         public TypeReference Binding { get; private set; }
         public MethodReference Binding_Ctor { get; private set; }
         public MethodReference Binding_Resolve { get; private set; }
@@ -72,7 +74,6 @@ namespace Stiletto.Fody
         public TypeReference DictionaryOfStringToLazyBindingFn { get; private set; }
         public MethodReference DictionaryOfStringToLazyBindingFn_New { get; private set; }
         public MethodReference DictionaryOfStringToLazyBindingFn_Add { get; private set; }
-        public MethodReference DictionaryOfStringToLazyBindingFn_Get { get; private set; }
         public MethodReference DictionaryOfStringToLazyBindingFn_TryGetValue { get; private set; }
 
         public TypeReference DictionaryOfStringToProviderBindingFn { get; private set; }

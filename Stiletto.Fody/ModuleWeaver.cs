@@ -27,8 +27,9 @@ namespace Stiletto.Fody
 {
     public class ModuleWeaver
     {
-        private ErrorReporter errorReporter;
-        private IDictionary<string, Tuple<AssemblyDefinition, bool>> dependencies;
+        private readonly ErrorReporter errorReporter;
+        private readonly IDictionary<string, Tuple<AssemblyDefinition, bool>> dependencies =
+            new Dictionary<string, Tuple<AssemblyDefinition, bool>>();
 
         public bool HasError { get { return errorReporter.HasError; } }
 
@@ -48,7 +49,6 @@ namespace Stiletto.Fody
         public IAssemblyResolver AssemblyResolver { get; set; }
 
         #endregion
-
 
         public ModuleWeaver()
         {
@@ -75,32 +75,44 @@ namespace Stiletto.Fody
 
             var processors = GatherModulesNeedingProcessing();
 
-            foreach (var p in processors) {
+            foreach (var p in processors)
+            {
                 p.CreateGenerators();
+            }
+
+            processors = processors.Where(p => p.UsesStiletto).ToList();
+
+            foreach (var p in processors)
+            {
                 p.ValidateGenerators();
             }
 
-            if (HasError) {
+            if (HasError)
+            {
                 return;
             }
 
             ValidateCompleteGraph(processors);
 
-            if (HasError) {
+            if (HasError)
+            {
                 return;
             }
 
-            foreach (var p in processors) {
+            foreach (var p in processors)
+            {
                 p.GenerateAdapters();
             }
 
-            if (HasError) {
+            if (HasError)
+            {
                 return;
             }
 
             var pluginCtors = processors.Select(p => p.CompiledPluginConstructor).ToList();
 
-            foreach (var p in processors) {
+            foreach (var p in processors)
+            {
                 p.RewriteContainerCreateInvocations(pluginCtors);
             }
 
@@ -109,6 +121,13 @@ namespace Stiletto.Fody
                 var path = kvp.Key;
                 var assembly = kvp.Value.Item1;
                 var hasPdb = kvp.Value.Item2;
+
+                var usesStiletto = assembly.Modules.Any(m => m.CustomAttributes.Any(Attributes.IsProcessedAssemblyAttribute));
+
+                if (!usesStiletto)
+                {
+                    continue;
+                }
 
                 assembly.Write(path, new WriterParameters { WriteSymbols = hasPdb });
             }
@@ -127,7 +146,14 @@ namespace Stiletto.Fody
         {
             var processors = new List<ModuleProcessor>();
 
-            dependencies = new Dictionary<string, Tuple<AssemblyDefinition, bool>>();
+            if (!IsModuleProcessable(ModuleDefinition))
+            {
+                return processors;
+            }
+
+            var stilettoReferences = StilettoReferences.Create(AssemblyResolver);
+            processors.Add(new ModuleProcessor(errorReporter, ModuleDefinition, stilettoReferences));
+
             var copyLocalAssemblies = new Dictionary<string, bool>(StringComparer.Ordinal);
             var localDebugFiles = new Queue<string>();
 
@@ -167,28 +193,30 @@ namespace Stiletto.Fody
                 }
             }
 
-            var stilettoReferences = StilettoReferences.Create(AssemblyResolver);
-
-            // Load assemblies and yield ModuleProcessors.
             foreach (var pathAndHasPdb in copyLocalAssemblies)
             {
                 var path = pathAndHasPdb.Key;
                 var hasPdb = pathAndHasPdb.Value;
                 var assembly = AssemblyDefinition.ReadAssembly(path, new ReaderParameters { ReadSymbols = hasPdb });
 
+                // TODO: Figure out how to differentiate between third-party libs and client code.
+                if (assembly.Name.HasPublicKey)
+                {
+                    LogWarning("Assembly " + assembly.Name + " is strong-named and will not be processed.");
+                    continue;
+                }
+
                 dependencies[path] = Tuple.Create(assembly, hasPdb);
 
-                foreach (var module in assembly.Modules) {
-                    if (!IsModuleProcessable(module)) {
+                foreach (var module in assembly.Modules)
+                {
+                    if (!IsModuleProcessable(module))
+                    {
                         continue;
                     }
 
                     processors.Add(new ModuleProcessor(errorReporter, module, stilettoReferences));
                 }
-            }
-
-            if (IsModuleProcessable(ModuleDefinition)) {
-                processors.Insert(0, new ModuleProcessor(errorReporter, ModuleDefinition, stilettoReferences));
             }
 
             return processors;
@@ -214,7 +242,8 @@ namespace Stiletto.Fody
         /// </returns>
         private bool IsModuleProcessable(ModuleDefinition module)
         {
-            if (module.CustomAttributes.Any(Attributes.IsProcessedAssemblyAttribute)) {
+            if (module.CustomAttributes.Any(Attributes.IsProcessedAssemblyAttribute))
+            {
                 LogWarning("The module " + module.FullyQualifiedName + " has already been processed.");
                 return false;
             }
@@ -243,24 +272,6 @@ namespace Stiletto.Fody
                 weaver.LogError(message);
                 HasError = true;
             }
-        }
-    }
-
-    internal class AssemblyComparer : IEqualityComparer<AssemblyDefinition>
-    {
-        public bool Equals(AssemblyDefinition x, AssemblyDefinition y)
-        {
-            if (ReferenceEquals(x, y)) return true;
-            if (ReferenceEquals(x, null)) return false;
-            if (ReferenceEquals(y, null)) return false;
-            return x.FullName.Equals(y.FullName, StringComparison.Ordinal);
-        }
-
-        public int GetHashCode(AssemblyDefinition obj)
-        {
-            if (ReferenceEquals(obj, null)) return 0;
-
-            return obj.FullName.GetHashCode();
         }
     }
 }

@@ -1,3 +1,19 @@
+﻿/*
+ * Copyright © 2013 Ben Bader
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 ﻿using System;
 using System.Linq;
 using Mono.Cecil;
@@ -5,6 +21,9 @@ using Mono.Cecil.Rocks;
 
 namespace Stiletto.Fody
 {
+    /// <summary>
+    /// Contains resolved types and methods from the common Stiletto library.
+    /// </summary>
     public class StilettoReferences
     {
         public TypeDefinition Binding { get; private set; }
@@ -53,6 +72,17 @@ namespace Stiletto.Fody
             
         }
 
+        /// <summary>
+        /// Resolves the common Stiletto assembly, loads it into memory, and
+        /// extracts types and methods so they can be imported into woven
+        /// modules.
+        /// </summary>
+        /// <param name="assemblyResolver">
+        /// The <see cref="IAssemblyResolver"/> instance provided by Fody.
+        /// </param>
+        /// <returns>
+        /// Returns a selection of relevant types and methods from Stiletto.
+        /// </returns>
         public static StilettoReferences Create(IAssemblyResolver assemblyResolver)
         {
             var stiletto = assemblyResolver.Resolve("Stiletto").MainModule;

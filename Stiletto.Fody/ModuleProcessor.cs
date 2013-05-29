@@ -39,7 +39,8 @@ namespace Stiletto.Fody
             get { return providerGenerators; }
         }
 
-        public virtual MethodReference CompiledPluginConstructor { get; private set; }
+        public MethodReference CompiledPluginConstructor { get; private set; }
+        public bool UsesStiletto { get; private set; }
 
         public ModuleProcessor(IErrorReporter errorReporter, ModuleDefinition moduleDefinition, StilettoReferences stilettoReferences)
         {
@@ -53,8 +54,14 @@ namespace Stiletto.Fody
             providerGenerators = new List<ProviderBindingGenerator>();
         }
 
-        public virtual void CreateGenerators()
+        public void CreateGenerators()
         {
+            if (moduleDefinition.AssemblyReferences.All(reference => reference.Name != "Stiletto"))
+            {
+                UsesStiletto = false;
+                return;
+            }
+
             var moduleTypes = new List<TypeDefinition>();
             var injectTypes = new List<TypeDefinition>();
 
@@ -81,9 +88,14 @@ namespace Stiletto.Fody
             }
 
             GatherParameterizedBindings();
+
+            UsesStiletto = InjectGenerators.Any()
+                        || ModuleGenerators.Any()
+                        || LazyGenerators.Any()
+                        || ProviderGenerators.Any();
         }
 
-        public virtual void ValidateGenerators()
+        public void ValidateGenerators()
         {
             foreach (var g in moduleGenerators) {
                 g.Validate(errorReporter);
@@ -100,7 +112,7 @@ namespace Stiletto.Fody
             }
         }
 
-        public virtual void GenerateAdapters()
+        public void GenerateAdapters()
         {
             // Step 4: The graph is valid, emit generated adapters.
             var generatedTypes = new HashSet<TypeDefinition>(new TypeReferenceComparer());
@@ -166,7 +178,7 @@ namespace Stiletto.Fody
         /// A list of IPlugin constructors to be invoked, the results of which
         /// will be passed to <see cref="Container.CreateWithPlugins"/>.
         /// </param>
-        public virtual void RewriteContainerCreateInvocations(IList<MethodReference> pluginCtors)
+        public void RewriteContainerCreateInvocations(IList<MethodReference> pluginCtors)
         {
             var methods = from t in moduleDefinition.GetTypes()
                           from m in t.Methods
