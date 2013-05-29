@@ -80,6 +80,10 @@
       <Project>{b661e302-2234-48d3-8be4-684c0963eb35}</Project>
       <Name>Stiletto</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Stiletto.Fody\Stiletto.Fody.csproj">
+      <Name>Stiletto.Fody</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
