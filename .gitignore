@@ -8,7 +8,6 @@ TopHat.Generated.cs
 *.psess
 *.vspx
 
-.nuget/
 
 # MonoDevelop Files
 *.userprefs
