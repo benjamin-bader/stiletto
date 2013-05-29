@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{23C4911E-C2FB-489D-A539-8052E7A8B70B}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Stiletto.Fody</RootNamespace>
     <AssemblyName>Stiletto.Fody</AssemblyName>
@@ -103,12 +103,14 @@
   <ItemGroup>
     <None Include="Fody.targets" />
     <None Include="packages.config" />
+    <None Include="Stiletto.Fody.targets" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="Fody.targets" />
+  <Import Project="Stiletto.Fody.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
