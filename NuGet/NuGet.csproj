@@ -54,21 +54,22 @@
     <Copy SourceFiles="..\Stiletto\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\net40\" />
     <Copy SourceFiles="..\Stiletto.WindowsPhone\bin\$(ConfigurationName)\Stiletto.dll" DestinationFolder="$(StilettoDir)Lib\wp8\" />
     <Copy SourceFiles="..\Stiletto.WindowsPhone\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\wp8\" />
-    <!-- <Copy SourceFiles="..\Stiletto.IOS\bin\$(ConfigurationName)\Stiletto.dll" DestinationFolder="$(StilettoDir)Lib\MonoTouch\" /> -->
-    <!-- <Copy SourceFiles="..\Stiletto.IOS\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\MonoTouch\" /> -->
+    <Copy SourceFiles="..\Stiletto.IOS\bin\$(ConfigurationName)\Stiletto.dll" DestinationFolder="$(StilettoDir)Lib\MonoTouch\" />
+    <Copy SourceFiles="..\Stiletto.IOS\bin\$(ConfigurationName)\Stiletto.mdb" DestinationFolder="$(StilettoDir)Lib\MonoTouch\" Condition="Exists('..\Stiletto.IOS\bin\$(ConfigurationName)\Stiletto.mdb')" />
+    <Copy SourceFiles="..\Stiletto.IOS\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\MonoTouch\" Condition="Exists('..\Stiletto.IOS\bin\$(ConfigurationName)\Stiletto.pdb')" />
     <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.dll" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" />
     <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.mdb" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" Condition="Exists('..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.mdb')" />
     <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" Condition="Exists('..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.pdb')"  />
-    <Copy SourceFiles="$(ProjectDir)install.ps1" DestinationFolder="$(StilettoDir)Tools\" />
-    <Copy SourceFiles="$(ProjectDir)uninstall.ps1" DestinationFolder="$(StilettoDir)Tools\" />
+    <Copy SourceFiles="$(ProjectDir)install.ps1" DestinationFolder="$(StilettoDir)Tools" />
+    <Copy SourceFiles="$(ProjectDir)uninstall.ps1" DestinationFolder="$(StilettoDir)Tools" />
     
   </Target>
   
   <ItemGroup>
-    <!--<ProjectReference Include="..\Stiletto.Android\Stiletto.IOS.csproj">-->
-      <!--<ReferenceOutputAssembly>false</ReferenceOutputAssembly>-->
-      <!--<Name>Stiletto.IOS</Name>-->
-    <!--</ProjectReference>-->
+    <ProjectReference Include="..\Stiletto.Android\Stiletto.IOS.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <Name>Stiletto.IOS</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Stiletto.Android\Stiletto.Android.csproj">
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Name>Stiletto.Android</Name>
