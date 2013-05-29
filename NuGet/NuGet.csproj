@@ -60,8 +60,6 @@
     <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.dll" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" />
     <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.mdb" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" Condition="Exists('..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.mdb')" />
     <Copy SourceFiles="..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.pdb" DestinationFolder="$(StilettoDir)Lib\MonoAndroid\" Condition="Exists('..\Stiletto.Android\bin\$(ConfigurationName)\Stiletto.pdb')"  />
-    <Copy SourceFiles="$(ProjectDir)install.ps1" DestinationFolder="$(StilettoDir)Tools" />
-    <Copy SourceFiles="$(ProjectDir)uninstall.ps1" DestinationFolder="$(StilettoDir)Tools" />
     
   </Target>
   

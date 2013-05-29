@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>Stiletto</id>
+    <id>Stiletto.Fody</id>
     <version>$version$</version>
     <title>Stiletto.Fody</title>
     <authors>Ben Bader</authors>
@@ -12,8 +12,9 @@
     <description>Compile-time static analysis and optimization for the Stiletto IoC library.</description>
     <copyright>Copyright Ben Bader 2013</copyright>
     <tags>DI IoC Fody iOS MonoTouch</tags>
+    <dependencies>
+      <dependency id="Fody" />
+      <dependency id="Stiletto" />
+    </dependencies>
   </metadata>
-  <dependencies>
-    <dependency id="Fody" />
-  </dependencies>
 </package>

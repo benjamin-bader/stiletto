@@ -57,6 +57,7 @@
     <Compile Include="..\Stiletto\Internal\Conditions.cs" />
     <Compile Include="..\Stiletto\Internal\GraphVerifier.cs" />
     <Compile Include="..\Stiletto\Internal\Plugins\Codegen\CodegenPlugin.cs" />
+    <Compile Include="..\Stiletto\Internal\Plugins\Codegen\ProcessedAssemblyAttribute.cs" />
     <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionProviderBinding.cs" />
     <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionLazyBinding.cs" />
     <Compile Include="..\Stiletto\Internal\Plugins\Reflection\ReflectionRuntimeModule.cs" />
