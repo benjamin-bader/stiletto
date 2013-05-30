@@ -53,6 +53,12 @@ namespace Stiletto.Internal
             set { binding.IsLibrary = value; }
         }
 
+        public override bool IsDependedOn
+        {
+            get { return binding.IsDependedOn; }
+            set { binding.IsDependedOn = value; }
+        }
+
         internal SingletonBinding(Binding binding)
             : base(binding.ProviderKey, binding.MembersKey, true, binding.RequiredBy)
         {

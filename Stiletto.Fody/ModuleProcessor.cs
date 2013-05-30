@@ -18,6 +18,7 @@ namespace Stiletto.Fody
         private readonly List<LazyBindingGenerator> lazyGenerators;
         private readonly List<ProviderBindingGenerator> providerGenerators;
         private readonly References references;
+        private readonly Queue<TypeDefinition> baseGeneratorQueue;
 
         public IList<ModuleGenerator> ModuleGenerators
         {
@@ -39,6 +40,11 @@ namespace Stiletto.Fody
             get { return providerGenerators; }
         }
 
+        public bool HasBaseTypesEnqueued
+        {
+            get { return baseGeneratorQueue.Count > 0; }
+        }
+
         public MethodReference CompiledPluginConstructor { get; private set; }
         public bool UsesStiletto { get; private set; }
 
@@ -52,9 +58,15 @@ namespace Stiletto.Fody
             injectGenerators = new List<InjectBindingGenerator>();
             lazyGenerators = new List<LazyBindingGenerator>();
             providerGenerators = new List<ProviderBindingGenerator>();
+            baseGeneratorQueue = new Queue<TypeDefinition>();
         }
 
-        public void CreateGenerators()
+        public void EnqueueBaseType(TypeDefinition type)
+        {
+            baseGeneratorQueue.Enqueue(type);
+        }
+
+        public void CreateGenerators(ModuleWeaver weaver)
         {
             if (moduleDefinition.AssemblyReferences.All(reference => reference.Name != "Stiletto"))
             {
@@ -84,6 +96,7 @@ namespace Stiletto.Fody
                 // We need to validate the inject binding generators to
                 // discover their injectable constructors and properties,
                 // which we need to have to get lazy and IProvider bindings.
+                g.Weaver = weaver;
                 g.Validate(errorReporter);
             }
 
@@ -93,6 +106,28 @@ namespace Stiletto.Fody
                         || ModuleGenerators.Any()
                         || LazyGenerators.Any()
                         || ProviderGenerators.Any();
+        }
+
+        /// <summary>
+        /// Creates and validates any enqueued base-class generators that were enqueued.
+        /// </summary>
+        public void CreateBaseClassGenerators(ModuleWeaver weaver)
+        {
+            var injectedTypes = new HashSet<TypeDefinition>(InjectGenerators.Select(gen => gen.InjectedType));
+
+            while (baseGeneratorQueue.Count > 0)
+            {
+                var typedef = baseGeneratorQueue.Dequeue();
+                if (!injectedTypes.Add(typedef))
+                {
+                    continue;
+                }
+
+                var gen = new InjectBindingGenerator(moduleDefinition, references, typedef, false);
+                gen.Weaver = weaver;
+                gen.Validate(errorReporter);
+                InjectGenerators.Add(gen);
+            }
         }
 
         public void ValidateGenerators()
