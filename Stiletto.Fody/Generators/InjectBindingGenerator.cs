@@ -39,6 +39,8 @@ namespace Stiletto.Fody.Generators
         public IList<InjectMemberInfo> CtorParams { get; private set; }
         public TypeDefinition InjectedType { get { return injectedType; } }
 
+        public ModuleWeaver Weaver { get; set; }
+
         public bool IsVisibleToPlugin { get; private set; }
 
         public InjectBindingGenerator(ModuleDefinition moduleDefinition, References references, TypeReference injectedType, bool isEntryPoint)
@@ -145,7 +147,9 @@ namespace Stiletto.Fody.Generators
             } else {
                 // Otherwise, base types might have [Inject] properties that we'll need
                 // to account for.
-                BaseTypeKey = CompilerKeys.ForType(baseType);
+                BaseTypeKey = Weaver.EnqueueBaseTypeBinding(baseType)
+                    ? CompilerKeys.ForType(baseType)
+                    : null;
             }
         }
 

@@ -31,6 +31,9 @@ namespace Stiletto.Fody
         private readonly IDictionary<string, Tuple<AssemblyDefinition, bool>> dependencies =
             new Dictionary<string, Tuple<AssemblyDefinition, bool>>();
 
+        private readonly Dictionary<string, ModuleProcessor> modulesByAssembly =
+            new Dictionary<string, ModuleProcessor>();
+
         public bool HasError { get { return errorReporter.HasError; } }
 
         #region Fody-provided members
@@ -77,8 +80,26 @@ namespace Stiletto.Fody
 
             foreach (var p in processors)
             {
-                p.CreateGenerators();
+                p.CreateGenerators(this);
             }
+
+            // Creating inject generators can trigger base-class binding generation
+            // that crosses module or assembly boundaries; we need to resolve them here
+            // prior to validating the graph.
+            bool hasGeneratedBaseClasses;
+            do
+            {
+                hasGeneratedBaseClasses = false;
+                foreach (var p in processors)
+                {
+                    if (p.BaseGeneratorQueue.Count > 0)
+                    {
+                        p.CreateBaseClassGenerators(this);
+                        hasGeneratedBaseClasses = true;
+                    }
+                }
+            }
+            while (hasGeneratedBaseClasses);
 
             processors = processors.Where(p => p.UsesStiletto).ToList();
 
@@ -133,6 +154,31 @@ namespace Stiletto.Fody
             }
         }
 
+        public bool EnqueueBaseTypeBinding(TypeReference typeReference)
+        {
+            var typedef = typeReference.Resolve();
+            var processorKey = GetModuleKey(typedef.Module);
+
+            ModuleProcessor processor;
+            if (!modulesByAssembly.TryGetValue(processorKey, out processor))
+            {
+                return false;
+            }
+
+            var usesStiletto =
+                typedef.CustomAttributes.Any(Attributes.IsSingletonAttribute)
+                || typedef.Properties.Any(p => p.CustomAttributes.Any(Attributes.IsInjectAttribute))
+                || typedef.Methods.Any(m => m.Name == ".ctor" && m.CustomAttributes.Any(Attributes.IsInjectAttribute));
+
+            if (!usesStiletto)
+            {
+                return false;
+            }
+
+            processor.BaseGeneratorQueue.Enqueue(typedef);
+            return true;
+        }
+
         private void ValidateCompleteGraph(IList<ModuleProcessor> processors)
         {
             var allModules = processors.SelectMany(p => p.ModuleGenerators);
@@ -152,7 +198,9 @@ namespace Stiletto.Fody
             }
 
             var stilettoReferences = StilettoReferences.Create(AssemblyResolver);
-            processors.Add(new ModuleProcessor(errorReporter, ModuleDefinition, stilettoReferences));
+            var mainModuleProcessor = new ModuleProcessor(errorReporter, ModuleDefinition, stilettoReferences);
+            processors.Add(mainModuleProcessor);
+            AddModuleToAssemblyDictionary(ModuleDefinition, mainModuleProcessor);
 
             var copyLocalAssemblies = new Dictionary<string, bool>(StringComparer.Ordinal);
             var localDebugFiles = new Queue<string>();
@@ -215,11 +263,23 @@ namespace Stiletto.Fody
                         continue;
                     }
 
-                    processors.Add(new ModuleProcessor(errorReporter, module, stilettoReferences));
+                    var moduleProcessor = new ModuleProcessor(errorReporter, module, stilettoReferences);
+                    processors.Add(moduleProcessor);
+                    AddModuleToAssemblyDictionary(module, moduleProcessor);
                 }
             }
 
             return processors;
+        }
+
+        private void AddModuleToAssemblyDictionary(ModuleDefinition module, ModuleProcessor moduleProcessor)
+        {
+            modulesByAssembly[GetModuleKey(module)] = moduleProcessor;
+        }
+
+        private static string GetModuleKey(ModuleDefinition moduleDefinition)
+        {
+            return moduleDefinition.Assembly.Name.FullName + "+" + moduleDefinition.Name;
         }
 
         /// <summary>
