@@ -30,6 +30,7 @@ namespace Stiletto
         public abstract Container Add(params object[] modules);
         public abstract T Get<T>();
         public abstract T Inject<T>(T instance);
+        public abstract object Inject(object instance, Type type);
         public abstract void Validate();
 
         /// <summary>
@@ -126,6 +127,14 @@ namespace Stiletto
             public override T Inject<T>(T instance)
             {
                 var key = Key.GetMemberKey<T>();
+                var binding = GetEntryPointBinding(key, key);
+                binding.InjectProperties(instance);
+                return instance;
+            }
+
+            public override object Inject(object instance, Type type)
+            {
+                var key = Key.GetMemberKey(type);
                 var binding = GetEntryPointBinding(key, key);
                 binding.InjectProperties(instance);
                 return instance;
