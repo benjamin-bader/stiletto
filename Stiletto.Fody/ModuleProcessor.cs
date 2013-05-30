@@ -40,9 +40,9 @@ namespace Stiletto.Fody
             get { return providerGenerators; }
         }
 
-        public Queue<TypeDefinition> BaseGeneratorQueue
+        public bool HasBaseTypesEnqueued
         {
-            get { return baseGeneratorQueue; }
+            get { return baseGeneratorQueue.Count > 0; }
         }
 
         public MethodReference CompiledPluginConstructor { get; private set; }
@@ -59,6 +59,11 @@ namespace Stiletto.Fody
             lazyGenerators = new List<LazyBindingGenerator>();
             providerGenerators = new List<ProviderBindingGenerator>();
             baseGeneratorQueue = new Queue<TypeDefinition>();
+        }
+
+        public void EnqueueBaseType(TypeDefinition type)
+        {
+            baseGeneratorQueue.Enqueue(type);
         }
 
         public void CreateGenerators(ModuleWeaver weaver)
@@ -110,9 +115,9 @@ namespace Stiletto.Fody
         {
             var injectedTypes = new HashSet<TypeDefinition>(InjectGenerators.Select(gen => gen.InjectedType));
 
-            while (BaseGeneratorQueue.Count > 0)
+            while (baseGeneratorQueue.Count > 0)
             {
-                var typedef = BaseGeneratorQueue.Dequeue();
+                var typedef = baseGeneratorQueue.Dequeue();
                 if (!injectedTypes.Add(typedef))
                 {
                     continue;

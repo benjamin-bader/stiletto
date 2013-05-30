@@ -92,7 +92,7 @@ namespace Stiletto.Fody
                 hasGeneratedBaseClasses = false;
                 foreach (var p in processors)
                 {
-                    if (p.BaseGeneratorQueue.Count > 0)
+                    if (p.HasBaseTypesEnqueued)
                     {
                         p.CreateBaseClassGenerators(this);
                         hasGeneratedBaseClasses = true;
@@ -175,7 +175,7 @@ namespace Stiletto.Fody
                 return false;
             }
 
-            processor.BaseGeneratorQueue.Enqueue(typedef);
+            processor.EnqueueBaseType(typedef);
             return true;
         }
 
