@@ -93,14 +93,31 @@ namespace Stiletto.Test
             Expect.The(entryPoint).Not.ToBeNull();
         }
 
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void BaseClassInstance_InjectingDerivedProperties_FailsWhenGenericIsUsed()
+        {
+            var container = Container.Create(typeof (NameModule));
+            var baseInjectable = new DerivedInjectable("foo") as BaseInjectable;
+            container.Inject(baseInjectable);
+        }
+
+        [Test]
+        public void BaseClassInstance_InjectingDerivedProperties_WorksWhenNonGenericIsUsed()
+        {
+            var container = Container.Create(typeof(NameModule));
+            var baseInjectable = new DerivedInjectable("foo") as BaseInjectable;
+            container.Inject(baseInjectable, baseInjectable.GetType());
+        }
+
+        [Test]
+        public void InjectableDerivedFromNonInjectableIsInjected()
+        {
+            GetWithModules<DerivedFromNonInjectable>(typeof (BaseNonInjectableModule));
+        }
+
         private class A
         {
             [Inject] public A() {}
-        }
-
-        private class B
-        {
-            [Inject] public B() {}
         }
 
         private class NeedsA
@@ -272,6 +289,36 @@ namespace Stiletto.Test
             public int GetInt()
             {
                 return 0;
+            }
+        }
+
+        public class BaseNonInjectable
+        {
+        }
+
+        public class DerivedFromNonInjectable : BaseNonInjectable
+        {
+            private readonly string foo;
+
+            public string Foo
+            {
+                get { return foo; }
+            }
+
+            [Inject]
+            public DerivedFromNonInjectable(string foo)
+            {
+                this.foo = foo;
+            }
+        }
+
+        [Module(EntryPoints = new [] { typeof(DerivedFromNonInjectable) })]
+        public class BaseNonInjectableModule
+        {
+            [Provides]
+            public string ProvideFoo()
+            {
+                return "foo";
             }
         }
     }
