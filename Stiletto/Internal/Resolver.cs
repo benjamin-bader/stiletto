@@ -45,7 +45,7 @@ namespace Stiletto.Internal
         {
             foreach (var kvp in bindingsToInstall)
             {
-                bindings.Add(kvp.Key, Scope(kvp.Value));
+                bindings[kvp.Key] = Scope(kvp.Value);
             }
         }
 
@@ -205,7 +205,7 @@ namespace Stiletto.Internal
                 }
             }
 
-            throw new ArgumentException("No binding for " + key);
+            throw new BindingException("No binding for " + key);
         }
 
         private static Binding Scope(Binding binding)

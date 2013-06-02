@@ -32,6 +32,7 @@ namespace Stiletto
     {
         private bool complete = true;
         private bool library;
+        private bool isOverride;
         private Type[] entryPoints;
         private Type[] includedModules;
 
@@ -82,6 +83,49 @@ namespace Stiletto
         {
             get { return library; }
             set { library = value; }
+        }
+
+        /// <summary>
+        /// Gets or set s a value indicating whether this module will override
+        /// other modules.
+        /// </summary>
+        /// <remarks>
+        /// An overriding module's provider methods will take precedence over a non-
+        /// overriding module.  For example, given the following modules:
+        /// <code>
+        /// [Module(EntryPoints = new[] { typeof(bool) })]
+        /// public class Module
+        /// {
+        ///     [Provides]
+        ///     public bool ProvideBoolean()
+        ///     {
+        ///         return false;
+        ///     }
+        /// }
+        /// 
+        /// [Module(IsOverride = true)]
+        /// public class OverridingModule
+        /// {
+        ///     [Provides]
+        ///     public bool ProvideAnotherBoolean()
+        ///     {
+        ///         return true;
+        ///     }
+        /// }
+        /// 
+        /// Container.Create(new Module(), new OverridingModule()).Get&lt;bool&gt;(); // true
+        /// </code>
+        /// 
+        /// <para>
+        /// This is especially useful during testing, when you may only want to
+        /// alter one or two specific injections.
+        /// </para>
+        /// 
+        /// </remarks>
+        public bool IsOverride
+        {
+            get { return isOverride; }
+            set { isOverride = value; }
         }
     }
 }
