@@ -83,7 +83,7 @@ namespace Stiletto.Internal
                 .AppendLine("set 'IsLibrary = true' on their modules to suppress this error.");
 
             for (var i = 0; i < unusedBindings.Count; ++i) {
-                sb.AppendFormat("{0}. {1}", i, unusedBindings[i].ProviderMethodName)
+                sb.AppendFormat("{0}. {1}", i + 1, unusedBindings[i].ProviderMethodName)
                   .AppendLine();
             }
 
