@@ -174,6 +174,13 @@ namespace Stiletto.Fody
                 var current = generators.Dequeue();
                 var newType = current.Generate(errorReporter);
 
+                // generators that are placeholders for non-injectable entry points (e.g. bool)
+                // don't emit any types, so make sure we check that.
+                if (newType == null)
+                {
+                    continue;
+                }
+
                 if (!generatedTypes.Add(newType))
                 {
                     continue;
@@ -192,7 +199,7 @@ namespace Stiletto.Fody
             var pluginGenerator = new PluginGenerator(
                 moduleDefinition,
                 references,
-                injectGenerators.Where(gen => gen.IsVisibleToPlugin).Select(gen => gen.GetKeyedCtor()),
+                injectGenerators.Where(gen => gen.IsVisibleToPlugin).Select(gen => gen.GetKeyedCtor()).Where(ctor => ctor != null),
                 lazyGenerators.Select(gen => gen.GetKeyedCtor()),
                 providerGenerators.Select(gen => gen.GetKeyedCtor()),
                 moduleGenerators.Where(gen => gen.IsVisibleToPlugin).Select(gen => gen.GetModuleTypeAndGeneratedCtor()));
@@ -281,17 +288,16 @@ namespace Stiletto.Fody
 
         private void GatherInjectBindings(IEnumerable<TypeDefinition> injectTypes, IEnumerable<TypeReference> entryPoints)
         {
-            var internalInjectTypes = new HashSet<TypeReference>(injectTypes, new TypeReferenceComparer());
+            var injectTypeSet = new HashSet<TypeReference>(injectTypes, new TypeReferenceComparer());
 
-            foreach (var e in entryPoints) {
-                if (internalInjectTypes.Contains(e)) {
-                    internalInjectTypes.Remove(e);
-                }
-
-                injectGenerators.Add(new InjectBindingGenerator(moduleDefinition, references, e, true));
+            foreach (var entryPoint in entryPoints)
+            {
+                injectTypeSet.Remove(entryPoint);
+                injectGenerators.Add(new InjectBindingGenerator(moduleDefinition, references, entryPoint, true));
             }
 
-            injectGenerators.AddRange(internalInjectTypes.Select(i => new InjectBindingGenerator(moduleDefinition, references, i, false)));
+            injectGenerators.AddRange(injectTypeSet.Select(i =>
+                new InjectBindingGenerator(moduleDefinition, references, i, false)));
         }
 
         private void GatherParameterizedBindings()

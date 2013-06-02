@@ -50,9 +50,19 @@ namespace Stiletto.Fody.Validation
                     continue;
                 }
 
-                try {
-                    var moduleBindings = ProcessCompleteModule(moduleGenerator);
-                    new GraphVerifier().Verify(moduleBindings.Values);
+                GraphVerifier graphVerifier;
+                try
+                {
+                    var moduleBindings = ProcessCompleteModule(moduleGenerator, false);
+                    if (moduleBindings == null)
+                    {
+                        // No bindings means that bindings could not be resolved and
+                        // errors were reported.
+                        continue;
+                    }
+
+                    graphVerifier = new GraphVerifier();
+                    graphVerifier.DetectCircularDependencies(moduleBindings.Values);
                 }
                 catch (InvalidOperationException ex) {
                     errorReporter.LogError(ex.Message);
@@ -64,27 +74,59 @@ namespace Stiletto.Fody.Validation
                 }
 
                 // XXX ben: Write graphviz file here.
+
+                // TODO: This analysis is broken for entry points that are satisfied by [Provides] methods.
+                if (!moduleGenerator.IsLibrary)
+                {
+                    try
+                    {
+                        var moduleBindings = ProcessCompleteModule(moduleGenerator, true);
+                        graphVerifier.DetectUnusedBindings(moduleBindings.Values);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        errorReporter.LogError(ex.Message);
+                    }
+                    catch (ValidationException ex)
+                    {
+                        errorReporter.LogError(ex.Message);
+                    }
+                }
             }
         }
 
-        private IDictionary<string, Binding> ProcessCompleteModule(ModuleGenerator moduleGenerator)
+        private IDictionary<string, Binding> ProcessCompleteModule(ModuleGenerator moduleGenerator, bool ignoreCompletenessErrors)
         {
             var bindings = new Dictionary<string, Binding>(StringComparer.Ordinal);
+            var overrides = new Dictionary<string, Binding>(StringComparer.Ordinal);
             var allModules = new Dictionary<string, ModuleGenerator>(StringComparer.Ordinal);
-            
+            var hasError = false;
+
             GatherIncludedModules(moduleGenerator, allModules, new Stack<string>());
 
-            var resolver = new Resolver(null, plugin, errors => {
-                foreach (var e in errors) {
+            var resolver = new Resolver(null, plugin, errors =>
+            {
+                if (ignoreCompletenessErrors)
+                {
+                    return;
+                }
+
+                hasError = true;
+                foreach (var e in errors)
+                {
                     errorReporter.LogError(e);
                 }
             });
 
             foreach (var module in allModules.Values) {
                 // Request entry-point bindings
-                foreach (var entryPointType in module.EntryPoints) {
-                    var key = CompilerKeys.GetMemberKey(entryPointType);
-                    resolver.RequestBinding(CompilerKeys.ForType(entryPointType), module.ModuleType.FullName, false, true);
+                var addTo = module.IsOverride ? overrides : bindings;
+
+                foreach (var entryPointType in module.EntryPoints)
+                {
+                    var key = entryPointType.Resolve().IsInterface
+                                  ? CompilerKeys.ForType(entryPointType)
+                                  : CompilerKeys.GetMemberKey(entryPointType);
                     resolver.RequestBinding(key, module.ModuleType.FullName, false, true);
                 }
 
@@ -92,16 +134,23 @@ namespace Stiletto.Fody.Validation
 
                     var binding = new CompilerProvidesBinding(providerGenerator);
 
-                    if (bindings.ContainsKey(binding.ProviderKey)) {
-                        throw new ValidationException("Duplicate bindings for " + binding.ProviderKey);
+                    if (addTo.ContainsKey(binding.ProviderKey))
+                    {
+                        var message = "Duplicate bindings for {0} in {1}{2}.";
+                        var addendum = module.IsOverride ? "overriding module " : string.Empty;
+
+                        throw new ValidationException(string.Format
+                            (message, binding.ProviderKey, addendum, module.ModuleType.FullName));
                     }
 
-                    bindings.Add(binding.ProviderKey, binding);
+                    addTo.Add(binding.ProviderKey, binding);
                 }
             }
 
             resolver.InstallBindings(bindings);
-            return resolver.ResolveAllBindings();
+            resolver.InstallBindings(overrides);
+            var allBindings = resolver.ResolveAllBindings();
+            return hasError ? null : allBindings;
         }
 
         private void GatherIncludedModules(

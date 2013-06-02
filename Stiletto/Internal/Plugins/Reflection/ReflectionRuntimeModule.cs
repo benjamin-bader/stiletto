@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
- using System;
+using System;
 using System.Collections.Generic;
- using System.Linq;
- using System.Reflection;
+using System.Linq;
+using System.Reflection;
 
 namespace Stiletto.Internal.Plugins.Reflection
 {
@@ -31,7 +31,8 @@ namespace Stiletto.Internal.Plugins.Reflection
                    attribute.EntryPoints.Select(Key.GetMemberKey).ToArray(),
                    attribute.IncludedModules,
                    attribute.IsComplete,
-                   attribute.IsLibrary)
+                   attribute.IsLibrary,
+                   attribute.IsOverride)
         {
         }
 
@@ -40,9 +41,9 @@ namespace Stiletto.Internal.Plugins.Reflection
             for (var t = ModuleType; t != typeof(object); t = t.BaseType)
             {
                 // t will always be typeof(object) before it is null.
-// ReSharper disable PossibleNullReferenceException
+                // ReSharper disable PossibleNullReferenceException
                 var methods = t.GetMethods(DeclaredMethods);
-// ReSharper restore PossibleNullReferenceException
+                // ReSharper restore PossibleNullReferenceException
                 for (var i = 0; i < methods.Length; ++i)
                 {
                     var m = methods[i];
@@ -77,7 +78,7 @@ namespace Stiletto.Internal.Plugins.Reflection
 
         private void AddNewBinding(IDictionary<string, Binding> bindings, string key, MethodInfo method)
         {
-            bindings[key] = new ProviderMethodBinding(method, key, Module, IsLibrary);
+            bindings.Add(key, new ProviderMethodBinding(method, key, Module, IsLibrary));
         }
 
         private class ProviderMethodBinding : ProviderMethodBindingBase

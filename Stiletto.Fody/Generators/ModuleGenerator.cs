@@ -328,6 +328,7 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Ldloc, vIncludes);
             il.EmitBoolean(IsComplete);
             il.EmitBoolean(IsLibrary);
+            il.EmitBoolean(IsOverride);
             il.Emit(OpCodes.Call, References.RuntimeModule_Ctor);
 
             il.Emit(OpCodes.Ret);
