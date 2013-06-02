@@ -93,6 +93,7 @@
     <Compile Include="Validation\Validator.cs" />
     <Compile Include="Generators\PluginGenerator.cs" />
     <Compile Include="KeyedCtor.cs" />
+    <Compile Include="WeaverConfig.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Stiletto\Stiletto.csproj">

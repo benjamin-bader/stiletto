@@ -34,6 +34,8 @@ namespace Stiletto.Fody
         private readonly Dictionary<string, ModuleProcessor> modulesByAssembly =
             new Dictionary<string, ModuleProcessor>();
 
+        private WeaverConfig weaverConfig;
+
         public bool HasError { get { return errorReporter.HasError; } }
 
         #region Fody-provided members
@@ -185,7 +187,7 @@ namespace Stiletto.Fody
             var allInjects = processors.SelectMany(p => p.InjectGenerators);
             var allLazys = processors.SelectMany(p => p.LazyGenerators);
             var allProvides = processors.SelectMany(p => p.ProviderGenerators);
-            new Validator(errorReporter, allInjects, allLazys, allProvides, allModules).ValidateCompleteModules();
+            new Validator(errorReporter, allInjects, allLazys, allProvides, allModules).ValidateCompleteModules(weaverConfig.SuppressUnusedBindingErrors);
         }
 
         private IList<ModuleProcessor> GatherModulesNeedingProcessing()
@@ -289,6 +291,7 @@ namespace Stiletto.Fody
         {
             LogWarning = LogWarning ?? Console.WriteLine;
             LogError = LogError ?? Console.WriteLine;
+            weaverConfig = WeaverConfig.Load(Config);
         }
 
         /// <summary>

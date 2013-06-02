@@ -25,6 +25,34 @@ namespace Stiletto.Test
             container.Validate();
         }
 
+        [Test, ExpectedException(typeof(InvalidOperationException))]
+        public void Validate_WhenProviderMethodsAreUnused_Throws()
+        {
+            Container.Create(typeof(UnusedProvidesModule)).Validate();
+        }
+
+        public class UnusedProvidesEntryPoint
+        {
+            [Inject]
+            public string Foo { get; set; }
+        }
+
+        [Module(EntryPoints = new[] { typeof(UnusedProvidesEntryPoint) })]
+        public class UnusedProvidesModule
+        {
+            [Provides]
+            public string ProvideString()
+            {
+                return "foo";
+            }
+
+            [Provides]
+            public int ProvideInt()
+            {
+                return -1;
+            }
+        }
+
         [Module(IsComplete = false)]
         public class BadModuleOne
         {

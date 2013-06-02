@@ -43,7 +43,7 @@ namespace Stiletto.Fody.Validation
             this.errorReporter = errorReporter;
         }
 
-        public void ValidateCompleteModules()
+        public void ValidateCompleteModules(bool suppressUnusedBindingsErrors)
         {
             foreach (var moduleGenerator in moduleGenerators) {
                 if (!moduleGenerator.IsComplete) {
@@ -85,7 +85,14 @@ namespace Stiletto.Fody.Validation
                     }
                     catch (InvalidOperationException ex)
                     {
-                        errorReporter.LogError(ex.Message);
+                        if (suppressUnusedBindingsErrors)
+                        {
+                            errorReporter.LogWarning(ex.Message);
+                        }
+                        else
+                        {
+                            errorReporter.LogError(ex.Message);
+                        }
                     }
                     catch (ValidationException ex)
                     {
