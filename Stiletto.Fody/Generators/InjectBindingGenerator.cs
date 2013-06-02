@@ -49,6 +49,7 @@ namespace Stiletto.Fody.Generators
             this.injectedType = injectedType.IsDefinition
                                     ? (TypeDefinition) injectedType
                                     : ModuleDefinition.Import(injectedType).Resolve();
+
             this.isEntryPoint = isEntryPoint;
 
             CtorParams = new List<InjectMemberInfo>();
@@ -155,6 +156,15 @@ namespace Stiletto.Fody.Generators
 
         public override TypeDefinition Generate(IErrorReporter errorReporter)
         {
+            // If an entry-point is declared that has no injectables (i.e. a primitive type),
+            // there's nothing to emit.
+            if (!InjectableCtor.CustomAttributes.Any(Attributes.IsInjectAttribute)
+                && InjectableProperties.Count == 0
+                && BaseTypeKey == null)
+            {
+                return null;
+            }
+
             var injectBinding = new TypeDefinition(
                 injectedType.Namespace,
                 injectedType.Name + Internal.Plugins.Codegen.CodegenPlugin.InjectSuffix,
@@ -198,7 +208,11 @@ namespace Stiletto.Fody.Generators
 
         public override KeyedCtor GetKeyedCtor()
         {
-            Conditions.CheckNotNull(generatedCtor);
+            if (generatedCtor == null)
+            {
+                return null;
+            }
+
             return new KeyedCtor(Key, generatedCtor);
         }
 

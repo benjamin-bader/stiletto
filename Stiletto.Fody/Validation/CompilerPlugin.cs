@@ -24,7 +24,7 @@ namespace Stiletto.Fody.Validation
 {
     public class CompilerPlugin : IPlugin
     {
-        private readonly IDictionary<string, CompilerBinding> bindings;
+        private readonly IDictionary<string, Binding> bindings;
         private readonly IDictionary<string, CompilerParameterizedBinding> lazyBindings;
         private readonly IDictionary<string, CompilerParameterizedBinding> providerBindings;
 
@@ -34,35 +34,29 @@ namespace Stiletto.Fody.Validation
             IEnumerable<ProviderBindingGenerator> providerBindings)
         {
             var comparer = StringComparer.Ordinal;
-            this.bindings = bindings.ToDictionary(b => b.Key, b => new CompilerBinding(b), comparer);
+            this.bindings = bindings.ToDictionary(b => b.Key, b => (Binding) new CompilerBinding(b), comparer);
             this.lazyBindings = lazyBindings.ToDictionary(b => b.Key, b => new CompilerParameterizedBinding(b), comparer);
             this.providerBindings = providerBindings.ToDictionary(b => b.Key, b => new CompilerParameterizedBinding(b), comparer);
         }
 
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
-            CompilerBinding binding;
-            if (!bindings.TryGetValue(key, out binding)) {
-                throw new BindingException("No binding for " + key);
-            }
+            Binding binding;
+            bindings.TryGetValue(className, out binding);
             return binding;
         }
 
         public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
         {
             CompilerParameterizedBinding binding;
-            if (!lazyBindings.TryGetValue(key, out binding)) {
-                throw new BindingException("No lazy binding for " + key);
-            }
+            lazyBindings.TryGetValue(key, out binding);
             return binding;
         }
 
         public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
         {
             CompilerParameterizedBinding binding;
-            if (!providerBindings.TryGetValue(key, out binding)) {
-                throw new BindingException("No IProvider binding for " + key);
-            }
+            providerBindings.TryGetValue(key, out binding);
             return binding;
         }
 

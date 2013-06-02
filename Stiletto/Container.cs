@@ -91,21 +91,27 @@ namespace Stiletto
             {
                 var entryPoints = new Dictionary<string, Type>(Key.Comparer);
                 var bindings = new Dictionary<string, Binding>(Key.Comparer);
+                var overrides = new Dictionary<string, Binding>(Key.Comparer);
+
                 foreach (var runtimeModule in GetAllRuntimeModules(plugin, modules).Values)
                 {
+                    var addTo = runtimeModule.IsOverride ? overrides : bindings;
+
                     foreach (var key in runtimeModule.EntryPoints)
                     {
                         entryPoints.Add(key, runtimeModule.Module.GetType());
                     }
 
-                    runtimeModule.GetBindings(bindings);
+                    runtimeModule.GetBindings(addTo);
                 }
 
                 var resolver = new Resolver(
                     baseContainer != null ? baseContainer.resolver : null,
                     plugin,
                     HandleErrors);
+
                 resolver.InstallBindings(bindings);
+                resolver.InstallBindings(overrides);
 
                 return new StilettoContainer(baseContainer, resolver, plugin, entryPoints);
             }

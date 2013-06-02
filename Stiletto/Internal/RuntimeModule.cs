@@ -28,6 +28,7 @@ namespace Stiletto.Internal
         private readonly Type[] includes;
         private readonly bool complete;
         private readonly bool isLibrary;
+        private readonly bool isOverride;
 
         protected Type ModuleType
         {
@@ -54,9 +55,14 @@ namespace Stiletto.Internal
             get { return isLibrary; }
         }
 
+        public bool IsOverride
+        {
+            get { return isOverride; }
+        }
+
         public object Module { get; set; }
 
-        protected RuntimeModule(Type moduleType, string[] entryPoints, Type[] includes, bool complete, bool isLibrary)
+        protected RuntimeModule(Type moduleType, string[] entryPoints, Type[] includes, bool complete, bool isLibrary, bool isOverride)
         {
             Conditions.CheckNotNull(moduleType, "moduleType");
             Conditions.CheckNotNull(entryPoints, "entryPoints");
@@ -67,6 +73,7 @@ namespace Stiletto.Internal
             this.includes = includes;
             this.complete = complete;
             this.isLibrary = isLibrary;
+            this.isOverride = isOverride;
         }
 
         public virtual void GetBindings(IDictionary<string, Binding> bindings)

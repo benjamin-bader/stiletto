@@ -94,6 +94,37 @@ namespace Stiletto.Test
         }
 
         [Test, ExpectedException(typeof(ArgumentException))]
+        public void DuplicateModuleTypesFail()
+        {
+            Container.Create(new NonOverridingModule(), new NonOverridingModule());
+        }
+
+        [Test, ExpectedException(typeof(ArgumentException))]
+        public void DuplicateProvidedTypesFail()
+        {
+            Container.Create(new BoolProvidingModule(), new NonOverridingModule());
+        }
+
+        [Test]
+        public void ModulesCanOverride()
+        {
+            var container = Container.Create(new OverridingModule(), new NonOverridingModule());
+            Expect.The(container.Get<bool>()).ToBeTrue();
+        }
+
+        [Test]
+        public void ModuleOrderDoesNotMatterForOverriding()
+        {
+            var c1 = Container.Create(new NonOverridingModule(), new OverridingModule());
+            var c2 = Container.Create(new OverridingModule(), new NonOverridingModule());
+
+            var b1 = c1.Get<bool>();
+            var b2 = c2.Get<bool>();
+
+            Expect.The(b1).ToEqual(b2);
+        }
+
+        [Test, ExpectedException(typeof(ArgumentException))]
         public void BaseClassInstance_InjectingDerivedProperties_FailsWhenGenericIsUsed()
         {
             var container = Container.Create(typeof (NameModule));
@@ -319,6 +350,36 @@ namespace Stiletto.Test
             public string ProvideFoo()
             {
                 return "foo";
+            }
+        }
+
+        [Module(IsLibrary = true)]
+        public class BoolProvidingModule
+        {
+            [Provides]
+            public bool HereIsABool()
+            {
+                return false;
+            }
+        }
+
+        [Module(EntryPoints = new[] { typeof(bool) }, IsLibrary = true)]
+        public class NonOverridingModule
+        {
+            [Provides]
+            public bool ProvideBool()
+            {
+                return false;
+            }
+        }
+
+        [Module(IsOverride = true, IsLibrary = true)]
+        public class OverridingModule
+        {
+            [Provides]
+            public bool ProvideAnotherBool()
+            {
+                return true;
             }
         }
     }
