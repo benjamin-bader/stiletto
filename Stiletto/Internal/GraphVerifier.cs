@@ -25,30 +25,37 @@ namespace Stiletto.Internal
     {
         public void Verify(ICollection<Binding> bindings)
         {
-            DetectCircularDependencies(bindings);
+            DetectCircularDependencies(bindings, new Stack<Binding>());
             DetectUnusedBindings(bindings);
         }
 
-        public void DetectCircularDependencies(IEnumerable<Binding> bindings)
+        public void DetectCircularDependencies(IEnumerable<Binding> bindings, Stack<Binding> path)
         {
-            var path = new Stack<Binding>();
             foreach (var binding in bindings) {
                 if (binding.IsCycleFree) {
                     continue;
                 }
 
                 if (binding.IsVisiting) {
-                    var sb = new StringBuilder("Cycle detected:").AppendLine();
-                    var message = Enumerable.Range(1, path.Count)
-                        .Zip(path.Reverse(), Tuple.Create)
-                        .Aggregate(sb, (s, tup) =>
-                            s.Append("\t")
-                             .Append(tup.Item1)
-                             .Append(". ")
-                             .AppendLine(tup.Item2.ToString()))
-                        .ToString();
+                    var sb = new StringBuilder("Dependency cycle detected:")
+                        .AppendLine()
+                        .Append(binding)
+                        .AppendLine(" depends on");
 
-                    throw new InvalidOperationException(message);
+                    var pathInOrder = path.Reverse().ToList();
+                    var index = pathInOrder.IndexOf(binding) + 1;
+
+                    for (var i = 0; i < pathInOrder.Count; ++i)
+                    {
+                        var currentItem = (index + i) % pathInOrder.Count;
+
+                        sb.Append("\t");
+                        sb.Append(i + 1);
+                        sb.Append(". ");
+                        sb.AppendLine(pathInOrder[currentItem].ToString());
+                    }
+
+                    throw new InvalidOperationException(sb.ToString());
                 }
 
                 binding.IsVisiting = true;
@@ -57,7 +64,7 @@ namespace Stiletto.Internal
                 try {
                     var dependencies = new HashSet<Binding>();
                     binding.GetDependencies(dependencies, dependencies);
-                    DetectCircularDependencies(dependencies);
+                    DetectCircularDependencies(dependencies, path);
                     binding.IsCycleFree = true;
                 }
                 finally {
@@ -79,7 +86,7 @@ namespace Stiletto.Internal
             }
 
             var sb = new StringBuilder()
-                .AppendLine("The following [Provides] methods are unused;")
+                .AppendLine("The following [Provides] methods are unused,")
                 .AppendLine("set 'IsLibrary = true' on their modules to suppress this error.");
 
             for (var i = 0; i < unusedBindings.Count; ++i) {

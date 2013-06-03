@@ -141,6 +141,11 @@ namespace Stiletto.Internal
             // no-op
         }
 
+        public override string ToString()
+        {
+            return ProviderKey;
+        }
+
         private class UnresolvedBinding : Binding
         {
             public UnresolvedBinding()

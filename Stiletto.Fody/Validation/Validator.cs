@@ -62,7 +62,7 @@ namespace Stiletto.Fody.Validation
                     }
 
                     graphVerifier = new GraphVerifier();
-                    graphVerifier.DetectCircularDependencies(moduleBindings.Values);
+                    graphVerifier.DetectCircularDependencies(moduleBindings.Values, new Stack<Binding>());
                 }
                 catch (InvalidOperationException ex) {
                     errorReporter.LogError(ex.Message);
