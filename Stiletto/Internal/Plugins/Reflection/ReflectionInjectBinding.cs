@@ -53,7 +53,7 @@ namespace Stiletto.Internal.Plugins.Reflection
             {
                 if (propertyBindings[i] == null)
                 {
-                    propertyBindings[i] = resolver.RequestBinding(keys[k], properties[i]);
+                    propertyBindings[i] = resolver.RequestBinding(keys[k], type.FullName + "." + properties[i].Name);
                 }
 
                 ++k;
@@ -65,7 +65,7 @@ namespace Stiletto.Internal.Plugins.Reflection
                 {
                     if (paramterBindings[i] == null)
                     {
-                        paramterBindings[i] = resolver.RequestBinding(keys[k], ctor);
+                        paramterBindings[i] = resolver.RequestBinding(keys[k], type.FullName + "::.ctor");
                     }
                     ++k;
                 }

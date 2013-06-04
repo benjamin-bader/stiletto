@@ -30,7 +30,7 @@ namespace Stiletto.Fody.Validation
         private Binding baseTypeBinding;
 
         public CompilerBinding(InjectBindingGenerator generator)
-            : base(generator.Key, generator.MembersKey, generator.IsSingleton, generator)
+            : base(generator.Key, generator.MembersKey, generator.IsSingleton, generator.InjectedType.FullName)
         {
             this.generator = generator;
         }
@@ -39,12 +39,12 @@ namespace Stiletto.Fody.Validation
         {
             ctorBindings = new List<Binding>(generator.CtorParams.Count);
             foreach (var p in generator.CtorParams) {
-                ctorBindings.Add(resolver.RequestBinding(p.Key, generator));
+                ctorBindings.Add(resolver.RequestBinding(p.Key, generator.InjectedType.FullName));
             }
 
             propertyBindings = new List<Binding>(generator.InjectableProperties.Count);
             foreach (var p in generator.InjectableProperties) {
-                propertyBindings.Add(resolver.RequestBinding(p.Key, p));
+                propertyBindings.Add(resolver.RequestBinding(p.Key, generator.InjectedType.FullName));
             }
 
             if (generator.BaseTypeKey != null) {

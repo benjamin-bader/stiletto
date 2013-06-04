@@ -15,6 +15,7 @@
  */
 
 ﻿using System;
+﻿using System.Collections.Generic;
 
 namespace Stiletto.Internal.Plugins.Reflection
 {
@@ -37,7 +38,7 @@ namespace Stiletto.Internal.Plugins.Reflection
             inner = resolver.RequestBinding(delegateKey, RequiredBy, mustBeInjectable);
         }
 
-        public override void GetDependencies(System.Collections.Generic.ISet<Binding> injectDependencies, System.Collections.Generic.ISet<Binding> propertyDependencies)
+        public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
         {
             inner.GetDependencies(injectDependencies, propertyDependencies);
         }

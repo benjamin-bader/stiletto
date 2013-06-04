@@ -38,7 +38,7 @@ namespace Stiletto.Fody.Validation
         {
             paramBindings = new List<Binding>(generator.ParamKeys.Count);
             foreach (var key in generator.ParamKeys) {
-                paramBindings.Add(resolver.RequestBinding(key, generator.ProviderMethod));
+                paramBindings.Add(resolver.RequestBinding(key, generator.ProviderMethod.FullName));
             }
         }
 

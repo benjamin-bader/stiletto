@@ -11,6 +11,12 @@ namespace Stiletto.Test
     [TestFixture]
     public class ValidatorTests
     {
+        [Test, ExpectedException(typeof (InvalidOperationException))]
+        public void Validate_WhenDependencyIsUnsatisfied_Throws()
+        {
+            Container.Create(typeof(NeedsSomethingMore)).Validate();
+        }
+
         [Test, ExpectedException(typeof(InvalidOperationException))]
         public void Validate_WhenCircularDependenciesExist_Throws()
         {
@@ -35,6 +41,25 @@ namespace Stiletto.Test
         public void Validate_WhenProviderMethodsAreUnused_Throws()
         {
             Container.Create(typeof(UnusedProvidesModule)).Validate();
+        }
+
+        [Module(EntryPoints = new[] { typeof(Dep)})]
+        public class NeedsSomethingMore
+        {
+            public class Dep
+            {
+                [Inject]
+                public string Str { get; set; }
+
+                [Inject]
+                public object Bar { get; set; }
+            }
+
+            [Provides]
+            public string GetString()
+            {
+                return "foo";
+            }
         }
 
         public class Earth

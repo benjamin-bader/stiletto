@@ -32,13 +32,13 @@ namespace Stiletto.Fody.Validation
         private Binding elementBinding;
 
         public CompilerParameterizedBinding(LazyBindingGenerator generator)
-            : base(generator.Key, null, false, generator)
+            : base(generator.Key, null, false, generator.Key)
         {
             elementKey = generator.LazyKey;
         }
 
         public CompilerParameterizedBinding(ProviderBindingGenerator generator)
-            : base(generator.Key, null, false, generator)
+            : base(generator.Key, null, false, generator.Key)
         {
             elementKey = generator.ProviderKey;
         }
