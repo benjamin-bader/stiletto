@@ -281,7 +281,7 @@ namespace Stiletto.Fody.Generators
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Ldstr, property.Key);
-                il.Emit(OpCodes.Ldstr, property.MemberName);
+                il.Emit(OpCodes.Ldstr, injectedType.FullName + "." + property.MemberName);
                 il.EmitBoolean(true);  // mustBeInjectable
                 il.EmitBoolean(false); // isLibrary
                 il.Emit(OpCodes.Callvirt, References.Resolver_RequestBinding);
@@ -300,7 +300,7 @@ namespace Stiletto.Fody.Generators
                     il.Emit(OpCodes.Ldc_I4, i);
                     il.Emit(OpCodes.Ldarg_1);
                     il.Emit(OpCodes.Ldstr, param.Key);
-                    il.Emit(OpCodes.Ldstr, InjectableCtor.FullName);
+                    il.Emit(OpCodes.Ldstr, injectedType.FullName + "::.ctor");
                     il.EmitBoolean(true);
                     il.EmitBoolean(true);
                     il.Emit(OpCodes.Callvirt, References.Resolver_RequestBinding);
