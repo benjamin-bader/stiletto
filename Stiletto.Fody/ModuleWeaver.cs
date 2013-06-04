@@ -37,6 +37,7 @@ namespace Stiletto.Fody
         private WeaverConfig weaverConfig;
 
         public bool HasError { get { return errorReporter.HasError; } }
+        public Trie ExcludedClasses { get { return weaverConfig.ExcludedClassPatterns; } }
 
         #region Fody-provided members
 

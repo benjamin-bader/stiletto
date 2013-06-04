@@ -29,5 +29,16 @@ namespace Stiletto.Fody
                 ? new HashSet<T>(collection)
                 : new HashSet<T>(collection, comparer);
         }
+
+        public static IEnumerable<T> Append<T>(this IEnumerable<T> collection, T item)
+        {
+            if (collection == null)
+                throw new ArgumentNullException("collection");
+
+            foreach (var element in collection)
+                yield return element;
+
+            yield return item;
+        }
     }
 }

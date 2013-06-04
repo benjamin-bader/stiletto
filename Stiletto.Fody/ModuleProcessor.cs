@@ -77,10 +77,24 @@ namespace Stiletto.Fody
             var moduleTypes = new List<TypeDefinition>();
             var injectTypes = new List<TypeDefinition>();
 
-            foreach (var t in moduleDefinition.GetTypes()) {
-                if (IsModule(t)) {
+            foreach (var t in moduleDefinition.GetTypes())
+            {
+                if (IsModule(t))
+                {
+                    if (weaver.ExcludedClasses.Contains(t.FullName))
+                    {
+                        continue;
+                    }
+
                     moduleTypes.Add(t);
-                } else if (IsInject(t)) {
+                }
+                else if (IsInject(t))
+                {
+                    if (weaver.ExcludedClasses.Contains(t.FullName))
+                    {
+                        continue;
+                    }
+
                     injectTypes.Add(t);
                 }
             }
