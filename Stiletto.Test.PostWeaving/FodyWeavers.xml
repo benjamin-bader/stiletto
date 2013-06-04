@@ -11,6 +11,8 @@
 
       <Class>Stiletto.Test.ValidatorTests/UnusedProvidesEntryPoint</Class>
       <Class>Stiletto.Test.ValidatorTests/UnusedProvidesModule</Class>
+      <Class>Stiletto.Test.ValidatorTests/NeedsSomethingMore</Class>
+      <Class>Stiletto.Test.ValidatorTests/NeedsSomethingMore/Dep</Class>
     </ExcludeClasses>
   </Stiletto>
 </Weavers>
