@@ -4,7 +4,7 @@ Stiletto
 A fast dependency injector in C# for .NET and Mono; please see [the introductory website][0] for more information.
 
 This is a port of the [Square's Dagger IoC library][1], intended to be usable everywhere C# is usable, including MonoTouch where `System.Reflection.Emit` is unavailable.
-Compile-time validation and code-generation is implemented as a Fody[1] weaver, to be installable via a NuGet package.
+Compile-time validation and code-generation is implemented as a [Fody][2] weaver, installable via a NuGet package.
 
 Users of Dagger, Guice, or any other javax.inject-compatible IoC container will feel at home:
 
@@ -36,6 +36,7 @@ public class CoffeeMaker
 # Getting Started
 
 To install Stiletto and start using it, add the Stiletto NuGet package to your project, and start injecting.
+To install the compile-time plugin, install the Stiletto.Fody NuGet package in your main project.
 
 Stiletto supports:
 - property and constructor injection.
@@ -193,3 +194,4 @@ True integration tests for the weaver are forthcoming.
 
 [0]: http://stiletto.bendb.com
 [1]: http://square.github.io/dagger
+[2]: https://github.com/Fody/Fody
