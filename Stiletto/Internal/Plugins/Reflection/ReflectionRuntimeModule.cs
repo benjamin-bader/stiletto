@@ -105,7 +105,7 @@ namespace Stiletto.Internal.Plugins.Reflection
                 for (var i = 0; i < parameters.Length; ++i)
                 {
                     var key = Key.Get(parameters[i].ParameterType, parameters[i].GetQualifierName());
-                    methodParameterBindings[i] = resolver.RequestBinding(key, method);
+                    methodParameterBindings[i] = resolver.RequestBinding(key, target.GetType().FullName + "::" + method.Name);
                 }
             }
 
