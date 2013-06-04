@@ -11,8 +11,14 @@ namespace Stiletto.Test
     [TestFixture]
     public class ValidatorTests
     {
-        [Test]
+        [Test, ExpectedException(typeof(InvalidOperationException))]
         public void Validate_WhenCircularDependenciesExist_Throws()
+        {
+            Container.Create(typeof(CaptainPlanet)).Validate();
+        }
+
+        [Test]
+        public void Validate_WhenCircularDependenciesExistAcrossModules_Throws()
         {
             var container = Container.Create(typeof (BadModuleOne), typeof (BadModuleTwo));
             Expect.The(container.Validate).ToThrow<InvalidOperationException>();
@@ -29,6 +35,41 @@ namespace Stiletto.Test
         public void Validate_WhenProviderMethodsAreUnused_Throws()
         {
             Container.Create(typeof(UnusedProvidesModule)).Validate();
+        }
+
+        public class Earth
+        {
+            [Inject]
+            public Wind Wind { get; set; }
+        }
+
+        public class Wind
+        {
+            [Inject]
+            public Fire Fire { get; set; }
+        }
+
+        public class Fire
+        {
+            [Inject]
+            public Water Water { get; set; }
+        }
+
+        public class Water
+        {
+            [Inject]
+            public Heart Heart { get; set; }
+        }
+
+        public class Heart
+        {
+            [Inject]
+            public Earth Earth { get; set; }
+        }
+
+        [Module(EntryPoints = new[] { typeof(Earth) })]
+        public class CaptainPlanet
+        {
         }
 
         public class UnusedProvidesEntryPoint

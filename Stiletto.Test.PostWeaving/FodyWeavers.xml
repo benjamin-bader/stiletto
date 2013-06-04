@@ -1,4 +1,16 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Weavers>
-  <Stiletto SuppressUnusedBindingsErrors="true" />
+  <Stiletto SuppressUnusedBindingsErrors="true">
+    <ExcludeClasses>
+      <Class>Stiletto.Test.ValidatorTests/Earth</Class>
+      <Class>Stiletto.Test.ValidatorTests/Wind</Class>
+      <Class>Stiletto.Test.ValidatorTests/Fire</Class>
+      <Class>Stiletto.Test.ValidatorTests/Water</Class>
+      <Class>Stiletto.Test.ValidatorTests/Heart</Class>
+      <Class>Stiletto.Test.ValidatorTests/CaptainPlanet</Class>
+
+      <Class>Stiletto.Test.ValidatorTests/UnusedProvidesEntryPoint</Class>
+      <Class>Stiletto.Test.ValidatorTests/UnusedProvidesModule</Class>
+    </ExcludeClasses>
+  </Stiletto>
 </Weavers>
