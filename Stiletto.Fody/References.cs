@@ -31,6 +31,9 @@ namespace Stiletto.Fody
     {
         // ReSharper disable InconsistentNaming
 
+        public TypeReference String { get; private set; }
+        public TypeReference Boolean { get; private set; }
+
         public TypeReference Binding { get; private set; }
         public MethodReference Binding_Ctor { get; private set; }
         public MethodReference Binding_Resolve { get; private set; }
@@ -112,32 +115,47 @@ namespace Stiletto.Fody
         public TypeReference ProcessedAssemblyAttribute { get; private set; }
         public MethodReference ProcessedAssemblyAttribute_Ctor { get; private set; }
 
+        public MethodReference StringComparer_Ordinal_Getter { get; private set; }
+
         public References(ModuleDefinition module, StilettoReferences stilettoReferences)
         {
             ImportStilettoReferences(module, stilettoReferences);
 
+            String = module.TypeSystem.String;
+            Boolean = module.TypeSystem.Boolean;
+
+            var assemblyResolver = module.AssemblyResolver;
+            var mscorlib = assemblyResolver.Resolve("mscorlib");
+            var mscorlibTypes = mscorlib.MainModule.Types;
+
+            var system = assemblyResolver.Resolve("System");
+            var systemTypes = system.MainModule.Types;
+
             var tString = module.TypeSystem.String;
             var tObj = module.TypeSystem.Object;
             var tBool = module.TypeSystem.Boolean;
-            var tDict = module.Import(typeof(Dictionary<,>));
 
-            FuncOfT = module.Import(typeof(Func<>));
-            FuncOfT4 = module.Import(typeof(Func<,,,>));
-            FuncOfT5 = module.Import(typeof(Func<,,,,>));
-            LazyOfT = module.Import(typeof(Lazy<>));
+            var tDict = module.Import(mscorlibTypes.First(t => t.Name == "Dictionary`2"));
 
-            CompilerGeneratedAttribute = module.Import(typeof(CompilerGeneratedAttribute).GetConstructor(new Type[0]));
+            FuncOfT = module.Import(mscorlibTypes.First(t => t.Name == "Func`1"));
+            FuncOfT4 = module.Import(mscorlibTypes.First(t => t.Name == "Func`4"));
+            FuncOfT5 = module.Import(mscorlibTypes.First(t => t.Name == "Func`5"));
+            LazyOfT = module.Import(mscorlibTypes.First(t => t.Name == "Lazy`1"));
 
-            Type = module.Import(typeof(Type));
-            Type_GetTypeFromHandle = module.Import(typeof(Type).GetMethod("GetTypeFromHandle"));
+            var compilerGeneratedAttribute = mscorlibTypes.First(t => t.Name == "CompilerGeneratedAttribute");
+            var compilerGeneratedAttributeCtor = compilerGeneratedAttribute.GetMethod(".ctor");
+            CompilerGeneratedAttribute = module.Import(compilerGeneratedAttributeCtor);
 
-            var tSetOfBindings = module.Import(typeof (ISet<>)).MakeGenericInstanceType(Binding);
+            Type = module.Import(mscorlibTypes.First(t => t.Name == "Type"));
+            Type_GetTypeFromHandle = module.Import(Type.Resolve().GetMethod("GetTypeFromHandle"));
+
+            var tSetOfBindings = module.Import(systemTypes.First(t => t.Name == "ISet`1")).MakeGenericInstanceType(Binding);
             SetOfBindings = module.Import(tSetOfBindings);
             SetOfBindings_Add = module.Import(tSetOfBindings.Resolve().GetMethod("Add")).MakeHostInstanceGeneric(Binding);
             SetOfBindings_UnionWith = module.Import(tSetOfBindings.Resolve().GetMethod("UnionWith")).MakeHostInstanceGeneric(Binding);
 
             // Used in RuntimeModule.GetBindings(IDictionary<string, Binding>);
-            var tDictOfStringToBinding = module.Import(typeof (IDictionary<,>)).MakeGenericInstanceType(
+            var tDictOfStringToBinding = module.Import(mscorlibTypes.First(t => t.Name == "IDictionary`2")).MakeGenericInstanceType(
                 tString, Binding);
 
             DictionaryOfStringToBinding = tDictOfStringToBinding;
@@ -155,6 +173,11 @@ namespace Stiletto.Fody
 
             // Used in $CompiledPlugin$::.ctor()
             ImportRuntimeModuleDictionary(module, tDict);
+
+            var stringComparer = mscorlibTypes.First(t => t.Name == "StringComparer");
+            var ordinalProperty = stringComparer.GetProperty("Ordinal");
+            var ordinalPropertyGetter = ordinalProperty.GetMethod;
+            StringComparer_Ordinal_Getter = module.Import(ordinalPropertyGetter);
         }
 
         private void ImportStilettoReferences(ModuleDefinition module, StilettoReferences stilettoReferences)

@@ -291,8 +291,8 @@ namespace Stiletto.Fody.Generators
                 ModuleDefinition.TypeSystem.Void);
 
             var il = ctor.Body.GetILProcessor();
-            var vEntryPoints = new VariableDefinition("entryPoints", ModuleDefinition.Import(typeof (string[])));
-            var vIncludes = new VariableDefinition("includes", ModuleDefinition.Import(typeof (Type[])));
+            var vEntryPoints = new VariableDefinition("entryPoints", new ArrayType(References.String));
+            var vIncludes = new VariableDefinition("includes", new ArrayType(References.Type));
             il.Body.InitLocals = true;
             il.Body.Variables.Add(vEntryPoints);
             il.Body.Variables.Add(vIncludes);
@@ -310,7 +310,7 @@ namespace Stiletto.Fody.Generators
 
             // make array of included module types
             il.Emit(OpCodes.Ldc_I4, IncludedModules.Count);
-            il.Emit(OpCodes.Newarr, ModuleDefinition.Import(typeof(Type)));
+            il.Emit(OpCodes.Newarr, References.Type);
             il.Emit(OpCodes.Stloc, vIncludes);
             for (var i = 0; i < IncludedModules.Count; ++i) {
                 il.Emit(OpCodes.Ldloc, vIncludes);

@@ -198,15 +198,13 @@ namespace Stiletto.Fody.Generators
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
                 ModuleDefinition.TypeSystem.Void);
 
-            var ordinalComparerGet = ModuleDefinition.Import (typeof(StringComparer).GetProperty("Ordinal").GetGetMethod());
-
             var il = ctor.Body.GetILProcessor();
 
             il.Emit (OpCodes.Ldarg_0);
             il.Emit(OpCodes.Call, ModuleDefinition.Import (ModuleDefinition.TypeSystem.Object.Resolve().GetConstructors().First()));
 
             il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Call, ordinalComparerGet);
+            il.Emit (OpCodes.Call, References.StringComparer_Ordinal_Getter);
             il.Emit (OpCodes.Newobj, References.DictionaryOfStringToBindingFn_New);
             il.Emit (OpCodes.Stfld, injectsField);
 
@@ -220,7 +218,7 @@ namespace Stiletto.Fody.Generators
             }
 
             il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Call, ordinalComparerGet);
+            il.Emit (OpCodes.Call, References.StringComparer_Ordinal_Getter);
             il.Emit (OpCodes.Newobj, References.DictionaryOfStringToLazyBindingFn_New);
             il.Emit (OpCodes.Stfld, lazyInjectsField);
 
@@ -234,7 +232,7 @@ namespace Stiletto.Fody.Generators
             }
 
             il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Call, ordinalComparerGet);
+            il.Emit (OpCodes.Call, References.StringComparer_Ordinal_Getter);
             il.Emit (OpCodes.Newobj, References.DictionaryOfStringToProviderBindingFn_New);
             il.Emit (OpCodes.Stfld, providersField);
 
@@ -391,7 +389,8 @@ namespace Stiletto.Fody.Generators
             /**
              * public virtual Binding GetInjectBinding(string key, string className, object requiredBy)
              * {
-             *     return bindings[key]();
+             *     Binding binding;
+             *     return bindings.TryGetValue(className, out binding) ? binding : null;
              * }
              */
             var getInjectBinding = new MethodDefinition(
@@ -413,7 +412,7 @@ namespace Stiletto.Fody.Generators
             var il = getInjectBinding.Body.GetILProcessor();
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldfld, injectsField);
-            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldarg_2);
             il.Emit(OpCodes.Ldloca, vBindingFn);
             il.Emit(OpCodes.Callvirt, References.DictionaryOfStringToBindingFn_TryGetValue);
             il.Emit(OpCodes.Brtrue, loadBindingFn);
