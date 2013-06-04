@@ -262,16 +262,11 @@ namespace Stiletto.Fody.Generators
             getDependencies.Parameters.Add(new ParameterDefinition("propertyDependencies", ParameterAttributes.None, References.SetOfBindings));
 
             var il = getDependencies.Body.GetILProcessor();
-            il.Body.InitLocals = true;
-            il.Body.Variables.Add(new VariableDefinition("binding", References.Binding));
 
             foreach (var field in bindings) {
+                il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, field);
-                il.Emit(OpCodes.Stloc_0);
-
-                il.Emit(OpCodes.Ldarg_1);
-                il.Emit(OpCodes.Ldloc_0);
                 il.Emit(OpCodes.Callvirt, References.SetOfBindings_Add);
                 il.Emit(OpCodes.Pop); // ISet.Add returns a bool that we're ignoring
             }

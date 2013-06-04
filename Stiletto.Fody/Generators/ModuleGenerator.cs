@@ -82,9 +82,9 @@ namespace Stiletto.Fody.Generators
                 }
             }
 
-            IsComplete = argComplete == null || (bool) argComplete.Value.Argument.Value;
-            IsOverride = argOverrides != null && (bool) argOverrides.Value.Argument.Value;
-            IsLibrary = argIsLibrary != null && (bool) argIsLibrary.Value.Argument.Value;
+            IsComplete = GetArgumentValue(argComplete, true);
+            IsOverride = GetArgumentValue(argOverrides, false);
+            IsLibrary = GetArgumentValue(argIsLibrary, false);
 
             EntryPoints = new List<TypeReference>();
             if (argEntryPoints != null) {
@@ -114,10 +114,17 @@ namespace Stiletto.Fody.Generators
             IsVisibleToPlugin = true;
         }
 
+        private static T GetArgumentValue<T>(CustomAttributeNamedArgument? arg, T defaultValue = default(T))
+        {
+            return arg == null
+                       ? defaultValue
+                       : (T) arg.Value.Argument.Value;
+        }
+
         public override void Validate(IErrorReporter errorReporter)
         {
-            if (moduleType.BaseType != null && moduleType.BaseType.FullName != ModuleDefinition.TypeSystem.Object.FullName) {
-                errorReporter.LogError(moduleType.FullName + ": Modules must inherit from System.Object");
+            if (moduleType.BaseType != null && moduleType.BaseType.FullName != References.Object.FullName) {
+                errorReporter.LogError(moduleType.FullName + ": Modules must inherit from System.Object only.");
             }
 
             if (moduleType.IsAbstract) {
@@ -128,11 +135,6 @@ namespace Stiletto.Fody.Generators
             if (moduleCtor == null) {
                 errorReporter.LogError(moduleType.FullName + " is marked as a [Module], but no default constructor is visible.");
             }
-
-            // TODO: Is this check valuable?  It differs from dagger, but what use is an empty module with no includes?
-//            if (IncludedModules.Count == 0 && baseProvidesMethods.Count == 0) {
-//                errorReporter.LogError(moduleType.FullName + ": Modules must expose at least one [Provides] method.");
-//            }
 
             ProvidedKeys = new HashSet<string>(StringComparer.Ordinal);
             foreach (var method in baseProvidesMethods) {
