@@ -68,16 +68,16 @@ namespace Stiletto.Fody.Generators
             var bindingFns = GetFnMethods(References.FuncOfT, References.Binding);
             var lazyFns = GetFnMethods(
                 References.FuncOfT4,
-                ModuleDefinition.TypeSystem.String,
-                ModuleDefinition.TypeSystem.Object,
-                ModuleDefinition.TypeSystem.String,
+                References.String,
+                References.Object,
+                References.String,
                 References.Binding);
             var providerFns = GetFnMethods(
                 References.FuncOfT5,
-                ModuleDefinition.TypeSystem.String,
-                ModuleDefinition.TypeSystem.Object,
-                ModuleDefinition.TypeSystem.Boolean,
-                ModuleDefinition.TypeSystem.String,
+                References.String,
+                References.Object,
+                References.Boolean,
+                References.String,
                 References.Binding);
             var moduleFns = GetFnMethods(References.FuncOfT, References.RuntimeModule);
 
@@ -145,7 +145,7 @@ namespace Stiletto.Fody.Generators
                 CodegenPlugin.CompiledPluginNamespace,
                 CodegenPlugin.CompiledPluginName,
                 TypeAttributes.Public | TypeAttributes.Sealed,
-                ModuleDefinition.TypeSystem.Object);
+                References.Object);
 
             plugin.Interfaces.Add (References.IPlugin);
             plugin.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
@@ -196,12 +196,12 @@ namespace Stiletto.Fody.Generators
             var ctor = new MethodDefinition(
                 ".ctor",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
             var il = ctor.Body.GetILProcessor();
 
             il.Emit (OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call, ModuleDefinition.Import (ModuleDefinition.TypeSystem.Object.Resolve().GetConstructors().First()));
+            il.Emit(OpCodes.Call, ModuleDefinition.Import (References.Object.Resolve().GetConstructors().First()));
 
             il.Emit (OpCodes.Ldarg_0);
             il.Emit (OpCodes.Call, References.StringComparer_Ordinal_Getter);
@@ -321,9 +321,9 @@ namespace Stiletto.Fody.Generators
                 MethodAttributes.Private,
                 References.Binding);
 
-            factory.Parameters.Add (new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
-            factory.Parameters.Add (new ParameterDefinition("requiredBy", ParameterAttributes.None, ModuleDefinition.TypeSystem.Object));
-            factory.Parameters.Add (new ParameterDefinition("lazyKey", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
+            factory.Parameters.Add (new ParameterDefinition("key", ParameterAttributes.None, References.String));
+            factory.Parameters.Add (new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
+            factory.Parameters.Add (new ParameterDefinition("lazyKey", ParameterAttributes.None, References.String));
 
             var il = factory.Body.GetILProcessor();
             il.Emit (OpCodes.Ldarg_1);
@@ -348,10 +348,10 @@ namespace Stiletto.Fody.Generators
                 MethodAttributes.Private,
                 References.Binding);
             
-            factory.Parameters.Add (new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
-            factory.Parameters.Add (new ParameterDefinition("requiredBy", ParameterAttributes.None, ModuleDefinition.TypeSystem.Object));
-            factory.Parameters.Add (new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, ModuleDefinition.TypeSystem.Boolean));
-            factory.Parameters.Add (new ParameterDefinition("providerKey", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
+            factory.Parameters.Add (new ParameterDefinition("key", ParameterAttributes.None, References.String));
+            factory.Parameters.Add (new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
+            factory.Parameters.Add (new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, References.Boolean));
+            factory.Parameters.Add (new ParameterDefinition("providerKey", ParameterAttributes.None, References.String));
             
             var il = factory.Body.GetILProcessor();
             il.Emit (OpCodes.Ldarg_1);
@@ -398,9 +398,9 @@ namespace Stiletto.Fody.Generators
                 MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
                 References.Binding);
 
-            getInjectBinding.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
-            getInjectBinding.Parameters.Add(new ParameterDefinition("className", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
-            getInjectBinding.Parameters.Add(new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, ModuleDefinition.TypeSystem.Boolean));
+            getInjectBinding.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, References.String));
+            getInjectBinding.Parameters.Add(new ParameterDefinition("className", ParameterAttributes.None, References.String));
+            getInjectBinding.Parameters.Add(new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, References.Boolean));
 
             var vBindingFn = new VariableDefinition("bindingFn", bindingFnType);
             getInjectBinding.Body.Variables.Add(vBindingFn);
@@ -438,9 +438,9 @@ namespace Stiletto.Fody.Generators
                 MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
                 References.Binding);
 
-            getLazy.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
-            getLazy.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, ModuleDefinition.TypeSystem.Object));
-            getLazy.Parameters.Add(new ParameterDefinition("lazyKey", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
+            getLazy.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, References.String));
+            getLazy.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
+            getLazy.Parameters.Add(new ParameterDefinition("lazyKey", ParameterAttributes.None, References.String));
 
             var vLazyBindingFn = new VariableDefinition(lazyFnType);
             getLazy.Body.Variables.Add(vLazyBindingFn);
@@ -481,10 +481,10 @@ namespace Stiletto.Fody.Generators
                 MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig | MethodAttributes.NewSlot,
                 References.Binding);
 
-            getProvider.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
-            getProvider.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, ModuleDefinition.TypeSystem.Object));
-            getProvider.Parameters.Add(new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, ModuleDefinition.TypeSystem.Boolean));
-            getProvider.Parameters.Add(new ParameterDefinition("providerKey", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
+            getProvider.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, References.String));
+            getProvider.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
+            getProvider.Parameters.Add(new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, References.Boolean));
+            getProvider.Parameters.Add(new ParameterDefinition("providerKey", ParameterAttributes.None, References.String));
 
             var providerKeyArg = getProvider.Parameters.Last();
 
@@ -529,7 +529,7 @@ namespace Stiletto.Fody.Generators
                 References.RuntimeModule);
 
             getModule.Parameters.Add(new ParameterDefinition("type", ParameterAttributes.None, References.Type));
-            getModule.Parameters.Add(new ParameterDefinition("instance", ParameterAttributes.None, ModuleDefinition.TypeSystem.Object));
+            getModule.Parameters.Add(new ParameterDefinition("instance", ParameterAttributes.None, References.Object));
 
             var vModuleFn = new VariableDefinition(moduleFnType);
             getModule.Body.Variables.Add(vModuleFn);

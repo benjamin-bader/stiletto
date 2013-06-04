@@ -69,8 +69,8 @@ namespace Stiletto.Fody.Generators
                                                                      .First(m => m.Name == "Get"))
                                                   .MakeHostInstanceGeneric(providedType);
 
-            var providerKeyField = new FieldDefinition("providerKey", FieldAttributes.Private, ModuleDefinition.TypeSystem.String);
-            var mustBeInjectableField = new FieldDefinition("mustBeInjectable", FieldAttributes.Private, ModuleDefinition.TypeSystem.Boolean);
+            var providerKeyField = new FieldDefinition("providerKey", FieldAttributes.Private, References.String);
+            var mustBeInjectableField = new FieldDefinition("mustBeInjectable", FieldAttributes.Private, References.Boolean);
             var delegateBindingField = new FieldDefinition("delegateBinding", FieldAttributes.Private, References.Binding);
 
             t.Fields.Add(providerKeyField);
@@ -95,12 +95,12 @@ namespace Stiletto.Fody.Generators
             var ctor = new MethodDefinition(
                 ".ctor",
                 MethodAttributes.Public | MethodAttributes.RTSpecialName | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
-            ctor.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
-            ctor.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, ModuleDefinition.TypeSystem.Object));
-            ctor.Parameters.Add(new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, ModuleDefinition.TypeSystem.Boolean));
-            ctor.Parameters.Add(new ParameterDefinition("providerKey", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
+            ctor.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, References.String));
+            ctor.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
+            ctor.Parameters.Add(new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, References.Boolean));
+            ctor.Parameters.Add(new ParameterDefinition("providerKey", ParameterAttributes.None, References.String));
 
             var il = ctor.Body.GetILProcessor();
             il.Emit(OpCodes.Ldarg_0);
@@ -127,10 +127,17 @@ namespace Stiletto.Fody.Generators
         private void EmitResolve(TypeDefinition providerBinding, FieldDefinition mustBeInjectableField,
                                  FieldDefinition providerKeyField, FieldDefinition delegateBindingField)
         {
+            /**
+             * public override void Resolve(Resolver resolve)
+             * {
+             *     delegateBinding = resolver.Resolve(providerKey, base.RequiredBy, mustBeInjectable, true);
+             * }
+             */
+
             var resolve = new MethodDefinition(
                 "Resolve",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
             resolve.Parameters.Add(new ParameterDefinition(References.Resolver));
             resolve.Overrides.Add(References.Binding_Resolve);
@@ -154,10 +161,22 @@ namespace Stiletto.Fody.Generators
 
         private void EmitGet(TypeDefinition providerBinding, MethodReference providerOfT_get, FieldDefinition delegateBindingField)
         {
+            /**
+             * T IProvider<T>.Get()
+             * {
+             *     return (T) delegateBinding.Get();
+             * }
+             * 
+             * public override object Get()
+             * {
+             *     return this;
+             * }
+             */
+
             var get = new MethodDefinition(
                 "Get",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Object);
+                References.Object);
 
             var getExplicit = new MethodDefinition(
                 "Get",

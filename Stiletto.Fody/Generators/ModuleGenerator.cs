@@ -46,7 +46,7 @@ namespace Stiletto.Fody.Generators
         public ModuleGenerator(ModuleDefinition moduleDefinition, References references, TypeDefinition moduleType)
             : base(moduleDefinition, references)
         {
-            this.moduleType = Conditions.CheckNotNull(moduleType, "moduleType");;
+            this.moduleType = Conditions.CheckNotNull(moduleType, "moduleType");
 
             var attr = moduleType.CustomAttributes.SingleOrDefault(Attributes.IsModuleAttribute);
 
@@ -223,7 +223,7 @@ namespace Stiletto.Fody.Generators
             var createModule = new MethodDefinition(
                 "CreateModule",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Object);
+                References.Object);
 
             var il = createModule.Body.GetILProcessor();
             il.Emit(OpCodes.Newobj, moduleCtor);
@@ -246,7 +246,7 @@ namespace Stiletto.Fody.Generators
             var getBindings = new MethodDefinition(
                 "GetBindings",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
             var vModule = new VariableDefinition("module", moduleType);
             getBindings.Body.Variables.Add(vModule);
@@ -288,7 +288,7 @@ namespace Stiletto.Fody.Generators
 
             var ctor = new MethodDefinition(".ctor",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
             var il = ctor.Body.GetILProcessor();
             var vEntryPoints = new VariableDefinition("entryPoints", new ArrayType(References.String));
@@ -299,7 +299,7 @@ namespace Stiletto.Fody.Generators
             
             // make array of entry point keys
             il.Emit(OpCodes.Ldc_I4, EntryPoints.Count);
-            il.Emit(OpCodes.Newarr, ModuleDefinition.TypeSystem.String);
+            il.Emit(OpCodes.Newarr, References.String);
             il.Emit(OpCodes.Stloc, vEntryPoints);
             for (var i = 0; i < EntryPoints.Count; ++i) {
                 il.Emit(OpCodes.Ldloc, vEntryPoints);

@@ -220,7 +220,7 @@ namespace Stiletto.Fody.Generators
         {
             var ctor = new MethodDefinition(".ctor",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
             var il = ctor.Body.GetILProcessor();
             il.Emit(OpCodes.Ldarg_0);
@@ -259,7 +259,7 @@ namespace Stiletto.Fody.Generators
             var resolve = new MethodDefinition(
                 "Resolve",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
             resolve.Parameters.Add(new ParameterDefinition(References.Resolver));
 
@@ -334,7 +334,7 @@ namespace Stiletto.Fody.Generators
             var getDependencies = new MethodDefinition(
                 "GetDependencies",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
             getDependencies.Parameters.Add(new ParameterDefinition("injectDependencies", ParameterAttributes.None, References.SetOfBindings));
             getDependencies.Parameters.Add(new ParameterDefinition("propertyDependencies", ParameterAttributes.None, References.SetOfBindings));
@@ -374,11 +374,11 @@ namespace Stiletto.Fody.Generators
             var get = new MethodDefinition(
                 "Get",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Object);
+                References.Object);
 
             VariableDefinition vResult = null;
             if (injectProperties != null) {
-                vResult = new VariableDefinition("result", ModuleDefinition.TypeSystem.Object);
+                vResult = new VariableDefinition("result", References.Object);
                 get.Body.Variables.Add(vResult);
                 get.Body.InitLocals = true;
             }
@@ -419,9 +419,9 @@ namespace Stiletto.Fody.Generators
             var injectProperties = new MethodDefinition(
                 "InjectProperties",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
-            injectProperties.Parameters.Add(new ParameterDefinition(ModuleDefinition.TypeSystem.Object));
+            injectProperties.Parameters.Add(new ParameterDefinition(References.Object));
 
             var vObj = new VariableDefinition("inject", injectedType);
             injectProperties.Body.Variables.Add(vObj);

@@ -69,7 +69,7 @@ namespace Stiletto.Fody.Generators
 
             t.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
 
-            var lazyKeyField = new FieldDefinition("lazyKey", FieldAttributes.Private, ModuleDefinition.TypeSystem.String);
+            var lazyKeyField = new FieldDefinition("lazyKey", FieldAttributes.Private, References.String);
             var delegateBindingField = new FieldDefinition("delegateBinding", FieldAttributes.Private, References.Binding);
             t.Fields.Add(lazyKeyField);
             t.Fields.Add(delegateBindingField);
@@ -89,14 +89,22 @@ namespace Stiletto.Fody.Generators
 
         private void EmitCtor(TypeDefinition lazyBinding, FieldReference lazyKeyField)
         {
+            /**
+             * public TypeName_CompiledLazyBinding(string key, object requiredBy, string lazyKey)
+             *     : base(key, null, false, requiredBy)
+             * {
+             *     this.lazyKey = lazyKey;
+             * }
+             */
+
             var ctor = new MethodDefinition(
                 ".ctor",
                 MethodAttributes.Public | MethodAttributes.RTSpecialName | MethodAttributes.SpecialName | MethodAttributes.HideBySig,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
-            ctor.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
-            ctor.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, ModuleDefinition.TypeSystem.Object));
-            ctor.Parameters.Add(new ParameterDefinition("lazyKey", ParameterAttributes.None, ModuleDefinition.TypeSystem.String));
+            ctor.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, References.String));
+            ctor.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
+            ctor.Parameters.Add(new ParameterDefinition("lazyKey", ParameterAttributes.None, References.String));
 
             var il = ctor.Body.GetILProcessor();
             il.Emit(OpCodes.Ldarg_0);
@@ -118,10 +126,17 @@ namespace Stiletto.Fody.Generators
 
         private void EmitResolve(TypeDefinition lazyBinding, FieldReference lazyKeyField, FieldReference delegateBindingField)
         {
+            /**
+             * public override void Resolve(Resolver resolver)
+             * {
+             *     this.delegateBinding = resolver.RequestBinding(this.lazyKey, RequiredBy, true, true);
+             * }
+             */
+
             var resolve = new MethodDefinition(
                 "Resolve",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
             resolve.Parameters.Add(new ParameterDefinition(References.Resolver));
 
@@ -143,10 +158,22 @@ namespace Stiletto.Fody.Generators
 
         private void EmitGet(TypeDefinition lazyBinding, FieldReference delegateBindingField)
         {
+            /**
+             * private T GetTypedValue()
+             * {
+             *     return (T) delegateBinding.Get();
+             * }
+             * 
+             * public override object Get()
+             * {
+             *     return new Lazy<T>(new Func<T>(GetTypedValue));
+             * }
+             */
+
             var get = new MethodDefinition(
                 "Get",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Object);
+                References.Object);
 
             var getTypedValue = new MethodDefinition(
                 "GetTypedValue",

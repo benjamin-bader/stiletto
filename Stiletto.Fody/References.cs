@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil.Rocks;
 using Mono.Cecil;
-using System.Runtime.CompilerServices;
 
 namespace Stiletto.Fody
 {
@@ -31,6 +28,8 @@ namespace Stiletto.Fody
     {
         // ReSharper disable InconsistentNaming
 
+        public TypeReference Void { get; private set; }
+        public TypeReference Object { get; private set; }
         public TypeReference String { get; private set; }
         public TypeReference Boolean { get; private set; }
 
@@ -121,6 +120,8 @@ namespace Stiletto.Fody
         {
             ImportStilettoReferences(module, stilettoReferences);
 
+            Void = module.TypeSystem.Void;
+            Object = module.TypeSystem.Object;
             String = module.TypeSystem.String;
             Boolean = module.TypeSystem.Boolean;
 
@@ -130,10 +131,6 @@ namespace Stiletto.Fody
 
             var system = assemblyResolver.Resolve("System");
             var systemTypes = system.MainModule.Types;
-
-            var tString = module.TypeSystem.String;
-            var tObj = module.TypeSystem.Object;
-            var tBool = module.TypeSystem.Boolean;
 
             var tDict = module.Import(mscorlibTypes.First(t => t.Name == "Dictionary`2"));
 
@@ -155,21 +152,22 @@ namespace Stiletto.Fody
             SetOfBindings_UnionWith = module.Import(tSetOfBindings.Resolve().GetMethod("UnionWith")).MakeHostInstanceGeneric(Binding);
 
             // Used in RuntimeModule.GetBindings(IDictionary<string, Binding>);
-            var tDictOfStringToBinding = module.Import(mscorlibTypes.First(t => t.Name == "IDictionary`2")).MakeGenericInstanceType(
-                tString, Binding);
+            var tDictOfStringToBinding = module
+                .Import(mscorlibTypes.First(t => t.Name == "IDictionary`2"))
+                .MakeGenericInstanceType(String, Binding);
 
             DictionaryOfStringToBinding = tDictOfStringToBinding;
             DictionaryOfStringToBinding_Add = module.Import(tDictOfStringToBinding.Resolve().GetMethod("Add"))
-                .MakeHostInstanceGeneric(tString, Binding);
+                .MakeHostInstanceGeneric(String, Binding);
 
             // Used in $CompiledPlugin$::.ctor()
-            ImportInjectBindingDictionary(module, tDict, tString);
+            ImportInjectBindingDictionary(module, tDict);
 
             // Used in $CompiledPlugin$::.ctor()
-            ImportLazyBindingDictionary(module, tString, tObj, tDict);
+            ImportLazyBindingDictionary(module, tDict);
 
             // Used in $CompiledPlugin$::.ctor()
-            ImportProviderBindingDictionary(module, tString, tObj, tBool, tDict);
+            ImportProviderBindingDictionary(module, tDict);
 
             // Used in $CompiledPlugin$::.ctor()
             ImportRuntimeModuleDictionary(module, tDict);
@@ -226,11 +224,11 @@ namespace Stiletto.Fody
             ProcessedAssemblyAttribute_Ctor = module.Import(stilettoReferences.ProcessedAssemblyAttribute_Ctor);
         }
 
-        private void ImportInjectBindingDictionary(ModuleDefinition module, TypeReference tDict, TypeReference tString)
+        private void ImportInjectBindingDictionary(ModuleDefinition module, TypeReference tDict)
         {
             var tFuncOfBinding = FuncOfT.MakeGenericInstanceType(Binding);
             var tDictOfStringToBindingFn = tDict.MakeGenericInstanceType(
-                tString, tFuncOfBinding);
+                String, tFuncOfBinding);
 
             DictionaryOfStringToBindingFn = tDictOfStringToBindingFn;
             DictionaryOfStringToBindingFn_New =
@@ -242,13 +240,13 @@ namespace Stiletto.Fody
                                                 c.Name == ".ctor" &&
                                                 c.Parameters.Count == 1 &&
                                                 c.Parameters[0].ParameterType.Name.StartsWith("IEqualityComparer")))
-                      .MakeHostInstanceGeneric(tString, tFuncOfBinding);
+                      .MakeHostInstanceGeneric(String, tFuncOfBinding);
             DictionaryOfStringToBindingFn_Add =
                 module.Import(tDictOfStringToBindingFn.Resolve().GetMethod("Add"))
-                      .MakeHostInstanceGeneric(tString, tFuncOfBinding);
+                      .MakeHostInstanceGeneric(String, tFuncOfBinding);
             DictionaryOfStringToBindingFn_TryGetValue =
                 module.Import(tDictOfStringToBindingFn.Resolve().GetMethod("TryGetValue"))
-                      .MakeHostInstanceGeneric(tString, tFuncOfBinding);
+                      .MakeHostInstanceGeneric(String, tFuncOfBinding);
         }
 
         private void ImportRuntimeModuleDictionary(ModuleDefinition module, TypeReference tDict)
@@ -267,11 +265,10 @@ namespace Stiletto.Fody
                       .MakeHostInstanceGeneric(Type, tFuncOfModule);
         }
 
-        private void ImportProviderBindingDictionary(ModuleDefinition module, TypeReference tString, TypeReference tObj,
-                                                     TypeReference tBool, TypeReference tDict)
+        private void ImportProviderBindingDictionary(ModuleDefinition module, TypeReference tDict)
         {
-            var tFuncOfProviderBinding = FuncOfT5.MakeGenericInstanceType(tString, tObj, tBool, tString, Binding);
-            var tProviderDict = tDict.MakeGenericInstanceType(tString, tFuncOfProviderBinding);
+            var tFuncOfProviderBinding = FuncOfT5.MakeGenericInstanceType(String, Object, Boolean, String, Binding);
+            var tProviderDict = tDict.MakeGenericInstanceType(String, tFuncOfProviderBinding);
             DictionaryOfStringToProviderBindingFn = tProviderDict;
             DictionaryOfStringToProviderBindingFn_New =
                 module.Import(tProviderDict.Resolve()
@@ -280,20 +277,19 @@ namespace Stiletto.Fody
                                                c =>
                                                c.Parameters.Count == 1 &&
                                                c.Parameters[0].ParameterType.Name.StartsWith("IEqualityComparer")))
-                      .MakeHostInstanceGeneric(tString, tFuncOfProviderBinding);
+                      .MakeHostInstanceGeneric(String, tFuncOfProviderBinding);
             DictionaryOfStringToProviderBindingFn_Add =
                 module.Import(tProviderDict.Resolve().GetMethod("Add"))
-                      .MakeHostInstanceGeneric(tString, tFuncOfProviderBinding);
+                      .MakeHostInstanceGeneric(String, tFuncOfProviderBinding);
             DictionaryOfStringToProviderBindingFn_TryGetValue =
                 module.Import(tProviderDict.Resolve().GetMethod("TryGetValue"))
-                      .MakeHostInstanceGeneric(tString, tFuncOfProviderBinding);
+                      .MakeHostInstanceGeneric(String, tFuncOfProviderBinding);
         }
 
-        private void ImportLazyBindingDictionary(ModuleDefinition module, TypeReference tString, TypeReference tObj,
-                                                 TypeReference tDict)
+        private void ImportLazyBindingDictionary(ModuleDefinition module, TypeReference tDict)
         {
-            var tFuncOfLazyBinding = FuncOfT4.MakeGenericInstanceType(tString, tObj, tString, Binding);
-            var tLazyBindingDict = tDict.MakeGenericInstanceType(tString, tFuncOfLazyBinding);
+            var tFuncOfLazyBinding = FuncOfT4.MakeGenericInstanceType(String, Object, String, Binding);
+            var tLazyBindingDict = tDict.MakeGenericInstanceType(String, tFuncOfLazyBinding);
             DictionaryOfStringToLazyBindingFn = module.Import(tLazyBindingDict);
             DictionaryOfStringToLazyBindingFn_New =
                 module.Import(tLazyBindingDict.Resolve()
@@ -302,13 +298,13 @@ namespace Stiletto.Fody
                                                   c =>
                                                   c.Parameters.Count == 1 &&
                                                   c.Parameters[0].ParameterType.Name.StartsWith("IEqualityComparer")))
-                      .MakeHostInstanceGeneric(tString, tFuncOfLazyBinding);
+                      .MakeHostInstanceGeneric(String, tFuncOfLazyBinding);
             DictionaryOfStringToLazyBindingFn_Add =
                 module.Import(tLazyBindingDict.Resolve().GetMethod("Add"))
-                      .MakeHostInstanceGeneric(tString, tFuncOfLazyBinding);
+                      .MakeHostInstanceGeneric(String, tFuncOfLazyBinding);
             DictionaryOfStringToLazyBindingFn_TryGetValue =
                 module.Import(tLazyBindingDict.Resolve().GetMethod("TryGetValue"))
-                      .MakeHostInstanceGeneric(tString, tFuncOfLazyBinding);
+                      .MakeHostInstanceGeneric(String, tFuncOfLazyBinding);
         }
     }
 }

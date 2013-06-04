@@ -148,10 +148,20 @@ namespace Stiletto.Fody.Generators
 
         private void EmitCtor(TypeDefinition providerBindingType, FieldReference moduleField)
         {
+            /**
+             * public ProviderBinding_N(ModuleType module)
+             *     : base(Key, null, IsSingleton, typeof(ModuleType), ModuleType.FullName, ProviderMethod.FullName)
+             * {
+             *     this.module = module;
+             *     // if IsLibrary
+             *     this.IsLibrary = true;
+             * }
+             */
+
             var ctor = new MethodDefinition(
                 ".ctor",
                 MethodAttributes.Public | MethodAttributes.HideBySig | MethodAttributes.SpecialName | MethodAttributes.RTSpecialName,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
             var moduleParameter = new ParameterDefinition("module", ParameterAttributes.None, ModuleType);
             ctor.Parameters.Add(moduleParameter);
 
@@ -184,6 +194,15 @@ namespace Stiletto.Fody.Generators
 
         private void EmitResolve(TypeDefinition providerBinding, IList<ParameterDefinition> parameters, IList<FieldDefinition> fields)
         {
+            /**
+             * public override void Resolve(Resolver resolver)
+             * {
+             *     this.field0 = resolver.RequestBinding(ParamKeys[0], typeof(ModuleType), true, IsLibrary);
+             *     ...
+             *     this.fieldN = resolver.RequestBinding(ParamKeys[N], typeof(ModuleType), true, IsLibrary);
+             * }
+             */
+
             if (parameters.Count == 0) {
                 return;
             }
@@ -191,7 +210,7 @@ namespace Stiletto.Fody.Generators
             var resolve = new MethodDefinition(
                 "Resolve",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
             resolve.Parameters.Add(new ParameterDefinition("resolver", ParameterAttributes.None, References.Resolver));
 
             var il = resolve.Body.GetILProcessor();
@@ -218,6 +237,18 @@ namespace Stiletto.Fody.Generators
 
         private void EmitGetDependencies(TypeDefinition providerBinding, ICollection<FieldDefinition> bindings)
         {
+            /**
+             * public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
+             * {
+             *     Binding binding;
+             *     binding = this.binding0;
+             *     injectDependencies.Add(binding);
+             *     ...
+             *     binding = this.bindingN;
+             *     injectDependencies.Add(binding);
+             * }
+             */
+
             if (bindings.Count == 0) {
                 return;
             }
@@ -225,7 +256,7 @@ namespace Stiletto.Fody.Generators
             var getDependencies = new MethodDefinition(
                 "GetDependencies",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Void);
+                References.Void);
 
             getDependencies.Parameters.Add(new ParameterDefinition("injectDependencies", ParameterAttributes.None, References.SetOfBindings));
             getDependencies.Parameters.Add(new ParameterDefinition("propertyDependencies", ParameterAttributes.None, References.SetOfBindings));
@@ -255,7 +286,7 @@ namespace Stiletto.Fody.Generators
             var get = new MethodDefinition(
                 "Get",
                 MethodAttributes.Public | MethodAttributes.Virtual,
-                ModuleDefinition.TypeSystem.Object);
+                References.Object);
 
             var il = get.Body.GetILProcessor();
             il.Emit(OpCodes.Ldarg_0);
