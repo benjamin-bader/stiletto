@@ -29,6 +29,9 @@ namespace Stiletto.Internal.Plugins.Reflection
         internal ReflectionProviderBinding(string providerKey, object requiredBy, bool mustBeInjectable, string delegateKey)
             : base(providerKey, null, false, requiredBy)
         {
+#if MONOTOUCH
+            throw new PlatformNotSupportedException("Reflection-based IProvider<T> bindings are not supported on MonoTouch - please use the Fody plugin.");
+#endif
             this.delegateKey = delegateKey;
             this.mustBeInjectable = mustBeInjectable;
         }
