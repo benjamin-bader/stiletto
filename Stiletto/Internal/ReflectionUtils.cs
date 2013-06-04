@@ -32,6 +32,8 @@ namespace Stiletto.Internal
         static ReflectionUtils()
         {
 #if SILVERLIGHT
+            plugins = new List<IPlugin>();
+
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
                 if (!knownAssemblies.Add(assembly)) {
                     continue;
