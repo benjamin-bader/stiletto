@@ -24,7 +24,21 @@ namespace Stiletto.Fody
     {
         private int root;
         private SupportedCharacters supportedCharacters;
-        private ushort[,] trie;
+
+        /// <summary>
+        /// The final trie is represented as a 2D array.  Each row of the "table"
+        /// is a trie node, which contains [size of alphabet] + 1 entries.  Entries
+        /// 0 to N - 1 are pointers to the following node, and the final entry is an
+        /// end-of-word bit.
+        /// 
+        /// It is constructed by first creating an object-graph trie, converting the
+        /// trie into a DAG by sharing common suffixes, then translating that graph
+        /// into tabular form.
+        /// 
+        /// This is equivalent to an object-graph representation, but is more compact
+        /// and offers greater locality of reference.
+        /// </summary>
+        private byte[,] trie;
 
         public Trie(IEnumerable<string> input)
         {
@@ -36,23 +50,23 @@ namespace Stiletto.Fody
 
         public bool Contains(string input)
         {
-            ushort node;
+            byte node;
             return Find(input, out node);
         }
 
-        private ushort NextChar(ushort node, char c)
+        private byte NextChar(byte node, char c)
         {
             return trie[node, supportedCharacters.IndexOf(c)];
         }
 
-        private bool IsEndOfWord(ushort node)
+        private bool IsEndOfWord(byte node)
         {
             return trie[node, supportedCharacters.Count] == 1;
         }
 
-        private bool Find(string input, out ushort node)
+        private bool Find(string input, out byte node)
         {
-            node = (ushort) root;
+            node = (byte) root;
             int i;
 
             for (i = 0; i < input.Length; ++i)
@@ -90,19 +104,19 @@ namespace Stiletto.Fody
             var canonicalNodes = CreateCanonicalNodeDictionary(rootNode);
 
             // Make sure that our array representation can contain the number of nodes
-            if (canonicalNodes.Count >= ushort.MaxValue)
-                throw new InvalidOperationException("Too many nodes - UInt16 may be too small.");
+            if (canonicalNodes.Count >= byte.MaxValue)
+                throw new InvalidOperationException("Too many nodes - System.Byte may be too small.");
 
             // Initialize the array representation of the node structure
-            trie = new ushort[canonicalNodes.Count + 1,supportedCharacters.Count + 1];
+            trie = new byte[canonicalNodes.Count + 1,supportedCharacters.Count + 1];
 
             // Establish a mapping between canonical nodes an array indices.
             var numToNode = new TrieNode[canonicalNodes.Keys.Count + 1];
             canonicalNodes.Keys.CopyTo(numToNode, 1); // Leave the first row (number 0) null.
 
-            var nodeToNum = new Dictionary<TrieNode, ushort>(new NodeToNumComparer());
+            var nodeToNum = new Dictionary<TrieNode, byte>(new NodeToNumComparer());
             for (var i = 1; i < numToNode.Length; ++i)
-                nodeToNum.Add(numToNode[i], (ushort) i);
+                nodeToNum.Add(numToNode[i], (byte) i);
 
             // Populate the array, and let the garbage collecter handle the object refs.
             Fill(rootNode, nodeToNum);
@@ -167,7 +181,7 @@ namespace Stiletto.Fody
             }
         }
 
-        private void Fill(TrieNode node, Dictionary<TrieNode, ushort> nodeToNum)
+        private void Fill(TrieNode node, Dictionary<TrieNode, byte> nodeToNum)
         {
             if (ReferenceEquals(node, null))
                 return;
@@ -177,12 +191,12 @@ namespace Stiletto.Fody
                 Fill(childNode, nodeToNum);
             }
 
-            ushort num = nodeToNum[node];
+            var num = nodeToNum[node];
 
             for (var i = 0; i < node.Children.Count; ++i)
             {
                 trie[num, i] = ReferenceEquals(node.Children[i], null)
-                                   ? (ushort) 0
+                                   ? (byte) 0
                                    : nodeToNum[node.Children[i]];
             }
 
@@ -190,12 +204,8 @@ namespace Stiletto.Fody
                 trie[num, node.Children.Count] = 1;
         }
 
-        #region Nested type: NodeToNumComparer
-
         private class NodeToNumComparer : IEqualityComparer<TrieNode>
         {
-            #region IEqualityComparer<TrieNode> Members
-
             public bool Equals(TrieNode x, TrieNode y)
             {
                 return ReferenceEquals(x, y);
@@ -203,15 +213,9 @@ namespace Stiletto.Fody
 
             public int GetHashCode(TrieNode obj)
             {
-                return obj.GetHashCode(); //.FastHash;
+                return obj.GetHashCode();
             }
-
-            #endregion
         }
-
-        #endregion
-
-        #region Nested type: TrieNodeCanonicalEqualityComparer
 
         /// <summary>
         /// A semantic-equality comparer for <see cref="TrieNode"/>s.
@@ -228,28 +232,31 @@ namespace Stiletto.Fody
         /// </remarks>
         private class TrieNodeCanonicalEqualityComparer : IEqualityComparer<TrieNode>
         {
-            #region IEqualityComparer<TrieNode> Members
-
             public bool Equals(TrieNode x, TrieNode y)
             {
-                return x.Height == y.Height
-                       && x.IsEndOfInput == y.IsEndOfInput
-                       && x.Children
-                              .Zip(y.Children, Tuple.Create)
-                              .All(tup => ReferenceEquals(tup.Item1, tup.Item2));
+                if (x.Height != y.Height)
+                    return false;
+
+                if (x.IsEndOfInput != y.IsEndOfInput)
+                    return false;
+
+                if (x.Children.Count != y.Children.Count)
+                    return false;
+
+                for (var i = 0; i < x.Children.Count; ++i)
+                {
+                    if (!ReferenceEquals(x.Children[i], y.Children[i]))
+                        return false;
+                }
+
+                return true;
             }
 
             public int GetHashCode(TrieNode obj)
             {
-                // We're ignoring the FastHash because we don't have a stable
-                // and working implementation yet.
                 return obj.GetHashCode();
             }
-
-            #endregion
         }
-
-        #endregion
 
         private class SupportedCharacters
         {
@@ -291,14 +298,11 @@ namespace Stiletto.Fody
 
         private class TrieNode
         {
-            private const int MaxCharsForFastHash = 26;
-
             private readonly SupportedCharacters supportedCharacters;
             private readonly TrieNode[] children;
 
             private bool isEndOfInput;
             private int height = -1;
-            private int hash;
 
             public IList<TrieNode> Children
             {
@@ -314,16 +318,6 @@ namespace Stiletto.Fody
             {
                 get { return children[IndexOf(c)]; }
                 set { children[IndexOf(c)] = value; }
-            }
-
-            public bool IsFastHashSupported
-            {
-                get { return supportedCharacters.Count <= MaxCharsForFastHash; }
-            }
-
-            public int FastHash
-            {
-                get { return hash; }
             }
 
             public int Height
@@ -342,24 +336,6 @@ namespace Stiletto.Fody
                         }
 
                         height = max + 1;
-
-                        // Calculate the fast hash while we're at it
-                        uint newHash = 0;
-
-                        for (var i = 0; i < children.Length; ++i)
-                        {
-                            if (!ReferenceEquals(children[i], null))
-                            {
-                                newHash += 1;
-                            }
-
-                            newHash <<= 1;
-                        }
-
-                        newHash <<= 6;
-                        newHash += (uint)height;
-
-                        hash = (int)newHash;
                     }
 
                     return height;
@@ -387,14 +363,6 @@ namespace Stiletto.Fody
                 }
 
                 Add(input, 0);
-            }
-
-            public override int GetHashCode()
-            {
-//                if (IsFastHashSupported)
-//                    return FastHash;
-
-                return base.GetHashCode();
             }
 
             private void Add(string input, int level)
