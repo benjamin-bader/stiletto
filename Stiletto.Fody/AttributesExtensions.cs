@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-﻿using Mono.Cecil;
+using Mono.Cecil;
 
 namespace Stiletto.Fody
 {

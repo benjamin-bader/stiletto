@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-﻿using System;
+using System;
 
 namespace Stiletto.Internal.Plugins.Codegen
 {

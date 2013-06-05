@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-﻿namespace Stiletto
+namespace Stiletto
 {
     /// <summary>
     /// Represents an object which can provide a dependency of type

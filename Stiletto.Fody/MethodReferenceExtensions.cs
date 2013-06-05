@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-﻿using System;
+using System;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
 
