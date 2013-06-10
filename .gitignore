@@ -16,3 +16,8 @@ TopHat.Generated.cs
 NuGetBuild/
 *.nupkg
 Tools/Stiletto*
+
+# graphviz detritus
+*.dot
+*.pdf
+graphviz/
