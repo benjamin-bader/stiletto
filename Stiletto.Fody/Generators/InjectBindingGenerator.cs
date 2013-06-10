@@ -25,9 +25,11 @@ namespace Stiletto.Fody.Generators
     public class InjectBindingGenerator : Generator
     {
         private readonly TypeDefinition injectedType;
+        private readonly TypeReference importedInjectedType;
         private readonly bool isEntryPoint;
 
         private MethodReference generatedCtor;
+        private GenericInstanceType genericInstanceType;
 
         public string Key { get; private set; }
         public string MembersKey { get; private set; }
@@ -48,7 +50,10 @@ namespace Stiletto.Fody.Generators
         {
             this.injectedType = injectedType.IsDefinition
                                     ? (TypeDefinition) injectedType
-                                    : ModuleDefinition.Import(injectedType).Resolve();
+                                    : injectedType.Resolve();
+
+            importedInjectedType = Import(injectedType);
+            genericInstanceType = injectedType as GenericInstanceType;
 
             this.isEntryPoint = isEntryPoint;
 
@@ -59,21 +64,22 @@ namespace Stiletto.Fody.Generators
 
         public override void Validate(IErrorReporter errorReporter)
         {
-            if (injectedType.HasGenericParameters) {
-                errorReporter.LogError("Open generic types may not be injected: " + injectedType.FullName);
-                return;
+            if (injectedType.HasGenericParameters)
+            {
+                if (genericInstanceType == null ||
+                    genericInstanceType.GenericArguments.Count != injectedType.GenericParameters.Count)
+                {
+                    errorReporter.LogError("Open generic types may not be injected: " + injectedType.FullName);
+                    return;
+                }
             }
 
-            switch (injectedType.Attributes & TypeAttributes.VisibilityMask) {
-                case TypeAttributes.NestedFamily:
-                case TypeAttributes.NestedFamANDAssem:
-                case TypeAttributes.NestedPrivate:
-                case TypeAttributes.NotPublic:
-                    // This type is not externally visible and can't be included in a compiled plugin.
-                    // It can still be loaded reflectively.
-                    IsVisibleToPlugin = false;
-                    errorReporter.LogWarning(injectedType.FullName + ": This type is private, and will be loaded reflectively.  Consider making it internal or public.");
-                    break;
+            if (!injectedType.IsVisible())
+            {
+                // This type is not externally visible and can't be included in a compiled plugin.
+                // It can still be loaded reflectively.
+                IsVisibleToPlugin = false;
+                errorReporter.LogWarning(injectedType.FullName + ": This type is private, and will be loaded reflectively.  Consider making it internal or public.");
             }
 
             Key = CompilerKeys.ForType(injectedType);
@@ -85,13 +91,16 @@ namespace Stiletto.Fody.Generators
                 .Where(ctor => ctor.CustomAttributes.Any(Attributes.IsInjectAttribute))
                 .ToList();
 
-            foreach (var ctor in injectableCtors) {
-                if (InjectableCtor != null) {
+            foreach (var ctor in injectableCtors)
+            {
+                if (InjectableCtor != null)
+                {
                     errorReporter.LogError(string.Format("{0} has more than one injectable constructor.", injectedType.FullName));
                 }
 
-                if (!ctor.Attributes.IsVisible()) {
-                    errorReporter.LogError("{0} has an injectable constructor, but it is not accessible.  Consider making it public.");
+                if (!ctor.IsVisible())
+                {
+                    errorReporter.LogError(string.Format("{0} has an injectable constructor, but it is not accessible.  Consider making it public.", injectedType.FullName));
                 }
 
                 InjectableCtor = ctor;
@@ -104,33 +113,42 @@ namespace Stiletto.Fody.Generators
                 .Select(p => new PropertyInfo(p))
                 .ToList();
 
-            foreach (var p in InjectableProperties) {
-                if (p.Setter == null) {
+            foreach (var p in InjectableProperties)
+            {
+                if (p.Setter == null)
+                {
                     errorReporter.LogError(string.Format("{0} is marked [Inject] but has no setter.", p.MemberName));
                     continue;
                 }
 
-                if (!p.Setter.Attributes.IsVisible()) {
+                if (!p.Setter.IsVisible())
+                {
                     const string msg = "{0}.{1} is marked [Inject], but has no visible setter.  Consider adding a public setter.";
                     errorReporter.LogError(string.Format(msg, injectedType.FullName, p.PropertyName));
                 }
             }
 
-            if (InjectableCtor == null) {
+            if (InjectableCtor == null)
+            {
                 if (InjectableProperties.Count == 0 && !IsEntryPoint) {
                     errorReporter.LogError("No injectable constructors or properties found on " + injectedType.FullName);
                 }
 
-                var defaultCtor = injectedType.GetConstructors().FirstOrDefault(ctor => !ctor.HasParameters);
-                if (defaultCtor == null) {
+                // XXX ben: this is wrong, I think - entry points with no ctor will still fail.
+                var defaultCtor = injectedType.GetConstructors().FirstOrDefault(ctor => !ctor.HasParameters && ctor.IsVisible());
+                if (defaultCtor == null && !IsEntryPoint)
+                {
                     errorReporter.LogError("Type " + injectedType.FullName + " has no [Inject] constructors and no default constructor.");
                     return;
                 }
 
                 InjectableCtor = defaultCtor;
             }
-
-            CtorParams = InjectableCtor.Parameters.Select(p => new InjectMemberInfo(p)).ToList();
+            // InjectableCtor is null iff this is a value-type entry-point with no default ctor.
+            // It's OK, such types never get constructed, only "provided".
+            CtorParams = InjectableCtor == null
+                ? new List<InjectMemberInfo>()
+                : InjectableCtor.Parameters.Select(p => new InjectMemberInfo(p)).ToList();
 
             var baseType = injectedType.BaseType;
             var baseTypeAsmName = baseType.Maybe(type => type.Scope)
@@ -227,7 +245,7 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Ldstr, Key);
             il.Emit(OpCodes.Ldstr, MembersKey);
             il.EmitBoolean(IsSingleton);
-            il.Emit(OpCodes.Ldtoken, injectedType);
+            il.Emit(OpCodes.Ldtoken, importedInjectedType);
             il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
             il.Emit(OpCodes.Call, References.Binding_Ctor);
 
@@ -316,7 +334,7 @@ namespace Stiletto.Fody.Generators
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Ldstr, BaseTypeKey);
-                il.Emit(OpCodes.Ldtoken, injectedType.BaseType);
+                il.Emit(OpCodes.Ldtoken, Import(injectedType.BaseType));
                 il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
                 il.EmitBoolean(false);
                 il.EmitBoolean(true);
@@ -392,7 +410,7 @@ namespace Stiletto.Fody.Generators
                 il.Emit(OpCodes.Ldc_I4, i);
                 il.Emit(OpCodes.Ldelem_Ref);
                 il.Emit(OpCodes.Callvirt, References.Binding_Get);
-                il.Cast(param.Type);
+                il.Cast(Import(param.Type));
             }
 
             il.Emit(OpCodes.Newobj, ModuleDefinition.Import(InjectableCtor));
@@ -423,13 +441,13 @@ namespace Stiletto.Fody.Generators
 
             injectProperties.Parameters.Add(new ParameterDefinition(References.Object));
 
-            var vObj = new VariableDefinition("inject", injectedType);
+            var vObj = new VariableDefinition("inject", importedInjectedType);
             injectProperties.Body.Variables.Add(vObj);
             injectProperties.Body.InitLocals = true;
 
             var il = injectProperties.Body.GetILProcessor();
             il.Emit(OpCodes.Ldarg_1);
-            il.Emit(OpCodes.Castclass, injectedType);
+            il.Emit(OpCodes.Castclass, importedInjectedType);
             il.Emit(OpCodes.Stloc, vObj);
 
             for (var i = 0; i < InjectableProperties.Count; ++i) {

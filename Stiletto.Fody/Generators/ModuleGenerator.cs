@@ -26,6 +26,7 @@ namespace Stiletto.Fody.Generators
     public class ModuleGenerator : Generator
     {
         private readonly TypeDefinition moduleType;
+        private readonly TypeReference importedModuleType;
 
         private IList<MethodDefinition> baseProvidesMethods;
         private MethodReference moduleCtor;
@@ -102,13 +103,15 @@ namespace Stiletto.Fody.Generators
                 }
             }
 
+            importedModuleType = moduleDefinition.Import(moduleType);
+
             baseProvidesMethods = moduleType
                 .Methods
                 .Where(m => m.CustomAttributes.Any(Attributes.IsProvidesAttribute))
                 .ToList();
 
             ProviderGenerators = baseProvidesMethods
-                .Select(m => new ProviderMethodBindingGenerator(ModuleDefinition, References, moduleType, m, IsLibrary))
+                .Select(m => new ProviderMethodBindingGenerator(ModuleDefinition, References, importedModuleType, m, IsLibrary))
                 .ToList();
 
             IsVisibleToPlugin = true;
@@ -131,10 +134,17 @@ namespace Stiletto.Fody.Generators
                 errorReporter.LogError(moduleType.FullName + ": Modules cannot be abstract.");
             }
 
+            if (!moduleType.IsVisible())
+            {
+                errorReporter.LogError(moduleType.FullName + " is not public.");
+            }
+
             moduleCtor = moduleType.GetConstructors().FirstOrDefault(m => m.Parameters.Count == 0);
             if (moduleCtor == null) {
                 errorReporter.LogError(moduleType.FullName + " is marked as a [Module], but no default constructor is visible.");
             }
+
+            moduleCtor = Import(moduleCtor);
 
             ProvidedKeys = new HashSet<string>(StringComparer.Ordinal);
             foreach (var method in baseProvidesMethods) {
@@ -250,7 +260,7 @@ namespace Stiletto.Fody.Generators
                 MethodAttributes.Public | MethodAttributes.Virtual,
                 References.Void);
 
-            var vModule = new VariableDefinition("module", moduleType);
+            var vModule = new VariableDefinition("module", importedModuleType);
             getBindings.Body.Variables.Add(vModule);
             getBindings.Body.InitLocals = true;
 
@@ -259,7 +269,7 @@ namespace Stiletto.Fody.Generators
             var il = getBindings.Body.GetILProcessor();
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Callvirt, References.RuntimeModule_ModuleGetter);
-            il.Emit(OpCodes.Castclass, moduleType);
+            il.Emit(OpCodes.Castclass, importedModuleType);
             il.Emit(OpCodes.Stloc, vModule);
 
             foreach (var binding in ProviderGenerators) {
@@ -317,14 +327,14 @@ namespace Stiletto.Fody.Generators
             for (var i = 0; i < IncludedModules.Count; ++i) {
                 il.Emit(OpCodes.Ldloc, vIncludes);
                 il.Emit(OpCodes.Ldc_I4, i);
-                il.Emit(OpCodes.Ldtoken, IncludedModules[i]);
+                il.Emit(OpCodes.Ldtoken, Import(IncludedModules[i]));
                 il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
                 il.Emit(OpCodes.Stelem_Ref);
             }
 
             // Push args (this, moduleType, entryPoints, includes, complete, library) and call base ctor
             il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldtoken, moduleType);
+            il.Emit(OpCodes.Ldtoken, importedModuleType);
             il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
             il.Emit(OpCodes.Ldloc, vEntryPoints);
             il.Emit(OpCodes.Ldloc, vIncludes);

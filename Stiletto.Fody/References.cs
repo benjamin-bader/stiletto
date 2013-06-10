@@ -110,6 +110,7 @@ namespace Stiletto.Fody
         public MethodReference IProviderOfT_Get { get; private set; }
 
         public MethodReference CompilerGeneratedAttribute { get; private set; }
+        public MethodReference InternalsVisibleToAttribute { get; private set; }
 
         public TypeReference ProcessedAssemblyAttribute { get; private set; }
         public MethodReference ProcessedAssemblyAttribute_Ctor { get; private set; }
@@ -142,6 +143,10 @@ namespace Stiletto.Fody
             var compilerGeneratedAttribute = mscorlibTypes.First(t => t.Name == "CompilerGeneratedAttribute");
             var compilerGeneratedAttributeCtor = compilerGeneratedAttribute.GetMethod(".ctor");
             CompilerGeneratedAttribute = module.Import(compilerGeneratedAttributeCtor);
+
+            var internalsVisibleTo = mscorlibTypes.First(t => t.Name == "InternalsVisibleToAttribute");
+            var internalsVisibleToCtor = internalsVisibleTo.GetConstructors().First(c => c.Parameters.Count == 1);
+            InternalsVisibleToAttribute = module.Import(internalsVisibleToCtor);
 
             Type = module.Import(mscorlibTypes.First(t => t.Name == "Type"));
             Type_GetTypeFromHandle = module.Import(Type.Resolve().GetMethod("GetTypeFromHandle"));

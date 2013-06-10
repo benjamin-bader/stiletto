@@ -24,7 +24,7 @@ namespace Stiletto.Fody.Generators
     public class ProviderMethodBindingGenerator : Generator
     {
         private readonly MethodDefinition providerMethod;
-        private readonly TypeDefinition moduleType;
+        private readonly TypeReference moduleType;
         private readonly string key;
         private readonly bool isLibrary;
 
@@ -33,7 +33,7 @@ namespace Stiletto.Fody.Generators
             get { return providerMethod; }
         }
 
-        public TypeDefinition ModuleType
+        public TypeReference ModuleType
         {
             get { return moduleType; }
         }
@@ -59,13 +59,13 @@ namespace Stiletto.Fody.Generators
         public ProviderMethodBindingGenerator(
             ModuleDefinition moduleDefinition,
             References references,
-            TypeDefinition moduleType,
+            TypeReference moduleType,
             MethodDefinition providerMethod,
             bool isLibrary)
             : base(moduleDefinition, references)
         {
-            this.providerMethod = Conditions.CheckNotNull(providerMethod, "providerMethod");
-            this.moduleType = Conditions.CheckNotNull(moduleType, "moduleType");
+            this.providerMethod = providerMethod;
+            this.moduleType = moduleType;
             this.isLibrary = isLibrary;
 
             var name = ProviderMethod.GetNamedAttributeName();
@@ -294,12 +294,12 @@ namespace Stiletto.Fody.Generators
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, field);
                 il.Emit(OpCodes.Callvirt, References.Binding_Get);
-                il.Cast(parameter.ParameterType);
+                il.Cast(Import(parameter.ParameterType));
             }
 
-            il.Emit(OpCodes.Callvirt, ProviderMethod);
+            il.Emit(OpCodes.Callvirt, Import(ProviderMethod));
             if (ProviderMethod.ReturnType.IsValueType) {
-                il.Emit(OpCodes.Box, ProviderMethod.ReturnType);
+                il.Emit(OpCodes.Box, Import(ProviderMethod.ReturnType));
             }
             il.Emit(OpCodes.Ret);
 

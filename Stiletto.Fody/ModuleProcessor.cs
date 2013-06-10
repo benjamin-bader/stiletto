@@ -28,6 +28,7 @@ namespace Stiletto.Fody
     {
         private readonly IErrorReporter errorReporter;
         private readonly ModuleDefinition moduleDefinition;
+        private readonly IEnumerable<ModuleReader> submodules;
 
         private readonly List<ModuleGenerator> moduleGenerators;
         private readonly List<InjectBindingGenerator> injectGenerators;
@@ -64,12 +65,19 @@ namespace Stiletto.Fody
         public MethodReference CompiledPluginConstructor { get; private set; }
         public bool UsesStiletto { get; private set; }
 
-        public ModuleProcessor(IErrorReporter errorReporter, ModuleDefinition moduleDefinition, StilettoReferences stilettoReferences)
+        public ModuleProcessor(
+            IErrorReporter errorReporter,
+            ModuleDefinition moduleDefinition,
+            References references,
+            IEnumerable<ModuleReader> subModules)
         {
             this.errorReporter = Conditions.CheckNotNull(errorReporter, "errorReporter");
             this.moduleDefinition = Conditions.CheckNotNull(moduleDefinition, "moduleDefinition");
+            this.references = references;
+            this.submodules = subModules
+                .Append(ModuleReader.Read(moduleDefinition))
+                .Where(reader => reader.UsesStiletto);
 
-            references = new References(moduleDefinition, stilettoReferences);
             moduleGenerators = new List<ModuleGenerator>();
             injectGenerators = new List<InjectBindingGenerator>();
             lazyGenerators = new List<LazyBindingGenerator>();
@@ -93,26 +101,10 @@ namespace Stiletto.Fody
             var moduleTypes = new List<TypeDefinition>();
             var injectTypes = new List<TypeDefinition>();
 
-            foreach (var t in moduleDefinition.GetTypes())
+            foreach (var reader in submodules)
             {
-                if (IsModule(t))
-                {
-                    if (weaver.ExcludedClasses.Contains(t.FullName))
-                    {
-                        continue;
-                    }
-
-                    moduleTypes.Add(t);
-                }
-                else if (IsInject(t))
-                {
-                    if (weaver.ExcludedClasses.Contains(t.FullName))
-                    {
-                        continue;
-                    }
-
-                    injectTypes.Add(t);
-                }
+                moduleTypes.AddRange(reader.ModuleTypes.Where(t => !weaver.ExcludedClasses.Contains(t.FullName)));
+                injectTypes.AddRange(reader.InjectTypes.Where(t => !weaver.ExcludedClasses.Contains(t.FullName)));
             }
 
             moduleGenerators.AddRange(moduleTypes
@@ -454,24 +446,6 @@ namespace Stiletto.Fody
         {
             return type.GetConstructors().Any(c => c.CustomAttributes.Any(Attributes.IsInjectAttribute))
                 || type.Properties.Any(p => p.CustomAttributes.Any(Attributes.IsInjectAttribute));
-        }
-
-        private class TypeReferenceComparer : IEqualityComparer<TypeReference>
-        {
-            public bool Equals(TypeReference x, TypeReference y)
-            {
-                if (ReferenceEquals(x, y)) return true;
-                if (ReferenceEquals(x, null)) return false;
-                if (ReferenceEquals(y, null)) return false;
-                if (x.GetType() != y.GetType()) return false;
-
-                return x.FullName.Equals(y.FullName, StringComparison.Ordinal);
-            }
-
-            public int GetHashCode(TypeReference obj)
-            {
-                return obj.FullName.GetHashCode();
-            }
         }
     }
 }

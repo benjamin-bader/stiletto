@@ -34,6 +34,8 @@ namespace Stiletto.Fody
         private readonly Dictionary<string, ModuleProcessor> modulesByAssembly =
             new Dictionary<string, ModuleProcessor>();
 
+        private IList<ModuleProcessor> processors;
+
         private WeaverConfig weaverConfig;
 
         public bool HasError { get { return errorReporter.HasError; } }
@@ -43,6 +45,8 @@ namespace Stiletto.Fody
 
         public XElement Config { get; set; }
         public ModuleDefinition ModuleDefinition { get; set; }
+        public string ProjectDirectoryPath { get; set; }
+        public string AssemblyFilePath { get; set; }
 
         public Action<string> LogInfo { get; set; }
         public Action<string> LogWarning { get; set; }
@@ -79,7 +83,7 @@ namespace Stiletto.Fody
         {
             Initialize();
 
-            var processors = GatherModulesNeedingProcessing();
+            processors = GatherModulesNeedingProcessing();
 
             foreach (var p in processors)
             {
@@ -159,14 +163,48 @@ namespace Stiletto.Fody
 
         public bool EnqueueBaseTypeBinding(TypeReference typeReference)
         {
-            var typedef = typeReference.Resolve();
+            TypeDefinition typedef;
+
+            BaseAssemblyResolver baseResolver = null;
+            try
+            {
+                baseResolver = typeReference.Module.AssemblyResolver as BaseAssemblyResolver;
+                if (baseResolver != null)
+                {
+                    // Sometimes the base resolver can't find assemblies that are copied
+                    // locally.  Thanks to this handy event, we can try to resolve them
+                    // ourselves - this has worked so far, but feels hacky.  Debugging
+                    // Cecil + Fody is tricky, so root cause is unknown at present.
+                    baseResolver.ResolveFailure += BaseResolverOnResolveFailure;
+                }
+
+                typedef = typeReference.Resolve();
+            }
+            catch (AssemblyResolutionException ex)
+            {
+                var format = "Failed to resolve type {0}: {1}";
+                errorReporter.LogWarning(string.Format(format, typeReference.FullName, ex));
+                return false;
+            }
+            finally
+            {
+                if (baseResolver != null)
+                {
+                    baseResolver.ResolveFailure -= BaseResolverOnResolveFailure;
+                }
+            }
+
             var processorKey = GetModuleKey(typedef.Module);
 
-            ModuleProcessor processor;
-            if (!modulesByAssembly.TryGetValue(processorKey, out processor))
+            if (!modulesByAssembly.ContainsKey(processorKey))
             {
                 return false;
             }
+            /*ModuleProcessor processor;
+            if (!modulesByAssembly.TryGetValue(processorKey, out processor))
+            {
+                return false;
+            }*/
 
             var usesStiletto =
                 typedef.CustomAttributes.Any(Attributes.IsSingletonAttribute)
@@ -178,8 +216,19 @@ namespace Stiletto.Fody
                 return false;
             }
 
-            processor.EnqueueBaseType(typedef);
+            processors.First().EnqueueBaseType(typedef);
             return true;
+        }
+
+        private AssemblyDefinition BaseResolverOnResolveFailure(object sender, AssemblyNameReference reference)
+        {
+            var warning = string.Format(
+                "Default assembly resolver failed to resolve {0} in {1}, trying to resolve with Fody.",
+                reference.FullName,
+                Directory.GetCurrentDirectory());
+
+            LogWarning(warning);
+            return AssemblyResolver.Resolve(reference);
         }
 
         private void ValidateCompleteGraph(IList<ModuleProcessor> processors)
@@ -188,7 +237,8 @@ namespace Stiletto.Fody
             var allInjects = processors.SelectMany(p => p.InjectGenerators);
             var allLazys = processors.SelectMany(p => p.LazyGenerators);
             var allProvides = processors.SelectMany(p => p.ProviderGenerators);
-            new Validator(errorReporter, allInjects, allLazys, allProvides, allModules).ValidateCompleteModules(weaverConfig.SuppressUnusedBindingErrors);
+            new Validator(errorReporter, allInjects, allLazys, allProvides, allModules)
+                .ValidateCompleteModules(weaverConfig.SuppressUnusedBindingErrors, ProjectDirectoryPath);
         }
 
         private IList<ModuleProcessor> GatherModulesNeedingProcessing()
@@ -200,10 +250,9 @@ namespace Stiletto.Fody
                 return processors;
             }
 
+            var moduleReaders = new List<ModuleReader>();
             var stilettoReferences = StilettoReferences.Create(AssemblyResolver);
-            var mainModuleProcessor = new ModuleProcessor(errorReporter, ModuleDefinition, stilettoReferences);
-            processors.Add(mainModuleProcessor);
-            AddModuleToAssemblyDictionary(ModuleDefinition, mainModuleProcessor);
+            var references = new References(ModuleDefinition, stilettoReferences);
 
             var copyLocalAssemblies = new Dictionary<string, bool>(StringComparer.Ordinal);
             var localDebugFiles = new Queue<string>();
@@ -266,11 +315,28 @@ namespace Stiletto.Fody
                         continue;
                     }
 
-                    var moduleProcessor = new ModuleProcessor(errorReporter, module, stilettoReferences);
-                    processors.Add(moduleProcessor);
-                    AddModuleToAssemblyDictionary(module, moduleProcessor);
+                    var internalsVisibleTo = new CustomAttribute(references.InternalsVisibleToAttribute);
+                    internalsVisibleTo.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.String, ModuleDefinition.Assembly.Name.Name));
+                    module.Assembly.CustomAttributes.Add(internalsVisibleTo);
+
+                    moduleReaders.Add(ModuleReader.Read(module));
+                    /*var moduleProcessor = new ModuleProcessor(
+                        errorReporter,
+                        module,
+                        new References(module, stilettoReferences));
+                    processors.Add(moduleProcessor);*/
+                    AddModuleToAssemblyDictionary(module, null);
                 }
             }
+
+            AddModuleToAssemblyDictionary(ModuleDefinition, null);
+            var mainModuleProcessor = new ModuleProcessor(
+                errorReporter,
+                ModuleDefinition,
+                references,
+                moduleReaders);
+
+            processors.Add(mainModuleProcessor);
 
             return processors;
         }

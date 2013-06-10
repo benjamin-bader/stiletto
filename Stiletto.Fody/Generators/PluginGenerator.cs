@@ -257,7 +257,7 @@ namespace Stiletto.Fody.Generators
                 // Different because we don't care about keys for modules, we can just dispatch on type.
                 il.Emit (OpCodes.Ldarg_0);
                 il.Emit (OpCodes.Ldfld, modulesField);
-                il.Emit (OpCodes.Ldtoken, tuple.Item1);
+                il.Emit (OpCodes.Ldtoken, Import(tuple.Item1));
                 il.Emit (OpCodes.Call, References.Type_GetTypeFromHandle);
                 il.Emit (OpCodes.Ldarg_0);
                 il.Emit (OpCodes.Ldftn, factory);
