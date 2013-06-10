@@ -1,6 +1,6 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,17 +14,27 @@
  * limitations under the License.
  */
 
+using System;
+using System.Collections.Generic;
 using Mono.Cecil;
 
 namespace Stiletto.Fody
 {
-    public static class AttributesExtensions
+    public class TypeReferenceComparer : IEqualityComparer<TypeReference>
     {
-        public static bool IsVisible(this MethodAttributes attrs)
+        public bool Equals(TypeReference x, TypeReference y)
         {
-            return (attrs & MethodAttributes.Public) == MethodAttributes.Public
-                || (attrs & MethodAttributes.FamORAssem) == MethodAttributes.FamORAssem
-                || (attrs & MethodAttributes.Assembly) == MethodAttributes.Assembly;
+            if (ReferenceEquals(x, y)) return true;
+            if (ReferenceEquals(x, null)) return false;
+            if (ReferenceEquals(y, null)) return false;
+            if (x.GetType() != y.GetType()) return false;
+
+            return x.FullName.Equals(y.FullName, StringComparison.Ordinal);
+        }
+
+        public int GetHashCode(TypeReference obj)
+        {
+            return obj.FullName.GetHashCode();
         }
     }
 }

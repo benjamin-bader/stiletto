@@ -68,7 +68,6 @@
     <Compile Include="EnumerableExtensions.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Generators\Generator.cs" />
-    <Compile Include="AttributesExtensions.cs" />
     <Compile Include="Generators\InjectBindingGenerator.cs" />
     <Compile Include="Generators\LazyBindingGenerator.cs" />
     <Compile Include="Generators\ModuleGenerator.cs" />
@@ -86,6 +85,8 @@
     <Compile Include="References.cs" />
     <Compile Include="StilettoReferences.cs" />
     <Compile Include="Trie.cs" />
+    <Compile Include="TypeAttributesExtensions.cs" />
+    <Compile Include="TypeReferenceComparer.cs" />
     <Compile Include="Validation\CompilerBinding.cs" />
     <Compile Include="Validation\CompilerParameterizedBinding.cs" />
     <Compile Include="Validation\CompilerPlugin.cs" />
