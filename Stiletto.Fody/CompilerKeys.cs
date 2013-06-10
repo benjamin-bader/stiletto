@@ -22,6 +22,7 @@ namespace Stiletto.Fody
 {
     public static class CompilerKeys
     {
+        public const string MemberKeyPrefix = "members/";
         private static readonly string LazyPrefix = typeof(Lazy<>).FullName + "<";
         private static readonly string ProviderPrefix = typeof(IProvider<>).FullName + "<";
 
@@ -64,7 +65,7 @@ namespace Stiletto.Fody
 
         public static string GetMemberKey(TypeReference typedef)
         {
-            var sb = new StringBuilder("members/");
+            var sb = new StringBuilder(MemberKeyPrefix);
             ForType(typedef, sb);
             return sb.ToString();
         }

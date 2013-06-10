@@ -90,6 +90,8 @@
     <Compile Include="Validation\CompilerParameterizedBinding.cs" />
     <Compile Include="Validation\CompilerPlugin.cs" />
     <Compile Include="Validation\CompilerProvidesBinding.cs" />
+    <Compile Include="Validation\DotWriter.cs" />
+    <Compile Include="Validation\GraphWriter.cs" />
     <Compile Include="Validation\ValidationException.cs" />
     <Compile Include="Validation\Validator.cs" />
     <Compile Include="Generators\PluginGenerator.cs" />

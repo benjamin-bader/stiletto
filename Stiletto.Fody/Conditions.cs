@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -31,6 +32,17 @@ namespace Stiletto.Fody
             }
 
             throw new ArgumentNullException(name ?? typeof(T).FullName);
+        }
+
+        [Conditional("DEBUG")]
+        public static void Assert(bool condition, string message)
+        {
+            if (condition)
+            {
+                return;
+            }
+
+            throw new Exception(message);
         }
     }
 }

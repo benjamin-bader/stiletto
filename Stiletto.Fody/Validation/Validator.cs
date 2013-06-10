@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 ﻿using Stiletto.Fody.Generators;
@@ -43,17 +44,23 @@ namespace Stiletto.Fody.Validation
             this.errorReporter = errorReporter;
         }
 
-        public void ValidateCompleteModules(bool suppressUnusedBindingsErrors)
+        public void ValidateCompleteModules(bool suppressUnusedBindingsErrors, string outputDirectory)
         {
-            foreach (var moduleGenerator in moduleGenerators) {
-                if (!moduleGenerator.IsComplete) {
+            var graphvizDirectory = PrepareGraphvizDirectory(outputDirectory);
+
+            foreach (var moduleGenerator in moduleGenerators)
+            {
+                if (!moduleGenerator.IsComplete)
+                {
                     continue;
                 }
 
                 GraphVerifier graphVerifier;
+                IDictionary<string, Binding> moduleBindings;
+
                 try
                 {
-                    var moduleBindings = ProcessCompleteModule(moduleGenerator, false);
+                    moduleBindings = ProcessCompleteModule(moduleGenerator, false);
                     if (moduleBindings == null)
                     {
                         // No bindings means that bindings could not be resolved and
@@ -64,23 +71,36 @@ namespace Stiletto.Fody.Validation
                     graphVerifier = new GraphVerifier();
                     graphVerifier.DetectCircularDependencies(moduleBindings.Values, new Stack<Binding>());
                 }
-                catch (InvalidOperationException ex) {
+                catch (InvalidOperationException ex)
+                {
                     errorReporter.LogError(ex.Message);
                     continue;
                 }
-                catch (ValidationException ex) {
+                catch (ValidationException ex)
+                {
                     errorReporter.LogError(ex.Message);
                     continue;
                 }
 
-                // XXX ben: Write graphviz file here.
+                try
+                {
+                    WriteModuleGraph(moduleGenerator, moduleBindings, graphvizDirectory);
+                }
+                catch (IOException ex)
+                {
+                    errorReporter.LogWarning("Graph visualization failed: " + ex.Message);
+                }
+                catch (Exception ex)
+                {
+                    errorReporter.LogWarning("Graph visualization failed, please report this as a bug: " + Environment.NewLine + ex);
+                }
 
                 // TODO: This analysis is broken for entry points that are satisfied by [Provides] methods.
                 if (!moduleGenerator.IsLibrary)
                 {
                     try
                     {
-                        var moduleBindings = ProcessCompleteModule(moduleGenerator, true);
+                        moduleBindings = ProcessCompleteModule(moduleGenerator, true);
                         graphVerifier.DetectUnusedBindings(moduleBindings.Values);
                     }
                     catch (InvalidOperationException ex)
@@ -102,7 +122,9 @@ namespace Stiletto.Fody.Validation
             }
         }
 
-        private IDictionary<string, Binding> ProcessCompleteModule(ModuleGenerator moduleGenerator, bool ignoreCompletenessErrors)
+        private IDictionary<string, Binding> ProcessCompleteModule(
+            ModuleGenerator moduleGenerator,
+            bool ignoreCompletenessErrors)
         {
             var bindings = new Dictionary<string, Binding>(StringComparer.Ordinal);
             var overrides = new Dictionary<string, Binding>(StringComparer.Ordinal);
@@ -125,7 +147,8 @@ namespace Stiletto.Fody.Validation
                 }
             });
 
-            foreach (var module in allModules.Values) {
+            foreach (var module in allModules.Values)
+            {
                 // Request entry-point bindings
                 var addTo = module.IsOverride ? overrides : bindings;
 
@@ -134,10 +157,12 @@ namespace Stiletto.Fody.Validation
                     var key = entryPointType.Resolve().IsInterface
                                   ? CompilerKeys.ForType(entryPointType)
                                   : CompilerKeys.GetMemberKey(entryPointType);
+
                     resolver.RequestBinding(key, module.ModuleType.FullName, false, true);
                 }
 
-                foreach (var providerGenerator in module.ProviderGenerators) {
+                foreach (var providerGenerator in module.ProviderGenerators)
+                {
 
                     var binding = new CompilerProvidesBinding(providerGenerator);
 
@@ -157,7 +182,8 @@ namespace Stiletto.Fody.Validation
             resolver.InstallBindings(bindings);
             resolver.InstallBindings(overrides);
             var allBindings = resolver.ResolveAllBindings();
-            return hasError ? null : allBindings;
+
+            return !hasError ? allBindings : null;
         }
 
         private void GatherIncludedModules(
@@ -167,14 +193,19 @@ namespace Stiletto.Fody.Validation
         {
             var name = module.ModuleType.FullName;
 
-            if (path.Contains(name)) {
+            if (path.Contains(name))
+            {
                 var sb = new StringBuilder("Circular module dependency: ");
 
-                if (path.Count == 1) {
+                if (path.Count == 1)
+                {
                     sb.AppendFormat("{0} includes itself directly.", name);
-                } else {
+                }
+                else
+                {
                     var includer = name;
-                    for (var i = 0; path.Count > 0; ++i) {
+                    for (var i = 0; path.Count > 0; ++i)
+                    {
                         var current = includer;
                         includer = path.Pop();
                         sb.AppendLine()
@@ -187,10 +218,47 @@ namespace Stiletto.Fody.Validation
 
             modules.Add(name, module);
 
-            foreach (var typeReference in module.IncludedModules) {
+            foreach (var typeReference in module.IncludedModules)
+            {
                 path.Push(name);
                 GatherIncludedModules(modulesByTypeName[typeReference.FullName], modules, path);
                 path.Pop();
+            }
+        }
+
+        private string PrepareGraphvizDirectory(string projectDirectory)
+        {
+            var graphvizDirectory = Path.Combine(projectDirectory, "graphviz");
+
+            if (!Directory.Exists(graphvizDirectory))
+            {
+                Directory.CreateDirectory(graphvizDirectory);
+            }
+            else
+            {
+                foreach (var dotFile in Directory.EnumerateFiles(
+                    projectDirectory,
+                    "*.dot",
+                    SearchOption.TopDirectoryOnly))
+                {
+                    File.Delete(dotFile);
+                }
+            }
+
+            return graphvizDirectory;
+        }
+
+        private void WriteModuleGraph(
+            ModuleGenerator completeModule,
+            IDictionary<string, Binding> allBindings,
+            string graphvizDirectory)
+        {
+            var safeModuleName = completeModule.ModuleType.FullName.Replace('/', '.');
+            var fileName = Path.Combine(graphvizDirectory, safeModuleName + ".dot");
+            using (var fs = File.Open(fileName, FileMode.Create, FileAccess.Write))
+            using (var dotWriter = new DotWriter(fs))
+            {
+                new GraphWriter().Write(dotWriter, allBindings);
             }
         }
     }
