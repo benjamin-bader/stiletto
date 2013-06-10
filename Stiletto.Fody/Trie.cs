@@ -326,16 +326,9 @@ namespace Stiletto.Fody
                 {
                     if (height == -1)
                     {
-                        var max = 0;
-                        foreach (var h in children.Select(n => n == null ? 0 : n.Height))
-                        {
-                            if (h > max)
-                            {
-                                max = h;
-                            }
-                        }
-
-                        height = max + 1;
+                        height = 1 + children
+                            .Select(n => ReferenceEquals(n, null) ? 0 : n.Height)
+                            .Aggregate(0, (accumulator, h) => accumulator > h ? accumulator : h);
                     }
 
                     return height;
