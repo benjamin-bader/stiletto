@@ -150,13 +150,6 @@ namespace Stiletto.Fody
                 var assembly = kvp.Value.Item1;
                 var hasPdb = kvp.Value.Item2;
 
-                var usesStiletto = assembly.Modules.Any(m => m.CustomAttributes.Any(Attributes.IsProcessedAssemblyAttribute));
-
-                if (!usesStiletto)
-                {
-                    continue;
-                }
-
                 assembly.Write(path, new WriterParameters { WriteSymbols = hasPdb });
             }
         }
@@ -200,11 +193,6 @@ namespace Stiletto.Fody
             {
                 return false;
             }
-            /*ModuleProcessor processor;
-            if (!modulesByAssembly.TryGetValue(processorKey, out processor))
-            {
-                return false;
-            }*/
 
             var usesStiletto =
                 typedef.CustomAttributes.Any(Attributes.IsSingletonAttribute)
@@ -315,9 +303,13 @@ namespace Stiletto.Fody
                         continue;
                     }
 
-                    var internalsVisibleTo = new CustomAttribute(references.InternalsVisibleToAttribute);
-                    internalsVisibleTo.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.String, ModuleDefinition.Assembly.Name.Name));
-                    module.Assembly.CustomAttributes.Add(internalsVisibleTo);
+                    if (module.IsMain)
+                    {
+                        var importedCtor = module.Import(references.InternalsVisibleToAttribute);
+                        var internalsVisibleTo = new CustomAttribute(importedCtor);
+                        internalsVisibleTo.ConstructorArguments.Add(new CustomAttributeArgument(module.TypeSystem.String, ModuleDefinition.Assembly.Name.Name));
+                        module.Assembly.CustomAttributes.Add(internalsVisibleTo);
+                    }
 
                     moduleReaders.Add(ModuleReader.Read(module));
                     /*var moduleProcessor = new ModuleProcessor(
