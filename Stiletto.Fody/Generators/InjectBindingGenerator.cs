@@ -176,10 +176,11 @@ namespace Stiletto.Fody.Generators
         {
             // If an entry-point is declared that has no injectables (i.e. a primitive type),
             // there's nothing to emit.
-            if (!InjectableCtor.CustomAttributes.Any(Attributes.IsInjectAttribute)
+            if ((InjectableCtor == null || !InjectableCtor.CustomAttributes.Any(Attributes.IsInjectAttribute))
                 && InjectableProperties.Count == 0
                 && BaseTypeKey == null)
             {
+                Conditions.Assert(IsEntryPoint, "Non-entry-points must have a constructor!");
                 return null;
             }
 
