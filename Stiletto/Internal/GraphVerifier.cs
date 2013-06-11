@@ -45,7 +45,7 @@ namespace Stiletto.Internal
                     var pathInOrder = path.Reverse().ToList();
                     var index = pathInOrder.IndexOf(binding) + 1;
 
-                    for (var i = 0; i < pathInOrder.Count; ++i)
+                    for (var i = 0; i < pathInOrder.Count - 1; ++i)
                     {
                         var currentItem = (index + i) % pathInOrder.Count;
 
