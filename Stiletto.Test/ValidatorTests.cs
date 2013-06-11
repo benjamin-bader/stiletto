@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -92,9 +93,17 @@ namespace Stiletto.Test
             public Earth Earth { get; set; }
         }
 
-        [Module(EntryPoints = new[] { typeof(Earth) })]
+        [Module(EntryPoints = new[] { typeof(CaptainPlanet) })]
         public class CaptainPlanet
         {
+            public CaptainPlanet()
+            {
+            }
+
+            [Inject]
+            public CaptainPlanet(Earth earth, Wind wind, Fire fire, Water water, Heart heart)
+            {
+            }
         }
 
         public class UnusedProvidesEntryPoint
