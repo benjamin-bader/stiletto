@@ -44,9 +44,13 @@ namespace Stiletto.Fody.Validation
             this.errorReporter = errorReporter;
         }
 
-        public void ValidateCompleteModules(bool suppressUnusedBindingsErrors, string outputDirectory)
+        public void ValidateCompleteModules(bool suppressUnusedBindingsErrors, bool suppressGraphviz, string outputDirectory)
         {
-            var graphvizDirectory = PrepareGraphvizDirectory(outputDirectory);
+            string graphvizDirectory = null;
+            if (!suppressGraphviz)
+            {
+                graphvizDirectory = PrepareGraphvizDirectory(outputDirectory);
+            }
 
             foreach (var moduleGenerator in moduleGenerators)
             {
@@ -84,7 +88,10 @@ namespace Stiletto.Fody.Validation
 
                 try
                 {
-                    WriteModuleGraph(moduleGenerator, moduleBindings, graphvizDirectory);
+                    if (!suppressGraphviz)
+                    {
+                        WriteModuleGraph(moduleGenerator, moduleBindings, graphvizDirectory);
+                    }
                 }
                 catch (IOException ex)
                 {

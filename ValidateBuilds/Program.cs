@@ -59,11 +59,6 @@ namespace ValidateBuilds
 
                 var errors = validator.Validate();
 
-                if (errors.Count == 0)
-                {
-                    continue;
-                }
-
                 foreach (var error in errors)
                 {
                     errorWriter.Write(error);
@@ -88,17 +83,17 @@ namespace ValidateBuilds
         }
 
         private static readonly XElement emptyResults = new XElement("ExpectedResults");
-        private ExpectedResults ReadExpectedResults(string path)
+        private ExpectedResults ReadExpectedResults(string expectedResultsFilePath)
         {
-            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            if (string.IsNullOrEmpty(expectedResultsFilePath) || !File.Exists(expectedResultsFilePath))
             {
                 return ExpectedResults.Parse(emptyResults, "");
             }
 
-            using (var fileStream = File.OpenRead(path))
+            using (var fileStream = File.OpenRead(expectedResultsFilePath))
             {
                 var xml = XElement.Load(fileStream);
-                return ExpectedResults.Parse(xml, Path.GetDirectoryName(path));
+                return ExpectedResults.Parse(xml, Path.GetDirectoryName(expectedResultsFilePath));
             }
         }
 

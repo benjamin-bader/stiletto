@@ -43,14 +43,12 @@ namespace ValidateBuilds
         public ModuleDefinition ProcessAssembly()
         {
             var assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyPath);
-            var assemblyResolver = new DefaultAssemblyResolver();
-            assemblyResolver.ResolveFailure += OnAssemblyResolveFailed;
 
             var moduleWeaver = new ModuleWeaver
                                {
                                    AssemblyFilePath = assemblyPath,
-                                   AssemblyResolver = assemblyResolver,
-                                   Config = new XElement("Stiletto"),
+                                   AssemblyResolver = CreateAssemblyResolver(),
+                                   Config = CreateFodyConfig(),
                                    LogError = message => Errors.Add(message),
                                    LogWarning = message => Warnings.Add(message),
                                    ProjectDirectoryPath = projectPath,
@@ -61,6 +59,13 @@ namespace ValidateBuilds
             moduleWeaver.Execute();
 
             return assemblyDefinition.MainModule;
+        }
+
+        private IAssemblyResolver CreateAssemblyResolver()
+        {
+            var resolver = new DefaultAssemblyResolver();
+            resolver.ResolveFailure += OnAssemblyResolveFailed;
+            return resolver;
         }
 
         private AssemblyDefinition OnAssemblyResolveFailed(object sender, AssemblyNameReference assemblyNameReference)
@@ -80,6 +85,11 @@ namespace ValidateBuilds
             }
 
             return null;
+        }
+
+        private XElement CreateFodyConfig()
+        {
+            return new XElement("Stiletto", new XAttribute("SuppressGraphviz", true));
         }
 
         private List<string> GetCopyLocalAssemblies(string assemblyPath)

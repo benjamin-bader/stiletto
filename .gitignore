@@ -21,3 +21,6 @@ Tools/Stiletto*
 *.dot
 *.pdf
 graphviz/
+
+# Integration test detritus
+IntegrationTests/ValidateBuilds.exe

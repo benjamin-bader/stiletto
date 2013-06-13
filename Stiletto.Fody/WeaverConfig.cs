@@ -23,7 +23,7 @@ namespace Stiletto.Fody
     public class WeaverConfig
     {
         public bool SuppressUnusedBindingErrors { get; private set; }
-
+        public bool SuppressGraphviz { get; private set; }
         public Trie ExcludedClassPatterns { get; private set; }
 
         private WeaverConfig()
@@ -32,9 +32,8 @@ namespace Stiletto.Fody
 
         public static WeaverConfig Load(XElement config)
         {
-            var noUnusedBindingErrs = (bool?) config.Attribute("SuppressUnusedBindingsErrors")
-                                   ?? (bool?) config.Element("SuppressUnusedBindingsErrors");
-
+            var noUnusedBindingErrs = GetAttributeOrElement(config, "SuppressUnusedBindingsErrors");
+            var noGraphviz = GetAttributeOrElement(config, "SuppressGraphviz");
             var excludedClassElement = config.Element("ExcludeClasses");
 
             var excludedClasses = new List<string>();
@@ -49,8 +48,15 @@ namespace Stiletto.Fody
             return new WeaverConfig
                    {
                        SuppressUnusedBindingErrors = noUnusedBindingErrs ?? false,
+                       SuppressGraphviz = noGraphviz ?? false,
                        ExcludedClassPatterns = new Trie(excludedClasses),
                    };
+        }
+
+        private static bool? GetAttributeOrElement(XElement config, string name)
+        {
+            return (bool?) config.Attribute(name)
+                ?? (bool?) config.Element(name);
         }
     }
 }

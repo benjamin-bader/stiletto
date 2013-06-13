@@ -37,6 +37,12 @@ namespace ValidateBuilds
             var unexpectedErrors = new List<string>();
             var unexpectedWarnings = new List<string>();
 
+            // For every actual error and warning, check the list of expected errors/warnings.
+            // If an expected pattern matches the actual, remove the expected pattern from the list.
+            // Otherwise, add the actual to a list of unexpected messages.
+            //
+            // A valid assembly, then, is one which leaves all lists of expected and unexpected messages
+            // empty.
             for (var i = actualErrors.Count; i > 0; --i)
             {
                 Check(expectedErrors, unexpectedErrors, actualErrors[i - i]);

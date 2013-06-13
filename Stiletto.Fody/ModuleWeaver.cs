@@ -226,7 +226,10 @@ namespace Stiletto.Fody
             var allLazys = processors.SelectMany(p => p.LazyGenerators);
             var allProvides = processors.SelectMany(p => p.ProviderGenerators);
             new Validator(errorReporter, allInjects, allLazys, allProvides, allModules)
-                .ValidateCompleteModules(weaverConfig.SuppressUnusedBindingErrors, ProjectDirectoryPath);
+                .ValidateCompleteModules(
+                    weaverConfig.SuppressUnusedBindingErrors,
+                    weaverConfig.SuppressGraphviz,
+                    ProjectDirectoryPath);
         }
 
         private IList<ModuleProcessor> GatherModulesNeedingProcessing()
