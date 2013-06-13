@@ -1,0 +1,20 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Mono.Cecil;
+
+public class Validator
+{
+	public IList<string> Validate(ModuleDefinition module)
+	{
+		var errors = new List<string>();
+		var allTypes = new HashSet<string>(module.GetTypes().Select(t => t.FullName));
+
+		if (!allTypes.Contains("Stiletto.Generated.$CompiledPlugin$"))
+		{
+			errors.Add("Expected calls to Container.Create to be replaced with Container.CreateWithPlugins.");
+		}
+
+		return errors;
+	}
+}

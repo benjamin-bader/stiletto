@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Weavers>
+  <Costura>
+    <IncludeAssemblies>
+      Mono.Cecil
+      Mono.Cecil.Mdb
+      Mono.Cecil.Pdb
+      Mono.Cecil.Rocks
+      Mono.CSharp
+      Stiletto
+      Stiletto.Fody
+      Newtonsoft.Json
+      CSScriptLibrary
+    </IncludeAssemblies>
+  </Costura>
+</Weavers>
