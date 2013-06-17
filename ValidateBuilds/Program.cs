@@ -24,21 +24,21 @@ namespace ValidateBuilds
         private int numTestsFailed;
         private IErrorWriter errorWriter;
 
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
             var flags = new Flags(args);
 
             if (flags.HelpRequested)
             {
                 flags.ShowUsage(Console.Out);
-                return;
+                return 0;
             }
 
             ConfigureLogging(flags.Verbose);
 
             using (var program = new Program(flags.WorkingDirectory, flags.ErrorWriter))
             {
-                program.Run();
+                return program.Run() == 0 ? 0 : -1;
             }
         }
 
@@ -64,7 +64,7 @@ namespace ValidateBuilds
             this.errorWriter = errorWriter;
         }
 
-        public void Run()
+        public int Run()
         {
             var builds = from file in GetProjectFiles()
                          let projectDirectory = Path.GetDirectoryName(file)
@@ -107,6 +107,7 @@ namespace ValidateBuilds
             }
 
             logger.Debug("Test run finished with {0} failure{1}", numTestsFailed, numTestsFailed == 1 ? string.Empty : "s");
+            return numTestsFailed;
         }
 
         private bool ExecuteBuild(BuildState state)
