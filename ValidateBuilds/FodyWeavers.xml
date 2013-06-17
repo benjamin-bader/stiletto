@@ -11,6 +11,7 @@
       Stiletto.Fody
       Newtonsoft.Json
       CSScriptLibrary
+      NLog
     </IncludeAssemblies>
   </Costura>
 </Weavers>

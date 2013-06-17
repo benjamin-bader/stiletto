@@ -5,11 +5,14 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using CSScriptLibrary;
 using Mono.Cecil;
+using NLog;
 
 namespace ValidateBuilds
 {
     public class AssemblyValidator
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         private readonly FileInfo projectFile;
         private readonly string assemblyPath;
         private readonly ExpectedResults expectedResults;
@@ -97,6 +100,8 @@ namespace ValidateBuilds
             {
                 errors.AddRange(RunScript(module));
             }
+
+            logger.Debug("Assembly {0} validation finished with {1} errors.", assemblyPath, errors.Count);
 
             return errors;
         }

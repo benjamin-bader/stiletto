@@ -8,7 +8,6 @@ namespace ValidateBuilds
         private bool disposed;
 
         protected TextWriter Writer { get; private set; }
-        public bool HasError { get; protected set; }
 
         protected TextErrorWriter(TextWriter writer)
         {

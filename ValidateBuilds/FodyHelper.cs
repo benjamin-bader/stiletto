@@ -4,14 +4,17 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Mono.Cecil;
+using NLog;
 using Stiletto.Fody;
 
 namespace ValidateBuilds
 {
     public class FodyHelper
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         private readonly string projectPath;
-        private readonly string assemblyPath ;
+        private readonly string assemblyPath;
 
         public IList<string> Errors { get; private set; }
         public IList<string> Warnings { get; private set; }
@@ -42,8 +45,10 @@ namespace ValidateBuilds
 
         public ModuleDefinition ProcessAssembly()
         {
+            logger.Debug("Reading assembly {0}...", assemblyPath);
             var assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyPath);
 
+            logger.Debug("Assembly read.  Processing...");
             var moduleWeaver = new ModuleWeaver
                                {
                                    AssemblyFilePath = assemblyPath,
@@ -56,7 +61,14 @@ namespace ValidateBuilds
                                    ModuleDefinition = assemblyDefinition.MainModule
                                };
 
-            moduleWeaver.Execute();
+            try
+            {
+                moduleWeaver.Execute();
+            }
+            catch (Exception ex)
+            {
+                logger.DebugException("Fody processing failed for assembly at " + assemblyPath, ex);
+            }
 
             return assemblyDefinition.MainModule;
         }
