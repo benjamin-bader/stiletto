@@ -15,14 +15,8 @@ namespace ValidateBuilds
         private static Logger logger;
 
         private readonly string workingDirectory;
-        private readonly Dictionary<string, string> globalBuildProperties = new Dictionary<string, string>
-        {
-            { "Configuration", "Debug" },
-            { "Platform", "AnyCPU" },
-        };
-
-        private int numTestsFailed;
         private IErrorWriter errorWriter;
+        private int numTestsFailed;
 
         public static int Main(string[] args)
         {
@@ -40,22 +34,6 @@ namespace ValidateBuilds
             {
                 return program.Run() == 0 ? 0 : -1;
             }
-        }
-
-        private static void ConfigureLogging(bool verbose)
-        {
-            var config = new LoggingConfiguration();
-            var standardError = Console.OpenStandardError();
-            var target = new TextWriterTarget(new StreamWriter(standardError));
-            var rule = new LoggingRule("*", verbose ? LogLevel.Debug : LogLevel.Info, target);
-
-            target.Layout = "${message}";
-
-            config.AddTarget("debug", target);
-            config.LoggingRules.Add(rule);
-
-            LogManager.Configuration = config;
-            logger = LogManager.GetCurrentClassLogger();
         }
 
         public Program(string workingDirectory, IErrorWriter errorWriter)
@@ -163,5 +141,27 @@ namespace ValidateBuilds
                 errorWriter = null;
             }
         }
+
+        private static void ConfigureLogging(bool verbose)
+        {
+            var config = new LoggingConfiguration();
+            var standardError = Console.OpenStandardError();
+            var target = new TextWriterTarget(new StreamWriter(standardError));
+            var rule = new LoggingRule("*", verbose ? LogLevel.Debug : LogLevel.Info, target);
+
+            target.Layout = "${message}";
+
+            config.AddTarget("debug", target);
+            config.LoggingRules.Add(rule);
+
+            LogManager.Configuration = config;
+            logger = LogManager.GetCurrentClassLogger();
+        }
+
+        private static readonly Dictionary<string, string> globalBuildProperties = new Dictionary<string, string>
+        {
+            { "Configuration", "Debug" },
+            { "Platform", "AnyCPU" },
+        };
     }
 }
