@@ -51,7 +51,6 @@ namespace ValidateBuilds
             logger.Debug("Assembly read.  Processing...");
             var moduleWeaver = new ModuleWeaver
                                {
-                                   AssemblyFilePath = assemblyPath,
                                    AssemblyResolver = CreateAssemblyResolver(),
                                    Config = CreateFodyConfig(),
                                    LogError = message => Errors.Add(message),
