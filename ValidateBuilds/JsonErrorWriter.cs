@@ -4,21 +4,19 @@ using Newtonsoft.Json.Linq;
 
 namespace ValidateBuilds
 {
-    public class JsonErrorWriter : IErrorWriter
+    public class JsonErrorWriter : TextErrorWriter
     {
-        private JsonSerializer serializer;
-        private TextWriter writer;
-        private bool disposed;
+        private readonly JsonSerializer serializer;
 
         public JsonErrorWriter(TextWriter writer)
+            : base(writer)
         {
             serializer = new JsonSerializer();
-            this.writer = writer;
         }
 
-        public void Write(ValidationError error)
+        public override void Write(ValidationError error)
         {
-            serializer.Serialize(writer, ToJson(error));
+            serializer.Serialize(Writer, ToJson(error));
         }
 
         private static JObject ToJson(ValidationError error)
@@ -27,24 +25,6 @@ namespace ValidateBuilds
                 new JProperty("type", error.Type.ToString()),
                 new JProperty("message", error.Message),
                 new JProperty("project", error.ProjectFile.FullName));
-        }
-
-        public void Dispose()
-        {
-            if (disposed)
-            {
-                return;
-            }
-
-            if (writer != null)
-            {
-                writer.Close();
-                writer = null;
-            }
-
-            serializer = null;
-
-            disposed = true;
         }
     }
 }

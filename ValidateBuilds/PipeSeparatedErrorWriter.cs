@@ -1,44 +1,32 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace ValidateBuilds
 {
-    public class PipeSeparatedErrorWriter : IErrorWriter
+    public class PipeSeparatedErrorWriter : TextErrorWriter
     {
         private const string Separator = "|";
 
-        private TextWriter writer;
-        private bool disposed;
-
         public PipeSeparatedErrorWriter(TextWriter writer)
+            : base(writer)
         {
-            this.writer = writer;
         }
 
-        public void Write(ValidationError error)
+        public override void Write(ValidationError error)
         {
-            writer.Write(error.Type.ToString());
-            writer.Write(Separator);
-            writer.Write(error.Message.Replace(Separator, "--"));
-            writer.Write(Separator);
-            writer.Write(error.ProjectFile.FullName);
-            writer.WriteLine();
+            Writer.Write(error.Type.ToString());
+            Writer.Write(Separator);
+            Writer.Write(EscapeMessage(error.Message));
+            Writer.Write(Separator);
+            Writer.Write(error.ProjectFile.FullName);
+            Writer.WriteLine();
         }
 
-        public void Dispose()
+        private static string EscapeMessage(string message)
         {
-            if (disposed)
-            {
-                return;
-            }
-
-            if (writer != null)
-            {
-                writer.Dispose();
-                writer = null;
-            }
-
-            disposed = true;
+            return message
+                .Replace(Separator, "--")
+                .Replace("\r\n", "; ")
+                .Replace("\n", "; ");
         }
     }
 }

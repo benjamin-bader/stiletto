@@ -9,7 +9,7 @@ namespace ValidateBuilds
 {
     public class Program : IDisposable
     {
-        private readonly string currentDirectory;
+        private readonly string workingDirectory;
         private readonly Dictionary<string, string> globalBuildProperties = new Dictionary<string, string>
         {
             { "Configuration", "Debug" },
@@ -18,9 +18,17 @@ namespace ValidateBuilds
 
         private IErrorWriter errorWriter;
 
-        public static void Main()
+        public static void Main(string[] args)
         {
-            using (var program = new Program(Environment.CurrentDirectory))
+            var flags = new Flags(args);
+
+            if (flags.HelpRequested)
+            {
+                flags.ShowUsage(Console.Out);
+                return;
+            }
+
+            using (var program = new Program(flags.WorkingDirectory, flags.ErrorWriter))
             {
                 program.Run();
             }
@@ -30,9 +38,10 @@ namespace ValidateBuilds
         {
             this.currentDirectory = currentDirectory;
 
-            var stdout = Console.OpenStandardOutput();
-            var streamWriter = new StreamWriter(stdout);
-            errorWriter = new JsonErrorWriter(streamWriter);
+        public Program(string workingDirectory, IErrorWriter errorWriter)
+        {
+            this.workingDirectory = workingDirectory;
+            this.errorWriter = errorWriter;
         }
 
         public void Run()
