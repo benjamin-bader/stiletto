@@ -1,0 +1,51 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
+
+public class Validator
+{
+	public IList<string> Validate(ModuleDefinition module)
+	{
+		var errors = new List<string>();
+		
+        var main = module
+            .GetTypes()
+            .First(t => t.Name == "Program")
+            .Methods
+            .First(m => m.Name == "Main");
+
+        var hasContainerCreate = false;
+        foreach (var i in main.Body.Instructions)
+        {
+            if (i.OpCode != OpCodes.Call)
+            {
+                continue;
+            }
+
+            var target = (MethodReference) i.Operand;
+            var type = target.DeclaringType;
+
+            if (type.Namespace != "Stiletto" && type.Name != "Container")
+            {
+                continue;
+            }
+
+            if (target.Name != "Create")
+            {
+                continue;
+            }
+
+            hasContainerCreate = true;
+            break;
+        }
+
+		if (hasContainerCreate)
+		{
+			errors.Add("Expected calls to Container.Create to be replaced with Container.CreateWithPlugins.");
+		}
+
+		return errors;
+	}
+}

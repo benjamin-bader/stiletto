@@ -1,0 +1,5 @@
+﻿<ExpectedResults>
+  <Errors>
+    <Pattern>Dependency cycle detected</Pattern>
+  </Errors>
+</ExpectedResults>

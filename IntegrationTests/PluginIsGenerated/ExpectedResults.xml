@@ -1,0 +1,5 @@
+﻿<ExpectedResults>
+  <Classes>
+    <Include Name="Stiletto.Generated.$CompiledPlugin$" />
+  </Classes>
+</ExpectedResults>
