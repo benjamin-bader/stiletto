@@ -298,18 +298,17 @@ namespace Stiletto.Fody.Generators
                 References.Void);
 
             var il = ctor.Body.GetILProcessor();
-            var vEntryPoints = new VariableDefinition("entryPoints", new ArrayType(References.String));
-            var vIncludes = new VariableDefinition("includes", new ArrayType(References.Type));
-            il.Body.InitLocals = true;
-            il.Body.Variables.Add(vEntryPoints);
-            il.Body.Variables.Add(vIncludes);
+
+            // Push args (this, moduleType, entryPoints, includes, complete, library) and call base ctor
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldtoken, importedModuleType);
+            il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
             
             // make array of entry point keys
             il.Emit(OpCodes.Ldc_I4, EntryPoints.Count);
             il.Emit(OpCodes.Newarr, References.String);
-            il.Emit(OpCodes.Stloc, vEntryPoints);
             for (var i = 0; i < EntryPoints.Count; ++i) {
-                il.Emit(OpCodes.Ldloc, vEntryPoints);
+                il.Emit(OpCodes.Dup);
                 il.Emit(OpCodes.Ldc_I4, i);
                 il.Emit(OpCodes.Ldstr, CompilerKeys.GetMemberKey(EntryPoints[i]));
                 il.Emit(OpCodes.Stelem_Ref);
@@ -318,26 +317,19 @@ namespace Stiletto.Fody.Generators
             // make array of included module types
             il.Emit(OpCodes.Ldc_I4, IncludedModules.Count);
             il.Emit(OpCodes.Newarr, References.Type);
-            il.Emit(OpCodes.Stloc, vIncludes);
             for (var i = 0; i < IncludedModules.Count; ++i) {
-                il.Emit(OpCodes.Ldloc, vIncludes);
+                il.Emit(OpCodes.Dup);
                 il.Emit(OpCodes.Ldc_I4, i);
                 il.Emit(OpCodes.Ldtoken, Import(IncludedModules[i]));
                 il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
                 il.Emit(OpCodes.Stelem_Ref);
             }
 
-            // Push args (this, moduleType, entryPoints, includes, complete, library) and call base ctor
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldtoken, importedModuleType);
-            il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
-            il.Emit(OpCodes.Ldloc, vEntryPoints);
-            il.Emit(OpCodes.Ldloc, vIncludes);
             il.EmitBoolean(IsComplete);
             il.EmitBoolean(IsLibrary);
             il.EmitBoolean(IsOverride);
-            il.Emit(OpCodes.Call, References.RuntimeModule_Ctor);
 
+            il.Emit(OpCodes.Call, References.RuntimeModule_Ctor);
             il.Emit(OpCodes.Ret);
 
             runtimeModule.Methods.Add(ctor);
