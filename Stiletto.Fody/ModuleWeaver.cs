@@ -21,7 +21,6 @@ using System.Collections.Generic;
 ﻿using System.Xml.Linq;
 ﻿using Stiletto.Fody.Validation;
 ﻿using Mono.Cecil;
-using Mono.Cecil.Cil;
 
 namespace Stiletto.Fody
 {
@@ -46,16 +45,9 @@ namespace Stiletto.Fody
         public XElement Config { get; set; }
         public ModuleDefinition ModuleDefinition { get; set; }
         public string ProjectDirectoryPath { get; set; }
-        public string AssemblyFilePath { get; set; }
-
-        public Action<string> LogInfo { get; set; }
         public Action<string> LogWarning { get; set; }
         public Action<string> LogError { get; set; }
-        public Action<string, SequencePoint> LogWarningPoint { get; set; }
-        public Action<string, SequencePoint> LogErrorPoint { get; set; }
-
         public List<string> ReferenceCopyLocalPaths { get; set; }
-
         public IAssemblyResolver AssemblyResolver { get; set; }
 
         #endregion
@@ -90,6 +82,7 @@ namespace Stiletto.Fody
                 p.CreateGenerators(this);
             }
 
+            // TODO: Moving to a single-assembly codegen target means that this is probably unnecessary now.  Figure that out.
             // Creating inject generators can trigger base-class binding generation
             // that crosses module or assembly boundaries; we need to resolve them here
             // prior to validating the graph.
@@ -226,7 +219,10 @@ namespace Stiletto.Fody
             var allLazys = processors.SelectMany(p => p.LazyGenerators);
             var allProvides = processors.SelectMany(p => p.ProviderGenerators);
             new Validator(errorReporter, allInjects, allLazys, allProvides, allModules)
-                .ValidateCompleteModules(weaverConfig.SuppressUnusedBindingErrors, ProjectDirectoryPath);
+                .ValidateCompleteModules(
+                    weaverConfig.SuppressUnusedBindingErrors,
+                    weaverConfig.SuppressGraphviz,
+                    ProjectDirectoryPath);
         }
 
         private IList<ModuleProcessor> GatherModulesNeedingProcessing()
