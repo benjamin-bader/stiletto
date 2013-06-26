@@ -112,7 +112,7 @@ namespace Stiletto.Fody
 
             GatherInjectBindings(
                 injectTypes,
-                moduleGenerators.SelectMany(m => m.EntryPoints));
+                moduleGenerators.SelectMany(m => m.Injects));
 
             foreach (var g in injectGenerators) {
                 // We need to validate the inject binding generators to
@@ -308,14 +308,14 @@ namespace Stiletto.Fody
             }
         }
 
-        private void GatherInjectBindings(IEnumerable<TypeDefinition> injectTypes, IEnumerable<TypeReference> entryPoints)
+        private void GatherInjectBindings(IEnumerable<TypeDefinition> injectTypes, IEnumerable<TypeReference> moduleInjectTypes)
         {
             var injectTypeSet = new HashSet<TypeReference>(injectTypes, new TypeReferenceComparer());
 
-            foreach (var entryPoint in entryPoints)
+            foreach (var moduleInjectType in moduleInjectTypes)
             {
-                injectTypeSet.Remove(entryPoint);
-                injectGenerators.Add(new InjectBindingGenerator(moduleDefinition, references, entryPoint, true));
+                injectTypeSet.Remove(moduleInjectType);
+                injectGenerators.Add(new InjectBindingGenerator(moduleDefinition, references, moduleInjectType, true));
             }
 
             injectGenerators.AddRange(injectTypeSet.Select(i =>

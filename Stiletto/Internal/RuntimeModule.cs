@@ -24,7 +24,7 @@ namespace Stiletto.Internal
     public abstract class RuntimeModule
     {
         private readonly Type moduleType;
-        private readonly string[] entryPoints;
+        private readonly string[] injects;
         private readonly Type[] includes;
         private readonly bool complete;
         private readonly bool isLibrary;
@@ -35,9 +35,9 @@ namespace Stiletto.Internal
             get { return moduleType; }
         }
 
-        public string[] EntryPoints
+        public string[] Injects
         {
-            get { return entryPoints; }
+            get { return injects; }
         }
 
         public Type[] Includes
@@ -62,14 +62,14 @@ namespace Stiletto.Internal
 
         public object Module { get; set; }
 
-        protected RuntimeModule(Type moduleType, string[] entryPoints, Type[] includes, bool complete, bool isLibrary, bool isOverride)
+        protected RuntimeModule(Type moduleType, string[] injects, Type[] includes, bool complete, bool isLibrary, bool isOverride)
         {
             Conditions.CheckNotNull(moduleType, "moduleType");
-            Conditions.CheckNotNull(entryPoints, "entryPoints");
+            Conditions.CheckNotNull(injects, "injects");
             Conditions.CheckNotNull(includes, "includes");
 
             this.moduleType = moduleType;
-            this.entryPoints = entryPoints;
+            this.injects = injects;
             this.includes = includes;
             this.complete = complete;
             this.isLibrary = isLibrary;

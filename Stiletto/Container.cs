@@ -69,19 +69,19 @@ namespace Stiletto
         {
             private readonly StilettoContainer baseContainer;
             private readonly Resolver resolver;
-            private readonly IDictionary<string, Type> entryPoints;
+            private readonly IDictionary<string, Type> injectTypes;
             private readonly IPlugin plugin;
 
             private StilettoContainer(
                 StilettoContainer baseContainer,
                 Resolver resolver,
                 IPlugin plugin,
-                IDictionary<string, Type> entryPoints)
+                IDictionary<string, Type> injectTypes)
             {
                 this.baseContainer = baseContainer;
                 this.resolver = resolver;
                 this.plugin = plugin;
-                this.entryPoints = entryPoints;
+                this.injectTypes = injectTypes;
             }
 
             internal static StilettoContainer MakeContainer(
@@ -89,7 +89,7 @@ namespace Stiletto
                 IPlugin plugin,
                 params object[] modules)
             {
-                var entryPoints = new Dictionary<string, Type>(Key.Comparer);
+                var injectTypes = new Dictionary<string, Type>(Key.Comparer);
                 var bindings = new Dictionary<string, Binding>(Key.Comparer);
                 var overrides = new Dictionary<string, Binding>(Key.Comparer);
 
@@ -97,9 +97,9 @@ namespace Stiletto
                 {
                     var addTo = runtimeModule.IsOverride ? overrides : bindings;
 
-                    foreach (var key in runtimeModule.EntryPoints)
+                    foreach (var key in runtimeModule.Injects)
                     {
-                        entryPoints.Add(key, runtimeModule.Module.GetType());
+                        injectTypes.Add(key, runtimeModule.Module.GetType());
                     }
 
                     runtimeModule.GetBindings(addTo);
@@ -113,7 +113,7 @@ namespace Stiletto
                 resolver.InstallBindings(bindings);
                 resolver.InstallBindings(overrides);
 
-                return new StilettoContainer(baseContainer, resolver, plugin, entryPoints);
+                return new StilettoContainer(baseContainer, resolver, plugin, injectTypes);
             }
 
             public override Container Add(params object[] modules)
@@ -125,15 +125,15 @@ namespace Stiletto
             public override T Get<T>()
             {
                 var key = Key.Get<T>();
-                var entryPointKey = Key.GetMemberKey<T>();
-                var binding = GetEntryPointBinding(entryPointKey, key);
+                var injectKey = Key.GetMemberKey<T>();
+                var binding = GetInjectBinding(injectKey, key);
                 return (T) binding.Get();
             }
 
             public override T Inject<T>(T instance)
             {
                 var key = Key.GetMemberKey<T>();
-                var binding = GetEntryPointBinding(key, key);
+                var binding = GetInjectBinding(key, key);
                 binding.InjectProperties(instance);
                 return instance;
             }
@@ -141,7 +141,7 @@ namespace Stiletto
             public override object Inject(object instance, Type type)
             {
                 var key = Key.GetMemberKey(type);
-                var binding = GetEntryPointBinding(key, key);
+                var binding = GetInjectBinding(key, key);
                 binding.InjectProperties(instance);
                 return instance;
             }
@@ -156,31 +156,31 @@ namespace Stiletto
             {
                 lock (resolver)
                 {
-                    ResolveEntryPoints();
+                    ResolveInjectTypes();
                     return resolver.ResolveAllBindings();
                 }
             }
 
-            private void ResolveEntryPoints()
+            private void ResolveInjectTypes()
             {
-                foreach (var kvp in entryPoints)
+                foreach (var kvp in injectTypes)
                 {
                     resolver.RequestBinding(kvp.Key, kvp.Value, false);
                 }
             }
 
-            private Binding GetEntryPointBinding(string entryPointKey, string key)
+            private Binding GetInjectBinding(string membersKey, string key)
             {
                 Type moduleType = null;
                 for (var container = this; container != null; container = container.baseContainer)
                 {
-                    if (container.entryPoints.TryGetValue(entryPointKey, out moduleType) && moduleType != null)
+                    if (container.injectTypes.TryGetValue(membersKey, out moduleType) && moduleType != null)
                         break;
                 }
 
                 if (moduleType == null)
                 {
-                    throw new ArgumentException("No entry point for " + entryPointKey + ".  You must add an entry point to one of your modules.");
+                    throw new ArgumentException("No Injects entry for " + membersKey + ".  You must add this type to one of your modules' Injects list.");
                 }
 
                 lock (resolver)

@@ -8,7 +8,7 @@ namespace UnusedBindingsInLibraryModule
         public string Foo { get; set; }
     }
 
-    [Module(EntryPoints = new[] { typeof(InjectableClass) },
+    [Module(Injects = new[] { typeof(InjectableClass) },
             IsLibrary = true)]
     public class MainModule
     {

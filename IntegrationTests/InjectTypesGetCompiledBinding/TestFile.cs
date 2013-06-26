@@ -8,7 +8,7 @@ namespace InjectTypesGetCompiledBinding
         public string Foo { get; set; }
     }
 
-    [Module(EntryPoints = new[] { typeof(InjectableClass) })]
+    [Module(Injects = new[] { typeof(InjectableClass) })]
     public class MainModule
     {
         [Provides]

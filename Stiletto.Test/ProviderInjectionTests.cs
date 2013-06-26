@@ -35,7 +35,7 @@ namespace Stiletto.Test
             Expect.The(TestModule.Invocations).ToEqual(2);
         }
 
-        [Module(EntryPoints = new[] { typeof(NeedsProvider) })]
+        [Module(Injects = new[] { typeof(NeedsProvider) })]
         public class TestModule
         {
             public static int Invocations = 0;

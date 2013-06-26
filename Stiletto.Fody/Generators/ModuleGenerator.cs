@@ -37,7 +37,7 @@ namespace Stiletto.Fody.Generators
         public bool IsLibrary { get; private set; }
         public ISet<string> ProvidedKeys { get; private set; } 
         public IList<TypeReference> IncludedModules { get; private set; }
-        public IList<TypeReference> EntryPoints { get; private set; }
+        public IList<TypeReference> Injects { get; private set; }
         public IList<MethodDefinition> BaseProvidesMethods { get { return baseProvidesMethods; }}
         public IList<ProviderMethodBindingGenerator> ProviderGenerators { get; private set; }
         public bool IsVisibleToPlugin { get; private set; }
@@ -56,7 +56,7 @@ namespace Stiletto.Fody.Generators
             }
 
             CustomAttributeNamedArgument? argComplete = null,
-                                          argEntryPoints = null,
+                                          argInjects = null,
                                           argIncludes = null,
                                           argOverrides = null,
                                           argIsLibrary = null;
@@ -66,8 +66,8 @@ namespace Stiletto.Fody.Generators
                     case "IsComplete":
                         argComplete = arg;
                         break;
-                    case "EntryPoints":
-                        argEntryPoints = arg;
+                    case "Injects":
+                        argInjects = arg;
                         break;
                     case "IncludedModules":
                         argIncludes = arg;
@@ -87,11 +87,11 @@ namespace Stiletto.Fody.Generators
             IsOverride = GetArgumentValue(argOverrides, false);
             IsLibrary = GetArgumentValue(argIsLibrary, false);
 
-            EntryPoints = new List<TypeReference>();
-            if (argEntryPoints != null) {
-                foreach (var val in (CustomAttributeArgument[]) argEntryPoints.Value.Argument.Value) {
-                    var entryPointType = (TypeReference) val.Value;
-                    EntryPoints.Add(entryPointType);
+            Injects = new List<TypeReference>();
+            if (argInjects != null) {
+                foreach (var val in (CustomAttributeArgument[]) argInjects.Value.Argument.Value) {
+                    var injectType = (TypeReference) val.Value;
+                    Injects.Add(injectType);
                 }
             }
 
@@ -305,12 +305,12 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
             
             // make array of entry point keys
-            il.Emit(OpCodes.Ldc_I4, EntryPoints.Count);
+            il.Emit(OpCodes.Ldc_I4, Injects.Count);
             il.Emit(OpCodes.Newarr, References.String);
-            for (var i = 0; i < EntryPoints.Count; ++i) {
+            for (var i = 0; i < Injects.Count; ++i) {
                 il.Emit(OpCodes.Dup);
                 il.Emit(OpCodes.Ldc_I4, i);
-                il.Emit(OpCodes.Ldstr, CompilerKeys.GetMemberKey(EntryPoints[i]));
+                il.Emit(OpCodes.Ldstr, CompilerKeys.GetMemberKey(Injects[i]));
                 il.Emit(OpCodes.Stelem_Ref);
             }
 

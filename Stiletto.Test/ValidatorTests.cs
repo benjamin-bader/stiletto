@@ -44,7 +44,7 @@ namespace Stiletto.Test
             Container.Create(typeof(UnusedProvidesModule)).Validate();
         }
 
-        [Module(EntryPoints = new[] { typeof(Dep)})]
+        [Module(Injects = new[] { typeof(Dep)})]
         public class NeedsSomethingMore
         {
             public class Dep
@@ -93,7 +93,7 @@ namespace Stiletto.Test
             public Earth Earth { get; set; }
         }
 
-        [Module(EntryPoints = new[] { typeof(CaptainPlanet) })]
+        [Module(Injects = new[] { typeof(CaptainPlanet) })]
         public class CaptainPlanet
         {
             public CaptainPlanet()
@@ -106,13 +106,13 @@ namespace Stiletto.Test
             }
         }
 
-        public class UnusedProvidesEntryPoint
+        public class UnusedProvidesInjectable
         {
             [Inject]
             public string Foo { get; set; }
         }
 
-        [Module(EntryPoints = new[] { typeof(UnusedProvidesEntryPoint) })]
+        [Module(Injects = new[] { typeof(UnusedProvidesInjectable) })]
         public class UnusedProvidesModule
         {
             [Provides]

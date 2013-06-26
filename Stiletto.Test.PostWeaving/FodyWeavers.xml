@@ -9,7 +9,7 @@
       <Class>Stiletto.Test.ValidatorTests/Heart</Class>
       <Class>Stiletto.Test.ValidatorTests/CaptainPlanet</Class>
 
-      <Class>Stiletto.Test.ValidatorTests/UnusedProvidesEntryPoint</Class>
+      <Class>Stiletto.Test.ValidatorTests/UnusedProvidesInjectable</Class>
       <Class>Stiletto.Test.ValidatorTests/UnusedProvidesModule</Class>
       <Class>Stiletto.Test.ValidatorTests/NeedsSomethingMore</Class>
       <Class>Stiletto.Test.ValidatorTests/NeedsSomethingMore/Dep</Class>

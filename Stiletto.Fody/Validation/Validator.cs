@@ -159,11 +159,11 @@ namespace Stiletto.Fody.Validation
                 // Request entry-point bindings
                 var addTo = module.IsOverride ? overrides : bindings;
 
-                foreach (var entryPointType in module.EntryPoints)
+                foreach (var injectType in module.Injects)
                 {
-                    var key = entryPointType.Resolve().IsInterface
-                                  ? CompilerKeys.ForType(entryPointType)
-                                  : CompilerKeys.GetMemberKey(entryPointType);
+                    var key = injectType.Resolve().IsInterface
+                                  ? CompilerKeys.ForType(injectType)
+                                  : CompilerKeys.GetMemberKey(injectType);
 
                     resolver.RequestBinding(key, module.ModuleType.FullName, false, true);
                 }

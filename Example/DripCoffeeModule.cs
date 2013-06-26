@@ -4,7 +4,7 @@ using LibraryExample;
 namespace Example
 {
     [Module(
-        EntryPoints = new[] { typeof(CoffeeApp) },
+        Injects = new[] { typeof(CoffeeApp) },
         IncludedModules = new[] { typeof(PumpModule), typeof(BeanModule) })]
     class DripCoffeeModule
     {

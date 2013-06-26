@@ -23,7 +23,7 @@ namespace CircularDependenciesFail
         }
     }
 
-    [Module(EntryPoints = new[] { typeof(Foobar) })]
+    [Module(Injects = new[] { typeof(Foobar) })]
     public class MainModule
     {
         

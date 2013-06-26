@@ -33,7 +33,7 @@ namespace Stiletto
         private bool complete = true;
         private bool library;
         private bool isOverride;
-        private Type[] entryPoints;
+        private Type[] injects;
         private Type[] includedModules;
 
         /// <summary>
@@ -46,10 +46,10 @@ namespace Stiletto
         /// object graph constructed by the container.  They are the starting
         /// points from which the dependency graph is constructed.
         /// </remarks>
-        public Type[] EntryPoints
+        public Type[] Injects
         {
-            get { return entryPoints ?? Type.EmptyTypes; }
-            set { entryPoints = value; }
+            get { return injects ?? Type.EmptyTypes; }
+            set { injects = value; }
         }
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Stiletto
         /// An overriding module's provider methods will take precedence over a non-
         /// overriding module.  For example, given the following modules:
         /// <code>
-        /// [Module(EntryPoints = new[] { typeof(bool) })]
+        /// [Module(Injects = new[] { typeof(bool) })]
         /// public class Module
         /// {
         ///     [Provides]

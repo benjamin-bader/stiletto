@@ -43,17 +43,17 @@ namespace Stiletto.Test
         public void SingletonProviderMethodReturnsSameInstance()
         {
             var container = Container.Create(typeof (TestSingletonProviderModule));
-            var entryPoint = container.Get<SingletonTestEntryPoint>();
+            var injectable = container.Get<SingletonTestInjectable>();
 
-            Expect.The(entryPoint.One).ToBeTheSameAs(entryPoint.Another);
+            Expect.The(injectable.One).ToBeTheSameAs(injectable.Another);
         }
 
         [Test]
         public void NonSingletonProviderMethodReturnsDifferentInstances()
         {
-            var entryPoint = GetWithModules<NonSingletonTestEntryPoint>(typeof (TestSingletonProviderModule));
+            var injectable = GetWithModules<NonSingletonTestInjectable>(typeof (TestSingletonProviderModule));
 
-            Expect.The(entryPoint.One).Not.ToBeTheSameAs(entryPoint.Another);
+            Expect.The(injectable.One).Not.ToBeTheSameAs(injectable.Another);
         }
 
         [Test]
@@ -87,10 +87,10 @@ namespace Stiletto.Test
         }
 
         [Test]
-        public void EntryPoint_Injected_WhenDepenencyNotProvided_GetsJitBinding()
+        public void Injectable_Injected_WhenDepenencyNotProvided_GetsJitBinding()
         {
-            var entryPoint = GetWithModules<NeedsA>(new EmptyModule());
-            Expect.The(entryPoint).Not.ToBeNull();
+            var injectable = GetWithModules<NeedsA>(new EmptyModule());
+            Expect.The(injectable).Not.ToBeNull();
         }
 
         [Test, ExpectedException(typeof(ArgumentException))]
@@ -156,7 +156,7 @@ namespace Stiletto.Test
             [Inject] public A A { get; set; }
         }
 
-        [Module(EntryPoints = new[] { typeof(NeedsA) })]
+        [Module(Injects = new[] { typeof(NeedsA) })]
         private class EmptyModule
         {
         }
@@ -167,7 +167,7 @@ namespace Stiletto.Test
         }
 
         [Module(
-            EntryPoints = new[] { typeof(SingletonTestEntryPoint), typeof(NonSingletonTestEntryPoint)})]
+            Injects = new[] { typeof(SingletonTestInjectable), typeof(NonSingletonTestInjectable)})]
         public class TestSingletonProviderModule
         {
             [Provides, Named("n")]
@@ -183,20 +183,20 @@ namespace Stiletto.Test
             }
         }
 
-        public class SingletonTestEntryPoint
+        public class SingletonTestInjectable
         {
             [Inject, Named("s")] public object One { get; set; }
             [Inject, Named("s")] public object Another { get; set; }
         }
 
-        public class NonSingletonTestEntryPoint
+        public class NonSingletonTestInjectable
         {
             [Inject, Named("n")] public object One { get; set; }
             [Inject, Named("n")] public object Another { get; set; }
         }
 
         [Module(
-            EntryPoints = new[] { typeof(Dude) })]
+            Injects = new[] { typeof(Dude) })]
         public class TestNamedModule
         {
             private readonly IList<string> hobbies;
@@ -259,7 +259,7 @@ namespace Stiletto.Test
             }
         }
 
-        [Module(EntryPoints = new[] { typeof(DerivedInjectable) },
+        [Module(Injects = new[] { typeof(DerivedInjectable) },
             IncludedModules = new[] { typeof(TestNamedModule) })]
         public class NameModule
         {
@@ -313,7 +313,7 @@ namespace Stiletto.Test
             }
         }
 
-        [Module(EntryPoints = new[] { typeof(ThrowsOnNew), typeof(ThrowsOnSet) })]
+        [Module(Injects = new[] { typeof(ThrowsOnNew), typeof(ThrowsOnSet) })]
         public class ThrowableModule
         {
             [Provides]
@@ -343,7 +343,7 @@ namespace Stiletto.Test
             }
         }
 
-        [Module(EntryPoints = new [] { typeof(DerivedFromNonInjectable) })]
+        [Module(Injects = new [] { typeof(DerivedFromNonInjectable) })]
         public class BaseNonInjectableModule
         {
             [Provides]
@@ -363,7 +363,7 @@ namespace Stiletto.Test
             }
         }
 
-        [Module(EntryPoints = new[] { typeof(bool) }, IsLibrary = true)]
+        [Module(Injects = new[] { typeof(bool) }, IsLibrary = true)]
         public class NonOverridingModule
         {
             [Provides]

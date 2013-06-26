@@ -26,7 +26,7 @@ namespace Stiletto.Fody.Generators
     {
         private readonly TypeDefinition injectedType;
         private readonly TypeReference importedInjectedType;
-        private readonly bool isEntryPoint;
+        private readonly bool isModuleInjectable;
 
         private MethodReference generatedCtor;
         private GenericInstanceType genericInstanceType;
@@ -37,7 +37,7 @@ namespace Stiletto.Fody.Generators
         public bool IsSingleton { get; private set; }
         public MethodDefinition InjectableCtor { get; private set; }
         public IList<PropertyInfo> InjectableProperties { get; private set; }
-        public bool IsEntryPoint { get { return isEntryPoint; } }
+        public bool IsModuleInjectable { get { return isModuleInjectable; } }
         public IList<InjectMemberInfo> CtorParams { get; private set; }
         public TypeDefinition InjectedType { get { return injectedType; } }
 
@@ -45,7 +45,7 @@ namespace Stiletto.Fody.Generators
 
         public bool IsVisibleToPlugin { get; private set; }
 
-        public InjectBindingGenerator(ModuleDefinition moduleDefinition, References references, TypeReference injectedType, bool isEntryPoint)
+        public InjectBindingGenerator(ModuleDefinition moduleDefinition, References references, TypeReference injectedType, bool isModuleInjectable)
             : base(moduleDefinition, references)
         {
             this.injectedType = injectedType.IsDefinition
@@ -55,7 +55,7 @@ namespace Stiletto.Fody.Generators
             importedInjectedType = Import(injectedType);
             genericInstanceType = injectedType as GenericInstanceType;
 
-            this.isEntryPoint = isEntryPoint;
+            this.isModuleInjectable = isModuleInjectable;
 
             CtorParams = new List<InjectMemberInfo>();
             InjectableProperties = new List<PropertyInfo>();
@@ -130,13 +130,13 @@ namespace Stiletto.Fody.Generators
 
             if (InjectableCtor == null)
             {
-                if (InjectableProperties.Count == 0 && !IsEntryPoint) {
+                if (InjectableProperties.Count == 0 && !IsModuleInjectable) {
                     errorReporter.LogError("No injectable constructors or properties found on " + injectedType.FullName);
                 }
 
                 // XXX ben: this is wrong, I think - entry points with no ctor will still fail.
                 var defaultCtor = injectedType.GetConstructors().FirstOrDefault(ctor => !ctor.HasParameters && ctor.IsVisible());
-                if (defaultCtor == null && !IsEntryPoint)
+                if (defaultCtor == null && !IsModuleInjectable)
                 {
                     errorReporter.LogError("Type " + injectedType.FullName + " has no [Inject] constructors and no default constructor.");
                     return;
@@ -180,7 +180,7 @@ namespace Stiletto.Fody.Generators
                 && InjectableProperties.Count == 0
                 && BaseTypeKey == null)
             {
-                Conditions.Assert(IsEntryPoint, "Non-entry-points must have a constructor!");
+                Conditions.Assert(IsModuleInjectable, "Non-injectable types must have a constructor!");
                 return null;
             }
 

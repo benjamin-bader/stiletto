@@ -16,7 +16,7 @@ namespace Stiletto.Test
             Expect.The(greedy.Expensive).Not.ToBeNull();
         }
 
-        [Module(EntryPoints = new[] { typeof(NeedsAnExpensiveObject) })]
+        [Module(Injects = new[] { typeof(NeedsAnExpensiveObject) })]
         public class NonLazyModule
         {
             [Provides]
