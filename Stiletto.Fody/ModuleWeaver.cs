@@ -308,11 +308,6 @@ namespace Stiletto.Fody
                     }
 
                     moduleReaders.Add(ModuleReader.Read(module));
-                    /*var moduleProcessor = new ModuleProcessor(
-                        errorReporter,
-                        module,
-                        new References(module, stilettoReferences));
-                    processors.Add(moduleProcessor);*/
                     AddModuleToAssemblyDictionary(module, null);
                 }
             }
