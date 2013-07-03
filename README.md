@@ -10,7 +10,7 @@ Users of Dagger, Guice, or any other javax.inject-compatible IoC container will 
 
 ```csharp
 [Module(
-  EntryPoints = new[] { typeof(CoffeeApp) })]
+  Injects = new[] { typeof(CoffeeApp) })]
 public class CoffeeMoule
 {
   [Provides]
@@ -72,7 +72,7 @@ public class CoffeeMaker
 ## Named Dependencies
 
 ```csharp
-[Module(EntryPoints = new[] { typeof(NeedsTwoStrings) })]
+[Module(Injects = new[] { typeof(NeedsTwoStrings) })]
 public class NamedDependencyModule
 {
   [Provides, Named("this-is-one-dep")]
@@ -140,7 +140,7 @@ public class HasSingletonModule
 Stiletto can wrap your dependencies in Lazy<T> to defer loading, or IProvider<T> to give you more than one instance of a dependency:
 
 ```csharp
-[Module(EntryPoints = new[] { typeof(EntryPoint) })]
+[Module(Injects = new[] { typeof(EntryPoint) })]
 public class EagerModule
 {
   private readonly Random random = new Random();
