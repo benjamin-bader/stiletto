@@ -46,16 +46,6 @@ namespace Stiletto.Fody.Generators
             this.references = Conditions.CheckNotNull(references, "references");
         }
 
-        protected TypeReference Import(Type t)
-        {
-            return ModuleDefinition.Import(t);
-        }
-
-        protected FieldReference Import(FieldInfo fi)
-        {
-            return ModuleDefinition.Import(fi);
-        }
-
         protected TypeReference Import(TypeReference t)
         {
             return ModuleDefinition.Import(t);
@@ -64,11 +54,6 @@ namespace Stiletto.Fody.Generators
         protected MethodReference Import(MethodReference m)
         {
             return ModuleDefinition.Import(m);
-        }
-
-        protected MethodReference Import(MethodBase mb)
-        {
-            return ModuleDefinition.Import(mb);
         }
 
         /// <summary>
