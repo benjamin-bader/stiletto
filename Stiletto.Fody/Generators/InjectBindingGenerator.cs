@@ -414,7 +414,7 @@ namespace Stiletto.Fody.Generators
                 il.Cast(Import(param.Type));
             }
 
-            il.Emit(OpCodes.Newobj, ModuleDefinition.Import(InjectableCtor));
+            il.Emit(OpCodes.Newobj, Import(InjectableCtor));
 
             if (vResult != null) {
                 il.Emit(OpCodes.Stloc, vResult);
@@ -461,7 +461,7 @@ namespace Stiletto.Fody.Generators
                 il.Emit(OpCodes.Callvirt, References.Binding_Get);
                 il.Cast(property.Type);
                 
-                il.Emit(OpCodes.Callvirt, ModuleDefinition.Import(property.Setter));
+                il.Emit(OpCodes.Callvirt, Import(property.Setter));
             }
 
             if (baseTypeField != null) {

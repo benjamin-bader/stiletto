@@ -201,7 +201,7 @@ namespace Stiletto.Fody.Generators
             var il = ctor.Body.GetILProcessor();
 
             il.Emit (OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call, ModuleDefinition.Import (References.Object.Resolve().GetConstructors().First()));
+            il.Emit(OpCodes.Call, Import(References.Object.Resolve().GetConstructors().First()));
 
             il.Emit (OpCodes.Ldarg_0);
             il.Emit (OpCodes.Call, References.StringComparer_Ordinal_Getter);

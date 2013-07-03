@@ -64,10 +64,10 @@ namespace Stiletto.Fody.Generators
             t.Interfaces.Add(providerOfT);
             t.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
 
-            var providerOfT_get = ModuleDefinition.Import(providerOfT.Resolve()
-                                                                     .Methods
-                                                                     .First(m => m.Name == "Get"))
-                                                  .MakeHostInstanceGeneric(providedType);
+            var providerOfT_get = Import(providerOfT.Resolve()
+                                                    .Methods
+                                                    .First(m => m.Name == "Get"))
+                .MakeHostInstanceGeneric(providedType);
 
             var providerKeyField = new FieldDefinition("providerKey", FieldAttributes.Private, References.String);
             var mustBeInjectableField = new FieldDefinition("mustBeInjectable", FieldAttributes.Private, References.Boolean);

@@ -103,7 +103,7 @@ namespace Stiletto.Fody.Generators
                 }
             }
 
-            importedModuleType = moduleDefinition.Import(moduleType);
+            importedModuleType = Import(moduleType);
 
             baseProvidesMethods = moduleType
                 .Methods
