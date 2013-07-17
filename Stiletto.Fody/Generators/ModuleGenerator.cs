@@ -137,9 +137,9 @@ namespace Stiletto.Fody.Generators
             moduleCtor = moduleType.GetConstructors().FirstOrDefault(m => m.Parameters.Count == 0);
             if (moduleCtor == null) {
                 errorReporter.LogError(moduleType.FullName + " is marked as a [Module], but no default constructor is visible.");
+            } else {
+                moduleCtor = Import(moduleCtor);
             }
-
-            moduleCtor = Import(moduleCtor);
 
             ProvidedKeys = new HashSet<string>(StringComparer.Ordinal);
             foreach (var method in baseProvidesMethods) {
