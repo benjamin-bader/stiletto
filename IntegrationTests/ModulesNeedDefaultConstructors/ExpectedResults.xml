@@ -1,0 +1,5 @@
+﻿<ExpectedResults>
+  <Errors>
+    <Pattern>is marked as a \[Module\], but no default constructor is visible</Pattern>
+  </Errors>
+</ExpectedResults>
