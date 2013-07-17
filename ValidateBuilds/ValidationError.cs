@@ -19,6 +19,7 @@ namespace ValidateBuilds
     public enum ValidationErrorType
     {
         BuildFailed,
+        WeaverCrashed,
         ExpectedTypeMissing,
         ExcludedTypePresent,
         ExpectedWarningMissing,

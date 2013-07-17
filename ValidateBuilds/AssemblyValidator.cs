@@ -32,6 +32,11 @@ namespace ValidateBuilds
             var module = fodyHelper.ProcessAssembly();
             var allTypes = module.GetTypes().Select(t => t.FullName).ToSet(StringComparer.Ordinal);
 
+            if (fodyHelper.WeaverException != null)
+            {
+                errors.Add(WeaverCrashed(fodyHelper.WeaverException));
+            }
+
             // Compare actual results with expected results and compile an error list
             var actualErrors = new List<string>(fodyHelper.Errors);
             var actualWarnings = new List<string>(fodyHelper.Warnings);
@@ -163,6 +168,11 @@ namespace ValidateBuilds
         private ValidationError ExpectedTypeMissing(string typename)
         {
             return new ValidationError(ValidationErrorType.ExpectedTypeMissing, typename, projectFile);
+        }
+
+        private ValidationError WeaverCrashed(Exception exception)
+        {
+            return new ValidationError(ValidationErrorType.WeaverCrashed, exception.ToString(), projectFile);
         }
     }
 }

@@ -18,6 +18,7 @@ namespace ValidateBuilds
 
         public IList<string> Errors { get; private set; }
         public IList<string> Warnings { get; private set; }
+        public Exception WeaverException { get; private set; }
  
         public FodyHelper(string projectPath, string assemblyPath)
         {
@@ -67,6 +68,7 @@ namespace ValidateBuilds
             catch (Exception ex)
             {
                 logger.DebugException("Fody processing failed for assembly at " + assemblyPath, ex);
+                WeaverException = ex;
             }
 
             return assemblyDefinition.MainModule;
