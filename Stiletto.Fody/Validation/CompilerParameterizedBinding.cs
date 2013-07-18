@@ -45,7 +45,7 @@ namespace Stiletto.Fody.Validation
 
         public override void Resolve(Resolver resolver)
         {
-            elementBinding = resolver.RequestBinding(elementKey, null);
+            elementBinding = resolver.RequestBinding(elementKey, RequiredBy);
         }
 
         public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
