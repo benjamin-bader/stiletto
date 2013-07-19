@@ -169,6 +169,57 @@ namespace Stiletto.Fody
             }
         }
 
+        public void GetInjectableKeys(ISet<string> injectableKeys)
+        {
+            foreach (var g in injectGenerators)
+            {
+                if (!string.IsNullOrEmpty(g.Key))
+                {
+                    injectableKeys.Add(g.Key);
+                }
+
+                if (!string.IsNullOrEmpty(g.MembersKey))
+                {
+                    injectableKeys.Add(g.MembersKey);
+                }
+            }
+
+            foreach (var g in moduleGenerators)
+            {
+                foreach (var p in g.ProviderGenerators)
+                {
+                    if (!string.IsNullOrEmpty(p.Key))
+                    {
+                        injectableKeys.Add(p.Key);
+                    }
+                }
+            }
+
+            foreach (var g in lazyGenerators)
+            {
+                if (!string.IsNullOrEmpty(g.Key))
+                {
+                    injectableKeys.Add(g.Key);
+                }
+            }
+
+            foreach (var g in providerGenerators)
+            {
+                if (!string.IsNullOrEmpty(g.Key))
+                {
+                    injectableKeys.Add(g.Key);
+                }
+            }
+        }
+
+        public void ValidateCompleteModules(ISet<string> injectableKeys)
+        {
+            foreach (var g in moduleGenerators)
+            {
+                g.ValidateCompleteness(injectableKeys, errorReporter);
+            }
+        }
+
         public void GenerateAdapters()
         {
             // Step 4: The graph is valid, emit generated adapters.

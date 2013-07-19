@@ -130,6 +130,22 @@ namespace Stiletto.Fody
                 return;
             }
 
+            var injectableKeys = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var p in processors)
+            {
+                p.GetInjectableKeys(injectableKeys);
+            }
+
+            foreach (var p in processors)
+            {
+                p.ValidateCompleteModules(injectableKeys);
+            }
+
+            if (HasError)
+            {
+                return;
+            }
+
             var pluginCtors = processors.Select(p => p.CompiledPluginConstructor).ToList();
 
             foreach (var p in processors)

@@ -44,6 +44,25 @@ namespace Stiletto.Test
             Container.Create(typeof(UnusedProvidesModule)).Validate();
         }
 
+        [Test, ExpectedException(typeof (InvalidOperationException))]
+        public void Validate_WhenProviderParamMissing_Throws()
+        {
+            Container.Create(typeof(MissingProviderParamModule)).Validate();
+        }
+
+        [Test, ExpectedException(typeof(InvalidOperationException))]
+        public void Validate_WithCircularDependencies_AcrossProvidersAndInjectables_Throws()
+        {
+            Container.Create(typeof(CircularModule)).Validate();
+        }
+
+        [Test]
+        public void NonProvidedInjectableProviderParamIsValid()
+        {
+            var container = Container.Create(typeof(NonProvidedImplementationModule));
+            container.Validate();
+        }
+
         [Module(Injects = new[] { typeof(Dep)})]
         public class NeedsSomethingMore
         {
@@ -165,6 +184,81 @@ namespace Stiletto.Test
             public int Bar()
             {
                 return 0;
+            }
+        }
+
+        [Module(IsLibrary = true)]
+        public class MissingProviderParamModule
+        {
+            [Provides]
+            public int Bar(string foo)
+            {
+                return foo.GetHashCode();
+            }
+
+            [Provides]
+            public string GetString(object bar)
+            {
+                return bar.ToString();
+            }
+        }
+
+        public interface IClass
+        {
+            int GetInt { get; set; }
+        }
+
+        public class SomeClass : IClass
+        {
+            public int GetInt { get; set; }
+
+            [Inject]
+            public SomeClass(int num)
+            {
+                GetInt = num;
+            }
+        }
+
+        [Module]
+        public class CircularModule
+        {
+            [Provides]
+            public IClass One(SomeClass impl)
+            {
+                return impl;
+            }
+
+            [Provides]
+            public int Two(IClass provider)
+            {
+                return provider.GetInt;
+            }
+        }
+
+        public class SomeOtherClass : IClass
+        {
+            public int GetInt { get; set; }
+
+            [Inject]
+            public SomeOtherClass(string str)
+            {
+
+            }
+        }
+
+        [Module(IsLibrary = true)]
+        public class NonProvidedImplementationModule
+        {
+            [Provides]
+            public string ProvideString()
+            {
+                return "foo";
+            }
+
+            [Provides]
+            public IClass ProvideClass(SomeOtherClass impl)
+            {
+                return impl;
             }
         }
     }

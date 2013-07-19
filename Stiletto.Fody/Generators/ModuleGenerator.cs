@@ -151,21 +151,6 @@ namespace Stiletto.Fody.Generators
                 }
             }
 
-            if (IsComplete) {
-                foreach (var method in baseProvidesMethods) {
-                    foreach (var param in method.Parameters) {
-                        var name = param.GetNamedAttributeName();
-                        var key = CompilerKeys.ForType(param.ParameterType, name);
-
-                        if (!ProvidedKeys.Contains(key)) {
-                            const string msg = "{0}: Module is a complete module but has an unsatisfied dependency on {1}{2}";
-                            var nameDescr = name == null ? string.Empty : "[Named(\"" + name + "\")] ";
-                            errorReporter.LogError(string.Format(msg, moduleType.FullName, nameDescr, param.ParameterType.FullName));
-                        }
-                    }
-                }
-            }
-
             switch (moduleType.Attributes & TypeAttributes.VisibilityMask) {
                 case TypeAttributes.NestedFamily:
                 case TypeAttributes.NestedFamANDAssem:
@@ -180,6 +165,30 @@ namespace Stiletto.Fody.Generators
 
             foreach (var gen in ProviderGenerators) {
                 gen.Validate(errorReporter);
+            }
+        }
+
+        public void ValidateCompleteness(ISet<string> injectableKeys, IErrorReporter errorReporter)
+        {
+            if (!IsComplete)
+            {
+                return;
+            }
+
+            foreach (var method in baseProvidesMethods)
+            {
+                foreach (var param in method.Parameters)
+                {
+                    var name = param.Name;
+                    var key = CompilerKeys.ForParam(param);
+
+                    if (!injectableKeys.Contains(key))
+                    {
+                        const string msg = "{0}: Module is a complete module but has an unsatisfied dependency on {1}{2}";
+                        var nameDescr = name == null ? string.Empty : "[Named(\"" + name + "\")] ";
+                        errorReporter.LogError(string.Format(msg, moduleType.FullName, nameDescr, param.ParameterType.FullName));
+                    }
+                }
             }
         }
 
