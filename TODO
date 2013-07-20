@@ -1,4 +1,1 @@
-* Integration tests for the compiler
-* Implement PreProcessedModuleProcessor that a) provides a plugin ctor and b) fixes up any Container.CreateWithPlugins calls.
-* Switch keys to be based on assembly-qualified names (TypeReference -> Assembly.CreateQualifiedName(tr.Module.Assembly.FullName, tr.FullName))
-* Create compiled inject bindings inside of injectable classes and relax the public ctor/setter requirements - require only protected.
+TODO now maintained in Trello: https://trello.com/b/jJNBxZLw/stiletto
