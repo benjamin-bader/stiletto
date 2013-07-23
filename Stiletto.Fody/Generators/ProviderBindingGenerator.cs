@@ -18,6 +18,7 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using Stiletto.Internal.Loaders.Codegen;
 
 namespace Stiletto.Fody.Generators
 {
@@ -55,7 +56,7 @@ namespace Stiletto.Fody.Generators
         {
             var t = new TypeDefinition(
                 providedType.Namespace,
-                providedType.Name + Internal.Plugins.Codegen.CodegenPlugin.IProviderSuffix,
+                providedType.Name + CodegenLoader.IProviderSuffix,
                 TypeAttributes.Public,
                 References.Binding);
 

@@ -17,9 +17,9 @@
 using System;
 using System.Diagnostics;
 
-namespace Stiletto.Internal.Plugins.Reflection
+namespace Stiletto.Internal.Loaders.Reflection
 {
-    internal sealed class ReflectionPlugin : IPlugin
+    internal sealed class ReflectionLoader : ILoader
     {
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {

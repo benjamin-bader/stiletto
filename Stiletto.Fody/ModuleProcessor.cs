@@ -62,7 +62,7 @@ namespace Stiletto.Fody
             get { return baseGeneratorQueue.Count > 0; }
         }
 
-        public MethodReference CompiledPluginConstructor { get; private set; }
+        public MethodReference CompiledLoaderConstructor { get; private set; }
         public bool UsesStiletto { get; private set; }
 
         public ModuleProcessor(
@@ -269,31 +269,31 @@ namespace Stiletto.Fody
                 }
             }
 
-            var pluginGenerator = new PluginGenerator(
+            var loaderGenerator = new LoaderGenerator(
                 moduleDefinition,
                 references,
-                injectGenerators.Where(gen => gen.IsVisibleToPlugin).Select(gen => gen.GetKeyedCtor()).Where(ctor => ctor != null),
+                injectGenerators.Where(gen => gen.IsVisibleToLoader).Select(gen => gen.GetKeyedCtor()).Where(ctor => ctor != null),
                 lazyGenerators.Select(gen => gen.GetKeyedCtor()),
                 providerGenerators.Select(gen => gen.GetKeyedCtor()),
-                moduleGenerators.Where(gen => gen.IsVisibleToPlugin).Select(gen => gen.GetModuleTypeAndGeneratedCtor()));
+                moduleGenerators.Where(gen => gen.IsVisibleToLoader).Select(gen => gen.GetModuleTypeAndGeneratedCtor()));
 
-            moduleDefinition.Types.Add(pluginGenerator.Generate(errorReporter));
+            moduleDefinition.Types.Add(loaderGenerator.Generate(errorReporter));
 
-            CompiledPluginConstructor = pluginGenerator.GeneratedCtor;
+            CompiledLoaderConstructor = loaderGenerator.GeneratedCtor;
 
             moduleDefinition.CustomAttributes.Add(new CustomAttribute(references.ProcessedAssemblyAttribute_Ctor));
         }
 
         /// <summary>
         /// Replaces all invocations of <see cref="Container.Create"/> with a
-        /// call to <see cref="Container.CreateWithPlugins"/> using the given
-        /// generated plugins.
+        /// call to <see cref="Container.CreateWithLoaders"/> using the given
+        /// generated loaders.
         /// </summary>
-        /// <param name="pluginCtors">
-        /// A list of IPlugin constructors to be invoked, the results of which
-        /// will be passed to <see cref="Container.CreateWithPlugins"/>.
+        /// <param name="loaderCtors">
+        /// A list of ILoader constructors to be invoked, the results of which
+        /// will be passed to <see cref="Container.CreateWithLoaders"/>.
         /// </param>
-        public void RewriteContainerCreateInvocations(IList<MethodReference> pluginCtors)
+        public void RewriteContainerCreateInvocations(IList<MethodReference> loaderCtors)
         {
             var methods = from t in moduleDefinition.GetTypes()
                           from m in t.Methods
@@ -304,11 +304,11 @@ namespace Stiletto.Fody
                                              && ((MethodReference)i.Operand).AreSame(references.Container_Create))
                           select m;
 
-            var arrayOfIPlugin = moduleDefinition.Import(new ArrayType(references.IPlugin));
+            var arrayOfILoader = moduleDefinition.Import(new ArrayType(references.ILoader));
 
             foreach (var method in methods)
             {
-                VariableDefinition pluginsArray = null;
+                VariableDefinition loadersArray = null;
                 for (var instr = method.Body.Instructions.First(); instr != null; instr = instr.Next)
                 {
                     if (instr.OpCode != OpCodes.Call && instr.OpCode != OpCodes.Callvirt)
@@ -323,30 +323,30 @@ namespace Stiletto.Fody
                         continue;
                     }
 
-                    if (pluginsArray == null)
+                    if (loadersArray == null)
                     {
-                        pluginsArray = new VariableDefinition(
-                            "plugins",
-                            arrayOfIPlugin);
-                        method.Body.Variables.Add(pluginsArray);
+                        loadersArray = new VariableDefinition(
+                            "loaders",
+                            arrayOfILoader);
+                        method.Body.Variables.Add(loadersArray);
                         method.Body.InitLocals = true;
                     }
 
-                    // Container.Create(object[]) -> Container.CreateWithPlugins(object[], IPlugin[]);
+                    // Container.Create(object[]) -> Container.CreateWithLoaders(object[], ILoader[]);
                     var instrs = new List<Instruction>();
-                    instrs.Add(Instruction.Create(OpCodes.Ldc_I4, pluginCtors.Count));
-                    instrs.Add(Instruction.Create(OpCodes.Newarr, references.IPlugin));
-                    instrs.Add(Instruction.Create(OpCodes.Stloc, pluginsArray));
+                    instrs.Add(Instruction.Create(OpCodes.Ldc_I4, loaderCtors.Count));
+                    instrs.Add(Instruction.Create(OpCodes.Newarr, references.ILoader));
+                    instrs.Add(Instruction.Create(OpCodes.Stloc, loadersArray));
 
-                    for (var i = 0; i < pluginCtors.Count; ++i)
+                    for (var i = 0; i < loaderCtors.Count; ++i)
                     {
-                        instrs.Add(Instruction.Create(OpCodes.Ldloc, pluginsArray));
+                        instrs.Add(Instruction.Create(OpCodes.Ldloc, loadersArray));
                         instrs.Add(Instruction.Create(OpCodes.Ldc_I4, i));
-                        instrs.Add(Instruction.Create(OpCodes.Newobj, moduleDefinition.Import(pluginCtors[i])));
+                        instrs.Add(Instruction.Create(OpCodes.Newobj, moduleDefinition.Import(loaderCtors[i])));
                         instrs.Add(Instruction.Create(OpCodes.Stelem_Ref));
                     }
 
-                    instrs.Add(Instruction.Create(OpCodes.Ldloc, pluginsArray));
+                    instrs.Add(Instruction.Create(OpCodes.Ldloc, loadersArray));
 
                     var il = method.Body.GetILProcessor();
                     foreach (var instruction in instrs)
@@ -354,7 +354,7 @@ namespace Stiletto.Fody
                         il.InsertBefore(instr, instruction);
                     }
 
-                    instr.Operand = references.Container_CreateWithPlugins;
+                    instr.Operand = references.Container_CreateWithLoaders;
                 }
             }
         }

@@ -19,7 +19,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace Stiletto.Internal.Plugins.Reflection
+namespace Stiletto.Internal.Loaders.Reflection
 {
     internal class ReflectionRuntimeModule : RuntimeModule
     {

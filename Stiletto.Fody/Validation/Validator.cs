@@ -26,7 +26,7 @@ namespace Stiletto.Fody.Validation
 {
     public class Validator
     {
-        private readonly IPlugin plugin;
+        private readonly ILoader loader;
         private readonly ICollection<ModuleGenerator> moduleGenerators;
         private readonly IDictionary<string, ModuleGenerator> modulesByTypeName; 
         private readonly IErrorReporter errorReporter;
@@ -40,7 +40,7 @@ namespace Stiletto.Fody.Validation
         {
             modulesByTypeName = modules.ToDictionary(m => m.ModuleType.FullName, m => m);
             moduleGenerators = modulesByTypeName.Values;
-            plugin = new CompilerPlugin(injectBindings, lazyBindings, providerBindings);
+            loader = new CompilerLoader(injectBindings, lazyBindings, providerBindings);
             this.errorReporter = errorReporter;
         }
 
@@ -140,7 +140,7 @@ namespace Stiletto.Fody.Validation
 
             GatherIncludedModules(moduleGenerator, allModules, new Stack<string>());
 
-            var resolver = new Resolver(null, plugin, errors =>
+            var resolver = new Resolver(null, loader, errors =>
             {
                 if (ignoreCompletenessErrors)
                 {

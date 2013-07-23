@@ -46,13 +46,13 @@ namespace Stiletto.Fody
 
         public TypeDefinition Container { get; private set; }
         public MethodDefinition Container_Create { get; private set; }
-        public MethodDefinition Container_CreateWithPlugins { get; private set; }
+        public MethodDefinition Container_CreateWithLoaders { get; private set; }
 
-        public TypeDefinition IPlugin { get; private set; }
-        public MethodDefinition IPlugin_GetInjectBinding { get; private set; }
-        public MethodDefinition IPlugin_GetLazyInjectBinding { get; private set; }
-        public MethodDefinition IPlugin_GetIProviderInjectBinding { get; private set; }
-        public MethodDefinition IPlugin_GetRuntimeModue { get; private set; }
+        public TypeDefinition ILoader { get; private set; }
+        public MethodDefinition ILoader_GetInjectBinding { get; private set; }
+        public MethodDefinition ILoader_GetLazyInjectBinding { get; private set; }
+        public MethodDefinition ILoader_GetIProviderInjectBinding { get; private set; }
+        public MethodDefinition ILoader_GetRuntimeModue { get; private set; }
 
         public TypeDefinition Resolver { get; private set; }
         public MethodDefinition Resolver_RequestBinding { get; private set; }
@@ -111,13 +111,13 @@ namespace Stiletto.Fody
 
             var tContainer = types["Stiletto.Container"];
             var tContainer_Create = tContainer.GetMethod("Create");
-            var tContainer_CreateWithPlugins = tContainer.GetMethod("CreateWithPlugins");
+            var tContainer_CreateWithLoaders = tContainer.GetMethod("CreateWithLoaders");
 
-            var tPlugin = types["Stiletto.Internal.IPlugin"];
-            var tPlugin_GetInjectBinding = tPlugin.GetMethod("GetInjectBinding");
-            var tPlugin_GetLazyInjectBinding = tPlugin.GetMethod("GetLazyInjectBinding");
-            var tPlugin_GetProviderInjectBinding = tPlugin.GetMethod("GetIProviderInjectBinding");
-            var tPlugin_GetRuntimeModule = tPlugin.GetMethod("GetRuntimeModule");
+            var tLoader = types["Stiletto.Internal.ILoader"];
+            var tLoader_GetInjectBinding = tLoader.GetMethod("GetInjectBinding");
+            var tLoader_GetLazyInjectBinding = tLoader.GetMethod("GetLazyInjectBinding");
+            var tLoader_GetProviderInjectBinding = tLoader.GetMethod("GetIProviderInjectBinding");
+            var tLoader_GetRuntimeModule = tLoader.GetMethod("GetRuntimeModule");
 
             var tResolver = types["Stiletto.Internal.Resolver"];
             var tResolver_RequestBinding = tResolver.GetMethod("RequestBinding");
@@ -131,7 +131,7 @@ namespace Stiletto.Fody
             var tNamedAttribute = types["Stiletto.NamedAttribute"];
             var tSingletonAttribute = types["Stiletto.SingletonAttribute"];
 
-            var tProcessedAssemblyAttribute = types["Stiletto.Internal.Plugins.Codegen.ProcessedAssemblyAttribute"];
+            var tProcessedAssemblyAttribute = types["Stiletto.Internal.Loaders.Codegen.ProcessedAssemblyAttribute"];
             var tProcessedAssemblyAttribute_Ctor = tProcessedAssemblyAttribute.GetDefaultConstructor();
 
             return new StilettoReferences
@@ -154,13 +154,13 @@ namespace Stiletto.Fody
 
                            Container = tContainer,
                            Container_Create = tContainer_Create,
-                           Container_CreateWithPlugins = tContainer_CreateWithPlugins,
+                           Container_CreateWithLoaders = tContainer_CreateWithLoaders,
 
-                           IPlugin = tPlugin,
-                           IPlugin_GetInjectBinding = tPlugin_GetInjectBinding,
-                           IPlugin_GetLazyInjectBinding = tPlugin_GetLazyInjectBinding,
-                           IPlugin_GetIProviderInjectBinding = tPlugin_GetProviderInjectBinding,
-                           IPlugin_GetRuntimeModue = tPlugin_GetRuntimeModule,
+                           ILoader = tLoader,
+                           ILoader_GetInjectBinding = tLoader_GetInjectBinding,
+                           ILoader_GetLazyInjectBinding = tLoader_GetLazyInjectBinding,
+                           ILoader_GetIProviderInjectBinding = tLoader_GetProviderInjectBinding,
+                           ILoader_GetRuntimeModue = tLoader_GetRuntimeModule,
 
                            Resolver = tResolver,
                            Resolver_RequestBinding = tResolver_RequestBinding,

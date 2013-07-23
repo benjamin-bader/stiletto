@@ -27,7 +27,7 @@ namespace Stiletto.Fody
         private const string ProvidesAttributeName = "Stiletto.ProvidesAttribute";
         private const string NamedAttributeName = "Stiletto.NamedAttribute";
         private const string SingletonAttributeName = "Stiletto.SingletonAttribute";
-        private const string ProcessedAssemblyAttributeName = "Stiletto.Internal.Plugins.Codegen.ProcessedAssemblyAttribute";
+        private const string ProcessedAssemblyAttributeName = "Stiletto.Internal.Loaders.Codegen.ProcessedAssemblyAttribute";
 
         public static bool IsInjectAttribute(this CustomAttribute attribute)
         {
