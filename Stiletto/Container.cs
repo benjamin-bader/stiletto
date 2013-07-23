@@ -20,8 +20,8 @@ using System.Linq;
 using System.Text;
 
 using Stiletto.Internal;
-using Stiletto.Internal.Plugins.Codegen;
-using Stiletto.Internal.Plugins.Reflection;
+using Stiletto.Internal.Loaders.Codegen;
+using Stiletto.Internal.Loaders.Reflection;
 
 namespace Stiletto
 {
@@ -48,21 +48,21 @@ namespace Stiletto
         /// </returns>
         public static Container Create(params object[] modules)
         {
-            var plugins = ReflectionUtils.GetCompiledPlugins();
-            plugins.Add(new CodegenPlugin());
-            plugins.Add(new ReflectionPlugin());
+            var loaders = ReflectionUtils.GetCompiledLoaders();
+            loaders.Add(new CodegenLoader());
+            loaders.Add(new ReflectionLoader());
 
-            var plugin = new RuntimeAggregationPlugin(plugins.ToArray());
-            return StilettoContainer.MakeContainer(null, plugin, modules);
+            var loader = new RuntimeAggregationLoader(loaders.ToArray());
+            return StilettoContainer.MakeContainer(null, loader, modules);
         }
 
-        public static Container CreateWithPlugins(object[] modules, IPlugin[] plugins)
+        public static Container CreateWithLoaders(object[] modules, ILoader[] loaders)
         {
-            var allPlugins = new IPlugin[plugins.Length + 2];
-            Array.Copy(plugins, allPlugins, plugins.Length);
-            allPlugins[plugins.Length] = new CodegenPlugin();
-            allPlugins[plugins.Length + 1] = new ReflectionPlugin();
-            return StilettoContainer.MakeContainer(null, new RuntimeAggregationPlugin(allPlugins), modules);
+            var allLoaders = new ILoader[loaders.Length + 2];
+            Array.Copy(loaders, allLoaders, loaders.Length);
+            allLoaders[loaders.Length] = new CodegenLoader();
+            allLoaders[loaders.Length + 1] = new ReflectionLoader();
+            return StilettoContainer.MakeContainer(null, new RuntimeAggregationLoader(allLoaders), modules);
         }
 
         private class StilettoContainer : Container
@@ -70,30 +70,30 @@ namespace Stiletto
             private readonly StilettoContainer baseContainer;
             private readonly Resolver resolver;
             private readonly IDictionary<string, Type> injectTypes;
-            private readonly IPlugin plugin;
+            private readonly ILoader loader;
 
             private StilettoContainer(
                 StilettoContainer baseContainer,
                 Resolver resolver,
-                IPlugin plugin,
+                ILoader loader,
                 IDictionary<string, Type> injectTypes)
             {
                 this.baseContainer = baseContainer;
                 this.resolver = resolver;
-                this.plugin = plugin;
+                this.loader = loader;
                 this.injectTypes = injectTypes;
             }
 
             internal static StilettoContainer MakeContainer(
                 StilettoContainer baseContainer,
-                IPlugin plugin,
+                ILoader loader,
                 params object[] modules)
             {
                 var injectTypes = new Dictionary<string, Type>(Key.Comparer);
                 var bindings = new Dictionary<string, Binding>(Key.Comparer);
                 var overrides = new Dictionary<string, Binding>(Key.Comparer);
 
-                foreach (var runtimeModule in GetAllRuntimeModules(plugin, modules).Values)
+                foreach (var runtimeModule in GetAllRuntimeModules(loader, modules).Values)
                 {
                     var addTo = runtimeModule.IsOverride ? overrides : bindings;
 
@@ -107,19 +107,19 @@ namespace Stiletto
 
                 var resolver = new Resolver(
                     baseContainer != null ? baseContainer.resolver : null,
-                    plugin,
+                    loader,
                     HandleErrors);
 
                 resolver.InstallBindings(bindings);
                 resolver.InstallBindings(overrides);
 
-                return new StilettoContainer(baseContainer, resolver, plugin, injectTypes);
+                return new StilettoContainer(baseContainer, resolver, loader, injectTypes);
             }
 
             public override Container Add(params object[] modules)
             {
                 ResolveAllBindings();
-                return MakeContainer(this, plugin, modules);
+                return MakeContainer(this, loader, modules);
             }
 
             public override T Get<T>()
@@ -206,7 +206,7 @@ namespace Stiletto
             }
 
             private static IDictionary<Type, RuntimeModule> GetAllRuntimeModules(
-                IPlugin plugin,
+                ILoader loader,
                 object[] seedModules)
             {
                 var runtimeModules = new RuntimeModule[seedModules.Length];
@@ -215,11 +215,11 @@ namespace Stiletto
                     var m = seedModules[i];
                     if (m is Type)
                     {
-                        runtimeModules[i] = plugin.GetRuntimeModule((Type)m, null);
+                        runtimeModules[i] = loader.GetRuntimeModule((Type)m, null);
                     }
                     else
                     {
-                        runtimeModules[i] = plugin.GetRuntimeModule(m.GetType(), m);
+                        runtimeModules[i] = loader.GetRuntimeModule(m.GetType(), m);
                     }
                 }
 
@@ -248,7 +248,7 @@ namespace Stiletto
                         continue;
                     }
 
-                    var runtimeModule = plugin.GetRuntimeModule(t, null);
+                    var runtimeModule = loader.GetRuntimeModule(t, null);
                     result.Add(t, runtimeModule);
 
                     for (var i = 0; i < runtimeModule.Includes.Length; ++i)

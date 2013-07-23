@@ -20,15 +20,12 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using System.Collections.Generic;
-
-using Stiletto.Internal.Plugins.Codegen;
+using Stiletto.Internal.Loaders.Codegen;
 
 namespace Stiletto.Fody.Generators
 {
-    public class PluginGenerator : Generator
+    public class LoaderGenerator : Generator
     {
-        public const string GeneratedPluginName = "$CompiledPlugin$";
-
         private readonly IEnumerable<KeyedCtor> injectBindingCtors;
         private readonly IEnumerable<KeyedCtor> lazyBindingCtors;
         private readonly IEnumerable<KeyedCtor> providerBindingCtors;
@@ -47,7 +44,7 @@ namespace Stiletto.Fody.Generators
         private readonly TypeReference providerFnType;
         private readonly TypeReference moduleFnType;
 
-        private TypeDefinition plugin;
+        private TypeDefinition loader;
         private FieldDefinition injectsField;
         private FieldDefinition lazyInjectsField;
         private FieldDefinition providersField;
@@ -56,7 +53,7 @@ namespace Stiletto.Fody.Generators
 
         public MethodReference GeneratedCtor { get; private set; }
 
-        public PluginGenerator(
+        public LoaderGenerator(
             ModuleDefinition moduleDefinition,
             References references,
             IEnumerable<KeyedCtor> injectBindingCtors,
@@ -129,7 +126,7 @@ namespace Stiletto.Fody.Generators
         }
 
         /// <summary>
-        /// Generates an IPlugin implementation that provides the given
+        /// Generates an ILoader implementation that provides the given
         /// inject bindings, lazy bindings, provider bindings, and modules,
         /// at runtime.
         /// </summary>
@@ -137,28 +134,28 @@ namespace Stiletto.Fody.Generators
         /// The idea here is that we have a key and constructor methodref for all generated
         /// types; we can just wrap each methodref in a so-called factory function and maintain
         /// dictionaries of keys to factory Funcs; at runtime, either the proper Func is looked
-        /// up or a KeyNotFoundException is thrown, passing the job off to other plugins.
+        /// up and returned or the lookup fails null is returned, passing the job off to other loaders.
         /// </remarks>
         public override TypeDefinition Generate(IErrorReporter errorReporter)
         {
-            plugin = new TypeDefinition(
-                CodegenPlugin.CompiledPluginNamespace,
-                CodegenPlugin.CompiledPluginName,
+            loader = new TypeDefinition(
+                CodegenLoader.CompiledLoaderNamespace,
+                CodegenLoader.CompiledLoaderName,
                 TypeAttributes.Public | TypeAttributes.Sealed,
                 References.Object);
 
-            plugin.Interfaces.Add (References.IPlugin);
-            plugin.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
+            loader.Interfaces.Add (References.ILoader);
+            loader.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
 
             injectsField = new FieldDefinition("bindings", FieldAttributes.Private, References.DictionaryOfStringToBindingFn);
             lazyInjectsField = new FieldDefinition("lazyBindings", FieldAttributes.Private, References.DictionaryOfStringToLazyBindingFn);
             providersField = new FieldDefinition("providerBindings", FieldAttributes.Private, References.DictionaryOfStringToProviderBindingFn);
             modulesField = new FieldDefinition("modules", FieldAttributes.Private, References.DictionaryOfTypeToModuleFn);
 
-            plugin.Fields.Add (injectsField);
-            plugin.Fields.Add(lazyInjectsField);
-            plugin.Fields.Add (providersField);
-            plugin.Fields.Add (modulesField);
+            loader.Fields.Add (injectsField);
+            loader.Fields.Add(lazyInjectsField);
+            loader.Fields.Add (providersField);
+            loader.Fields.Add (modulesField);
 
             EmitCtor();
             EmitGetInjectBinding();
@@ -166,7 +163,7 @@ namespace Stiletto.Fody.Generators
             EmitGetIProviderInjectBinding();
             EmitGetRuntimeModule();
 
-            return plugin;
+            return loader;
         }
 
         public override KeyedCtor GetKeyedCtor ()
@@ -211,7 +208,7 @@ namespace Stiletto.Fody.Generators
             foreach (var keyedCtor in injectBindingCtors)
             {
                 var factory = EmitInjectFactory(keyedCtor.Ctor);
-                plugin.Methods.Add(factory);
+                loader.Methods.Add(factory);
 
                 AddFactoryToDict(il, keyedCtor.Key, factory, injectsField, bindingFnCtor,
                                  References.DictionaryOfStringToBindingFn_Add);
@@ -225,7 +222,7 @@ namespace Stiletto.Fody.Generators
             foreach (var keyedCtor in lazyBindingCtors)
             {
                 var factory = EmitLazyFactory(keyedCtor.Ctor);
-                plugin.Methods.Add(factory);
+                loader.Methods.Add(factory);
 
                 AddFactoryToDict(il, keyedCtor.Key, factory, lazyInjectsField, lazyFnCtor,
                                  References.DictionaryOfStringToLazyBindingFn_Add);
@@ -239,7 +236,7 @@ namespace Stiletto.Fody.Generators
             foreach (var keyedCtor in providerBindingCtors)
             {
                 var factory = EmitProviderFactory(keyedCtor.Ctor);
-                plugin.Methods.Add(factory);
+                loader.Methods.Add(factory);
 
                 AddFactoryToDict(il, keyedCtor.Key, factory, providersField, providerFnCtor,
                                  References.DictionaryOfStringToProviderBindingFn_Add);
@@ -252,7 +249,7 @@ namespace Stiletto.Fody.Generators
             foreach (var tuple in runtimeModuleCtors)
             {
                 var factory = EmitModuleFactory(tuple.Item2);
-                plugin.Methods.Add(factory);
+                loader.Methods.Add(factory);
 
                 // Different because we don't care about keys for modules, we can just dispatch on type.
                 il.Emit (OpCodes.Ldarg_0);
@@ -267,7 +264,7 @@ namespace Stiletto.Fody.Generators
 
             il.Emit (OpCodes.Ret);
 
-            plugin.Methods.Add(ctor);
+            loader.Methods.Add(ctor);
             GeneratedCtor = ctor;
         }
 
@@ -422,7 +419,7 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Callvirt, bindingFnInvoke);
             il.Append(endOfFn);
 
-            plugin.Methods.Add(getInjectBinding);
+            loader.Methods.Add(getInjectBinding);
         }
 
         private void EmitGetLazyInjectBinding()
@@ -465,7 +462,7 @@ namespace Stiletto.Fody.Generators
             il.Emit (OpCodes.Callvirt, lazyFnInvoke);
             il.Append(endOfFn);
 
-            plugin.Methods.Add(getLazy);
+            loader.Methods.Add(getLazy);
         }
 
         private void EmitGetIProviderInjectBinding()
@@ -512,7 +509,7 @@ namespace Stiletto.Fody.Generators
             il.Emit (OpCodes.Callvirt, providerFnInvoke);
             il.Append(endOfFn);
 
-            plugin.Methods.Add(getProvider);
+            loader.Methods.Add(getProvider);
         }
 
         private void EmitGetRuntimeModule()
@@ -551,7 +548,7 @@ namespace Stiletto.Fody.Generators
             il.Emit (OpCodes.Callvirt, moduleFnInvoke);
             il.Append (endOfFn);
 
-            plugin.Methods.Add (getModule);
+            loader.Methods.Add (getModule);
         }
     }
 }

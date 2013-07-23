@@ -1,6 +1,6 @@
 ﻿using Stiletto;
 
-namespace PluginIsGenerated
+namespace LoaderIsGenerated
 {
     public class InjectableClass
     {

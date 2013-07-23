@@ -20,6 +20,7 @@ using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
 using Mono.Collections.Generic;
+using Stiletto.Internal.Loaders.Codegen;
 
 namespace Stiletto.Fody.Generators
 {
@@ -63,7 +64,7 @@ namespace Stiletto.Fody.Generators
         {
             var t = new TypeDefinition(
                 lazyElementType.Namespace,
-                lazyElementType.Name + Internal.Plugins.Codegen.CodegenPlugin.LazySuffix,
+                lazyElementType.Name + CodegenLoader.LazySuffix,
                 TypeAttributes.Public | TypeAttributes.Sealed,
                 References.Binding);
 

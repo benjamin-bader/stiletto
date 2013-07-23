@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +16,12 @@
 
 using System;
 using System.Collections.Generic;
-﻿using System.IO;
-﻿using System.Linq;
-﻿using System.Xml.Linq;
-﻿using Stiletto.Fody.Validation;
-﻿using Mono.Cecil;
+using System.IO;
+using System.Linq;
+using System.Xml.Linq;
+using Mono.Cecil;
+using Stiletto.Fody.Validation;
+using Stiletto.Internal;
 
 namespace Stiletto.Fody
 {
@@ -67,8 +68,8 @@ namespace Stiletto.Fody
         /// Validate that injectable types and modules are individually valid as declared
         /// Validate the object graph that they represent, i.e. that complete modules have no unsatisfied dependencies
         /// Generate binding and module adapters
-        /// Generate an <see cref="Stiletto.Internal.IPlugin"/> implementation containing the generated adapters
-        /// Rewrite all Container.Create invocations in the module with Container.CreateWithPlugin invocations, using the generated plugin.
+        /// Generate an <see cref="ILoader"/> implementation containing the generated adapters
+        /// Rewrite all Container.Create invocations in the module with Container.CreateWithLoaders invocations, using the generated loader.
         /// </list>
         /// </remarks>
         public void Execute()
@@ -146,11 +147,11 @@ namespace Stiletto.Fody
                 return;
             }
 
-            var pluginCtors = processors.Select(p => p.CompiledPluginConstructor).ToList();
+            var loaderCtors = processors.Select(p => p.CompiledLoaderConstructor).ToList();
 
             foreach (var p in processors)
             {
-                p.RewriteContainerCreateInvocations(pluginCtors);
+                p.RewriteContainerCreateInvocations(loaderCtors);
             }
 
             foreach (var kvp in dependencies)

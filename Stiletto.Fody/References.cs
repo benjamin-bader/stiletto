@@ -53,13 +53,13 @@ namespace Stiletto.Fody
 
         public TypeReference Container { get; private set; }
         public MethodReference Container_Create { get; private set; }
-        public MethodReference Container_CreateWithPlugins { get; private set; }
+        public MethodReference Container_CreateWithLoaders { get; private set; }
 
-        public TypeReference IPlugin { get; private set; }
-        public MethodReference IPlugin_GetInjectBinding { get; private set; }
-        public MethodReference IPlugin_GetLazyInjectBinding { get; private set; }
-        public MethodReference IPlugin_GetIProviderInjectBinding { get; private set; }
-        public MethodReference IPlugin_GetRuntimeModue { get; private set; }
+        public TypeReference ILoader { get; private set; }
+        public MethodReference ILoader_GetInjectBinding { get; private set; }
+        public MethodReference ILoader_GetLazyInjectBinding { get; private set; }
+        public MethodReference ILoader_GetIProviderInjectBinding { get; private set; }
+        public MethodReference ILoader_GetRuntimeModue { get; private set; }
 
         public TypeReference SetOfBindings { get; private set; }
         public MethodReference SetOfBindings_Add { get; private set; }
@@ -165,16 +165,16 @@ namespace Stiletto.Fody
             DictionaryOfStringToBinding_Add = module.Import(tDictOfStringToBinding.Resolve().GetMethod("Add"))
                 .MakeHostInstanceGeneric(String, Binding);
 
-            // Used in $CompiledPlugin$::.ctor()
+            // Used in $CompiledLoader$::.ctor()
             ImportInjectBindingDictionary(module, tDict);
 
-            // Used in $CompiledPlugin$::.ctor()
+            // Used in $CompiledLoader$::.ctor()
             ImportLazyBindingDictionary(module, tDict);
 
-            // Used in $CompiledPlugin$::.ctor()
+            // Used in $CompiledLoader$::.ctor()
             ImportProviderBindingDictionary(module, tDict);
 
-            // Used in $CompiledPlugin$::.ctor()
+            // Used in $CompiledLoader$::.ctor()
             ImportRuntimeModuleDictionary(module, tDict);
 
             var stringComparer = mscorlibTypes.First(t => t.Name == "StringComparer");
@@ -205,13 +205,13 @@ namespace Stiletto.Fody
 
             Container = module.Import(stilettoReferences.Container);
             Container_Create = module.Import(stilettoReferences.Container_Create);
-            Container_CreateWithPlugins = module.Import(stilettoReferences.Container_CreateWithPlugins);
+            Container_CreateWithLoaders = module.Import(stilettoReferences.Container_CreateWithLoaders);
 
-            IPlugin = module.Import(stilettoReferences.IPlugin);
-            IPlugin_GetInjectBinding = module.Import(stilettoReferences.IPlugin_GetInjectBinding);
-            IPlugin_GetLazyInjectBinding = module.Import(stilettoReferences.IPlugin_GetLazyInjectBinding);
-            IPlugin_GetIProviderInjectBinding = module.Import(stilettoReferences.IPlugin_GetIProviderInjectBinding);
-            IPlugin_GetRuntimeModue = module.Import(stilettoReferences.IPlugin_GetRuntimeModue);
+            ILoader = module.Import(stilettoReferences.ILoader);
+            ILoader_GetInjectBinding = module.Import(stilettoReferences.ILoader_GetInjectBinding);
+            ILoader_GetLazyInjectBinding = module.Import(stilettoReferences.ILoader_GetLazyInjectBinding);
+            ILoader_GetIProviderInjectBinding = module.Import(stilettoReferences.ILoader_GetIProviderInjectBinding);
+            ILoader_GetRuntimeModue = module.Import(stilettoReferences.ILoader_GetRuntimeModue);
 
             IProviderOfT = module.Import(stilettoReferences.IProviderOfT);
             IProviderOfT_Get = module.Import(stilettoReferences.IProviderOfT_Get);

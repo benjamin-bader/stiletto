@@ -43,7 +43,7 @@ public class Validator
 
 		if (hasContainerCreate)
 		{
-			errors.Add("Expected calls to Container.Create to be replaced with Container.CreateWithPlugins.");
+			errors.Add("Expected calls to Container.Create to be replaced with Container.CreateWithLoaders.");
 		}
 
 		return errors;

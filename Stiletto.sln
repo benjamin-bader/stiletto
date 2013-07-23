@@ -36,7 +36,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InjectTypesGetCompiledBindi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContainerCreateCallsRewritten", "IntegrationTests\ContainerCreateCallsRewritten\ContainerCreateCallsRewritten.csproj", "{15629B69-97D3-4AB2-B2D2-B1425468CD0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginIsGenerated", "IntegrationTests\PluginIsGenerated\PluginIsGenerated.csproj", "{8ECB9BA1-B2CC-4BBD-96F7-EA68E3617E97}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoaderIsGenerated", "IntegrationTests\LoaderIsGenerated\LoaderIsGenerated.csproj", "{8ECB9BA1-B2CC-4BBD-96F7-EA68E3617E97}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CircularDependenciesFail", "IntegrationTests\CircularDependenciesFail\CircularDependenciesFail.csproj", "{9EC134AE-F369-49C4-A89A-3576552F1BBF}"
 EndProject

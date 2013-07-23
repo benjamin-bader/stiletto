@@ -19,6 +19,7 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using Stiletto.Internal.Loaders.Codegen;
 
 namespace Stiletto.Fody.Generators
 {
@@ -43,7 +44,7 @@ namespace Stiletto.Fody.Generators
 
         public ModuleWeaver Weaver { get; set; }
 
-        public bool IsVisibleToPlugin { get; private set; }
+        public bool IsVisibleToLoader { get; private set; }
 
         public InjectBindingGenerator(ModuleDefinition moduleDefinition, References references, TypeReference injectedType, bool isModuleInjectable)
             : base(moduleDefinition, references)
@@ -59,7 +60,7 @@ namespace Stiletto.Fody.Generators
 
             CtorParams = new List<InjectMemberInfo>();
             InjectableProperties = new List<PropertyInfo>();
-            IsVisibleToPlugin = true;
+            IsVisibleToLoader = true;
         }
 
         public override void Validate(IErrorReporter errorReporter)
@@ -76,9 +77,9 @@ namespace Stiletto.Fody.Generators
 
             if (!injectedType.IsVisible())
             {
-                // This type is not externally visible and can't be included in a compiled plugin.
+                // This type is not externally visible and can't be included in a compiled loader.
                 // It can still be loaded reflectively.
-                IsVisibleToPlugin = false;
+                IsVisibleToLoader = false;
                 errorReporter.LogWarning(injectedType.FullName + ": This type is private, and will be loaded reflectively.  Consider making it internal or public.");
             }
 
@@ -186,7 +187,7 @@ namespace Stiletto.Fody.Generators
 
             var injectBinding = new TypeDefinition(
                 injectedType.Namespace,
-                injectedType.Name + Internal.Plugins.Codegen.CodegenPlugin.InjectSuffix,
+                injectedType.Name + CodegenLoader.InjectSuffix,
                 injectedType.Attributes,
                 References.Binding);
 
