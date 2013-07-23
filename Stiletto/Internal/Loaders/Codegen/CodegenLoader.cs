@@ -16,13 +16,13 @@
 
 using System;
 
-namespace Stiletto.Internal.Plugins.Codegen
+namespace Stiletto.Internal.Loaders.Codegen
 {
-    public class CodegenPlugin : IPlugin
+    public class CodegenLoader : ILoader
     {
-        public const string CompiledPluginNamespace = "Stiletto.Generated";
-        public const string CompiledPluginName = "$CompiledPlugin$";
-        public const string CompiledPluginFullName = CompiledPluginNamespace + "." + CompiledPluginName;
+        public const string CompiledLoaderNamespace = "Stiletto.Generated";
+        public const string CompiledLoaderName = "$CompiledLoader$";
+        public const string CompiledLoaderFullName = CompiledLoaderNamespace + "." + CompiledLoaderName;
 
         public const string InjectSuffix    = "_CompiledBinding";
         public const string ModuleSuffix    = "_CompiledModule";

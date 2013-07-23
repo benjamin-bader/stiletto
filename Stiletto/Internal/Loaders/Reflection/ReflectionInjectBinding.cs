@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Stiletto.Internal.Plugins.Reflection
+namespace Stiletto.Internal.Loaders.Reflection
 {
     internal class ReflectionInjectBinding : Binding
     {

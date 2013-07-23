@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,14 +16,13 @@
 
 using System;
 
-namespace Stiletto.Internal.Plugins.Codegen
+namespace Stiletto.Internal
 {
-    /// <summary>
-    /// Represents a marker indicating that the annotated module has already
-    /// been processed and contains compiler-generated code.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Module)]
-    public class ProcessedAssemblyAttribute : Attribute
+    public interface ILoader
     {
+        Binding GetInjectBinding(string key, string className, bool mustBeInjectable);
+        Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey);
+        Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey);
+        RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance);
     }
 }

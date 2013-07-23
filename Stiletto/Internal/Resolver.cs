@@ -24,7 +24,7 @@ namespace Stiletto.Internal
         public delegate void ErrorHandler(IEnumerable<string> errors);
 
         private readonly Resolver baseResolver;
-        private readonly IPlugin plugin;
+        private readonly ILoader loader;
         private readonly ErrorHandler handler;
 
         private readonly IList<string> errors = new List<string>();
@@ -34,10 +34,10 @@ namespace Stiletto.Internal
 
         private bool attachSuccess;
 
-        public Resolver(Resolver baseResolver, IPlugin plugin, ErrorHandler handler)
+        public Resolver(Resolver baseResolver, ILoader loader, ErrorHandler handler)
         {
             this.baseResolver = baseResolver;
-            this.plugin = plugin;
+            this.loader = loader;
             this.handler = handler;
         }
 
@@ -186,19 +186,19 @@ namespace Stiletto.Internal
         {
             var providerKey = Key.GetProviderKey(key);
             if (providerKey != null) {
-                return plugin.GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, providerKey);
+                return loader.GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, providerKey);
             }
 
             var lazyKey = Key.GetLazyKey(key);
             if (lazyKey != null)
             {
-                return plugin.GetLazyInjectBinding(key, requiredBy, lazyKey);
+                return loader.GetLazyInjectBinding(key, requiredBy, lazyKey);
             }
 
             var typeName = Key.GetTypeName(key);
             if (typeName != null && !Key.IsNamed(key))
             {
-                var binding = plugin.GetInjectBinding(key, typeName, mustBeInjectable);
+                var binding = loader.GetInjectBinding(key, typeName, mustBeInjectable);
                 if (binding != null)
                 {
                     return binding;

@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +20,7 @@ using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using Stiletto.Internal.Loaders.Codegen;
 
 namespace Stiletto.Fody.Generators
 {
@@ -40,7 +41,7 @@ namespace Stiletto.Fody.Generators
         public IList<TypeReference> Injects { get; private set; }
         public IList<MethodDefinition> BaseProvidesMethods { get { return baseProvidesMethods; }}
         public IList<ProviderMethodBindingGenerator> ProviderGenerators { get; private set; }
-        public bool IsVisibleToPlugin { get; private set; }
+        public bool IsVisibleToLoader { get; private set; }
 
         private MethodReference generatedCtor;
 
@@ -114,7 +115,7 @@ namespace Stiletto.Fody.Generators
                 .Select(m => new ProviderMethodBindingGenerator(ModuleDefinition, References, importedModuleType, m, IsLibrary))
                 .ToList();
 
-            IsVisibleToPlugin = true;
+            IsVisibleToLoader = true;
         }
 
         private static T GetArgumentValue<T>(CustomAttributeNamedArgument? arg, T defaultValue = default(T))
@@ -156,9 +157,9 @@ namespace Stiletto.Fody.Generators
                 case TypeAttributes.NestedFamANDAssem:
                 case TypeAttributes.NestedPrivate:
                 case TypeAttributes.NotPublic:
-                    // This type is not externally visible and can't be included in a compiled plugin.
+                    // This type is not externally visible and can't be included in a compiled loader.
                     // It can still be loaded reflectively.
-                    IsVisibleToPlugin = false;
+                    IsVisibleToLoader = false;
                     errorReporter.LogWarning(moduleType.FullName + ": This type is private, and will be loaded reflectively.  Consider making it internal or public.");
                     break;
             }
@@ -194,7 +195,7 @@ namespace Stiletto.Fody.Generators
 
         public override TypeDefinition Generate(IErrorReporter errorReporter)
         {
-            var name = moduleType.Name + Internal.Plugins.Codegen.CodegenPlugin.ModuleSuffix;
+            var name = moduleType.Name + CodegenLoader.ModuleSuffix;
             var t = new TypeDefinition(moduleType.Namespace, name, moduleType.Attributes, References.RuntimeModule);
 
             t.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));

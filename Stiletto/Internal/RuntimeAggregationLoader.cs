@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,36 +15,36 @@
  */
 
 using System;
-﻿using System.Collections.Generic;
+ using System.Collections.Generic;
 
 namespace Stiletto.Internal
 {
-    internal class RuntimeAggregationPlugin : IPlugin
+    internal class RuntimeAggregationLoader : ILoader
     {
-        private readonly List<IPlugin> plugins;
+        private readonly List<ILoader> loaders;
 
-        internal RuntimeAggregationPlugin(params IPlugin[] plugins)
+        internal RuntimeAggregationLoader(params ILoader[] loaders)
         {
-            if (plugins == null)
+            if (loaders == null)
             {
-                throw new ArgumentNullException("plugins");
+                throw new ArgumentNullException("loaders");
             }
 
-            if (plugins.Length < 1)
+            if (loaders.Length < 1)
             {
-                throw new ArgumentException("At least one plugin must be provided.");
+                throw new ArgumentException("At least one loader must be provided.");
             }
 
-            this.plugins = new List<IPlugin>(plugins);
+            this.loaders = new List<ILoader>(loaders);
         }
 
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
-            for (var i = 0; i < plugins.Count; ++i) {
+            for (var i = 0; i < loaders.Count; ++i) {
                 try {
-                    var binding = plugins[i].GetInjectBinding(key, className, mustBeInjectable);
+                    var binding = loaders[i].GetInjectBinding(key, className, mustBeInjectable);
                     if (binding == null) {
-                        if (i == plugins.Count - 1) {
+                        if (i == loaders.Count - 1) {
                             throw new InvalidOperationException("Could not load inject binding: " + key);
                         }
 
@@ -53,7 +53,7 @@ namespace Stiletto.Internal
                     return binding;
                 }
                 catch (Exception) {
-                    if (i == plugins.Count - 1) {
+                    if (i == loaders.Count - 1) {
                         throw;
                     }
                 }
@@ -63,11 +63,11 @@ namespace Stiletto.Internal
 
         public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
         {
-            for (var i = 0; i < plugins.Count; ++i) {
+            for (var i = 0; i < loaders.Count; ++i) {
                 try {
-                    var binding = plugins[i].GetLazyInjectBinding(key, requiredBy, lazyKey);
+                    var binding = loaders[i].GetLazyInjectBinding(key, requiredBy, lazyKey);
                     if (binding == null) {
-                        if (i == plugins.Count - 1) {
+                        if (i == loaders.Count - 1) {
                             throw new InvalidOperationException("Could not load lazy binding " + key);
                         }
 
@@ -76,7 +76,7 @@ namespace Stiletto.Internal
                     return binding;
                 }
                 catch (Exception) {
-                    if (i == plugins.Count - 1) {
+                    if (i == loaders.Count - 1) {
                         throw;
                     }
                 }
@@ -87,11 +87,11 @@ namespace Stiletto.Internal
         public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable,
                                                  string delegateKey)
         {
-            for (var i = 0; i < plugins.Count; ++i) {
+            for (var i = 0; i < loaders.Count; ++i) {
                 try {
-                    var binding = plugins[i].GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, delegateKey);
+                    var binding = loaders[i].GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, delegateKey);
                     if (binding == null) {
-                        if (i == plugins.Count - 1) {
+                        if (i == loaders.Count - 1) {
                             throw new InvalidOperationException("Could not load provider binding: " + key);
                         }
 
@@ -100,7 +100,7 @@ namespace Stiletto.Internal
                     return binding;
                 }
                 catch (Exception) {
-                    if (i == plugins.Count - 1) {
+                    if (i == loaders.Count - 1) {
                         throw;
                     }
                 }
@@ -110,12 +110,12 @@ namespace Stiletto.Internal
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
         {
-            for (var i = 0; i < plugins.Count; ++i) {
+            for (var i = 0; i < loaders.Count; ++i) {
                 try {
-                    var m = plugins[i].GetRuntimeModule(moduleType, moduleInstance);
+                    var m = loaders[i].GetRuntimeModule(moduleType, moduleInstance);
 
                     if (m == null) {
-                        if (i == plugins.Count - 1) {
+                        if (i == loaders.Count - 1) {
                             throw new InvalidOperationException("Could not load runtime module: " + moduleType);
                         }
 
@@ -126,7 +126,7 @@ namespace Stiletto.Internal
                     return m;
                 }
                 catch (Exception) {
-                    if (i == plugins.Count - 1) {
+                    if (i == loaders.Count - 1) {
                         throw;
                     }
                 }

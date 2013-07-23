@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +17,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-﻿using Stiletto.Fody.Generators;
+ using Stiletto.Fody.Generators;
 ﻿using Stiletto.Internal;
 
 namespace Stiletto.Fody.Validation
 {
-    public class CompilerPlugin : IPlugin
+    public class CompilerLoader : ILoader
     {
         private readonly IDictionary<string, Binding> bindings;
         private readonly IDictionary<string, CompilerParameterizedBinding> lazyBindings;
         private readonly IDictionary<string, CompilerParameterizedBinding> providerBindings;
 
-        public CompilerPlugin(
+        public CompilerLoader(
             IEnumerable<InjectBindingGenerator> bindings,
             IEnumerable<LazyBindingGenerator> lazyBindings,
             IEnumerable<ProviderBindingGenerator> providerBindings)
@@ -62,7 +62,7 @@ namespace Stiletto.Fody.Validation
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
         {
-            throw new NotSupportedException("Compile-time validation should never call IPlugin.GetRuntimeModule().");
+            throw new NotSupportedException("Compile-time validation should never call ILoader.GetRuntimeModule().");
         }
     }
 }

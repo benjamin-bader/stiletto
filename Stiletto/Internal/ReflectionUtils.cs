@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-﻿using Stiletto.Internal.Plugins.Codegen;
+using Stiletto.Internal.Loaders.Codegen;
 
 namespace Stiletto.Internal
 {
@@ -27,25 +27,25 @@ namespace Stiletto.Internal
     {
         private static HashSet<Assembly> knownAssemblies = new HashSet<Assembly>(new AssemblyComparer());
         private static Dictionary<string, Type> knownTypes = new Dictionary<string, Type>(StringComparer.Ordinal);
-        private static IList<IPlugin> plugins;
+        private static IList<ILoader> loaders;
 
         static ReflectionUtils()
         {
 #if SILVERLIGHT
-            plugins = new List<IPlugin>();
+            loaders = new List<ILoader>();
 
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
                 if (!knownAssemblies.Add(assembly)) {
                     continue;
                 }
 
-                var plugin = assembly.GetType(CodegenPlugin.CompiledPluginFullName, false);
+                var loader = assembly.GetType(CodegenLoader.CompiledLoaderFullName, false);
 
-                if (plugin == null) {
+                if (loader == null) {
                     continue;
                 }
 
-                plugins.Insert(0, (IPlugin) Activator.CreateInstance(plugin));
+                loaders.Insert(0, (ILoader) Activator.CreateInstance(loader));
             }
 #else
             AppDomain.CurrentDomain.AssemblyLoad += (o, e) => {
@@ -54,46 +54,46 @@ namespace Stiletto.Internal
                         return;
                     }
 
-                    var plugin = e.LoadedAssembly.GetType(CodegenPlugin.CompiledPluginFullName, false);
+                    var loader = e.LoadedAssembly.GetType(CodegenLoader.CompiledLoaderFullName, false);
 
-                    if (plugin == null) {
+                    if (loader == null) {
                         return;
                     }
 
-                    plugins.Insert(0, (IPlugin) Activator.CreateInstance(plugin));
+                    loaders.Insert(0, (ILoader) Activator.CreateInstance(loader));
                 }
             };
 #endif
         }
 
-        public static IList<IPlugin> GetCompiledPlugins()
+        public static IList<ILoader> GetCompiledLoaders()
         {
-            if (plugins != null) {
-                return plugins;
+            if (loaders != null) {
+                return loaders;
             }
 
             lock (knownAssemblies) {
-                plugins = new List<IPlugin>();
+                loaders = new List<ILoader>();
                 foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
                     knownAssemblies.Add(assembly);
 
-                    var t = assembly.GetType(CodegenPlugin.CompiledPluginFullName);
+                    var t = assembly.GetType(CodegenLoader.CompiledLoaderFullName);
 
                     if (t == null) {
                         continue;
                     }
 
-                    var p = Activator.CreateInstance(t) as IPlugin;
+                    var p = Activator.CreateInstance(t) as ILoader;
 
                     if (p == null) {
                         continue;
                     }
 
-                    plugins.Add(p);
+                    loaders.Add(p);
                 }
             }
 
-            return plugins;
+            return loaders;
         }
 
         public bool HasAssemblyBeenExamined<T>()

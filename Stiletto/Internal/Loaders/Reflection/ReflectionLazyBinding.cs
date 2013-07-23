@@ -16,7 +16,7 @@
 
 using System;
 
-namespace Stiletto.Internal.Plugins.Reflection
+namespace Stiletto.Internal.Loaders.Reflection
 {
     internal class ReflectionLazyBinding : Binding
     {
