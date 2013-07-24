@@ -189,7 +189,7 @@ It's not easy to make a full build of Stiletto, but building for one platform is
 
 Unit tests can be run with your favorite NUnit runner.  Stiletto.Test contains the definitive set of unit tests covering the Stiletto common library.  Stiletto.Test.PostWeaving contains the same tests, but building it also builds the Fody weaver and runs the test assembly through the weaving process.  While not a complete integration test, this ensures that any changes to the weaver don't cause behavior changes at runtime.
 
-True integration tests for the weaver are forthcoming.
+There is a suite of integration tests covering the compile-time code validation and generation features.  Each test is a separate C# project containing code to be validated along with a file describing the expected outcome.  They can be run en suite by the `ValidateBuilds` tool.  Once built, it will be copied to the IntegrationTests folder.  Run it from there, and it will build and verify each test case.
 
 
 [0]: http://stiletto.bendb.com
