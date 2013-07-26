@@ -15,7 +15,7 @@
  */
 
 using System;
- using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Stiletto.Internal
 {
@@ -40,11 +40,15 @@ namespace Stiletto.Internal
 
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
-            for (var i = 0; i < loaders.Count; ++i) {
-                try {
+            for (var i = 0; i < loaders.Count; ++i)
+            {
+                try
+                {
                     var binding = loaders[i].GetInjectBinding(key, className, mustBeInjectable);
-                    if (binding == null) {
-                        if (i == loaders.Count - 1) {
+                    if (binding == null)
+                    {
+                        if (i == loaders.Count - 1)
+                        {
                             throw new InvalidOperationException("Could not load inject binding: " + key);
                         }
 
@@ -52,8 +56,10 @@ namespace Stiletto.Internal
                     }
                     return binding;
                 }
-                catch (Exception) {
-                    if (i == loaders.Count - 1) {
+                catch (Exception)
+                {
+                    if (i == loaders.Count - 1)
+                    {
                         throw;
                     }
                 }
@@ -63,11 +69,15 @@ namespace Stiletto.Internal
 
         public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
         {
-            for (var i = 0; i < loaders.Count; ++i) {
-                try {
+            for (var i = 0; i < loaders.Count; ++i)
+            {
+                try
+                {
                     var binding = loaders[i].GetLazyInjectBinding(key, requiredBy, lazyKey);
-                    if (binding == null) {
-                        if (i == loaders.Count - 1) {
+                    if (binding == null)
+                    {
+                        if (i == loaders.Count - 1)
+                        {
                             throw new InvalidOperationException("Could not load lazy binding " + key);
                         }
 
@@ -75,8 +85,10 @@ namespace Stiletto.Internal
                     }
                     return binding;
                 }
-                catch (Exception) {
-                    if (i == loaders.Count - 1) {
+                catch (Exception)
+                {
+                    if (i == loaders.Count - 1)
+                    {
                         throw;
                     }
                 }
@@ -87,11 +99,15 @@ namespace Stiletto.Internal
         public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable,
                                                  string delegateKey)
         {
-            for (var i = 0; i < loaders.Count; ++i) {
-                try {
+            for (var i = 0; i < loaders.Count; ++i)
+            {
+                try
+                {
                     var binding = loaders[i].GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, delegateKey);
-                    if (binding == null) {
-                        if (i == loaders.Count - 1) {
+                    if (binding == null)
+                    {
+                        if (i == loaders.Count - 1)
+                        {
                             throw new InvalidOperationException("Could not load provider binding: " + key);
                         }
 
@@ -99,8 +115,10 @@ namespace Stiletto.Internal
                     }
                     return binding;
                 }
-                catch (Exception) {
-                    if (i == loaders.Count - 1) {
+                catch (Exception)
+                {
+                    if (i == loaders.Count - 1)
+                    {
                         throw;
                     }
                 }
@@ -110,12 +128,16 @@ namespace Stiletto.Internal
 
         public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
         {
-            for (var i = 0; i < loaders.Count; ++i) {
-                try {
+            for (var i = 0; i < loaders.Count; ++i)
+            {
+                try
+                {
                     var m = loaders[i].GetRuntimeModule(moduleType, moduleInstance);
 
-                    if (m == null) {
-                        if (i == loaders.Count - 1) {
+                    if (m == null)
+                    {
+                        if (i == loaders.Count - 1)
+                        {
                             throw new InvalidOperationException("Could not load runtime module: " + moduleType);
                         }
 
@@ -125,8 +147,10 @@ namespace Stiletto.Internal
                     m.Module = moduleInstance ?? m.CreateModule();
                     return m;
                 }
-                catch (Exception) {
-                    if (i == loaders.Count - 1) {
+                catch (Exception)
+                {
+                    if (i == loaders.Count - 1)
+                    {
                         throw;
                     }
                 }

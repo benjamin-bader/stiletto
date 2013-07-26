@@ -28,7 +28,7 @@ namespace Stiletto.Fody.Validation
     public class CompilerParameterizedBinding : Binding
     {
         private readonly string elementKey;
-        
+
         private Binding elementBinding;
 
         public CompilerParameterizedBinding(LazyBindingGenerator generator)

@@ -12,7 +12,7 @@ namespace Stiletto.Test
     [TestFixture]
     public class ValidatorTests
     {
-        [Test, ExpectedException(typeof (InvalidOperationException))]
+        [Test, ExpectedException(typeof(InvalidOperationException))]
         public void Validate_WhenDependencyIsUnsatisfied_Throws()
         {
             Container.Create(typeof(NeedsSomethingMore)).Validate();
@@ -27,7 +27,7 @@ namespace Stiletto.Test
         [Test]
         public void Validate_WhenCircularDependenciesExistAcrossModules_Throws()
         {
-            var container = Container.Create(typeof (BadModuleOne), typeof (BadModuleTwo));
+            var container = Container.Create(typeof(BadModuleOne), typeof(BadModuleTwo));
             Expect.The(container.Validate).ToThrow<InvalidOperationException>();
         }
 
@@ -44,7 +44,7 @@ namespace Stiletto.Test
             Container.Create(typeof(UnusedProvidesModule)).Validate();
         }
 
-        [Test, ExpectedException(typeof (InvalidOperationException))]
+        [Test, ExpectedException(typeof(InvalidOperationException))]
         public void Validate_WhenProviderParamMissing_Throws()
         {
             Container.Create(typeof(MissingProviderParamModule)).Validate();
@@ -63,7 +63,7 @@ namespace Stiletto.Test
             container.Validate();
         }
 
-        [Module(Injects = new[] { typeof(Dep)})]
+        [Module(Injects = new[] { typeof(Dep) })]
         public class NeedsSomethingMore
         {
             public class Dep

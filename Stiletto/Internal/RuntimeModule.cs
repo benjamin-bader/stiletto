@@ -78,7 +78,7 @@ namespace Stiletto.Internal
 
         public virtual void GetBindings(IDictionary<string, Binding> bindings)
         {
-            
+
         }
 
         public abstract object CreateModule();

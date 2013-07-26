@@ -113,7 +113,7 @@ namespace Stiletto.Fody.Generators
                      && m.Parameters.Count == 2,
                 generics);
 
-            var invoke = ImportGeneric (
+            var invoke = ImportGeneric(
                 tFn,
                 m => m.Name == "Invoke",
                 generics);
@@ -144,7 +144,7 @@ namespace Stiletto.Fody.Generators
                 TypeAttributes.Public | TypeAttributes.Sealed,
                 References.Object);
 
-            loader.Interfaces.Add (References.ILoader);
+            loader.Interfaces.Add(References.ILoader);
             loader.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
 
             injectsField = new FieldDefinition("bindings", FieldAttributes.Private, References.DictionaryOfStringToBindingFn);
@@ -152,10 +152,10 @@ namespace Stiletto.Fody.Generators
             providersField = new FieldDefinition("providerBindings", FieldAttributes.Private, References.DictionaryOfStringToProviderBindingFn);
             modulesField = new FieldDefinition("modules", FieldAttributes.Private, References.DictionaryOfTypeToModuleFn);
 
-            loader.Fields.Add (injectsField);
+            loader.Fields.Add(injectsField);
             loader.Fields.Add(lazyInjectsField);
-            loader.Fields.Add (providersField);
-            loader.Fields.Add (modulesField);
+            loader.Fields.Add(providersField);
+            loader.Fields.Add(modulesField);
 
             EmitCtor();
             EmitGetInjectBinding();
@@ -166,7 +166,7 @@ namespace Stiletto.Fody.Generators
             return loader;
         }
 
-        public override KeyedCtor GetKeyedCtor ()
+        public override KeyedCtor GetKeyedCtor()
         {
             return null;
         }
@@ -197,13 +197,13 @@ namespace Stiletto.Fody.Generators
 
             var il = ctor.Body.GetILProcessor();
 
-            il.Emit (OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Call, Import(References.Object.Resolve().GetConstructors().First()));
 
-            il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Call, References.StringComparer_Ordinal_Getter);
-            il.Emit (OpCodes.Newobj, References.DictionaryOfStringToBindingFn_New);
-            il.Emit (OpCodes.Stfld, injectsField);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Call, References.StringComparer_Ordinal_Getter);
+            il.Emit(OpCodes.Newobj, References.DictionaryOfStringToBindingFn_New);
+            il.Emit(OpCodes.Stfld, injectsField);
 
             foreach (var keyedCtor in injectBindingCtors)
             {
@@ -214,10 +214,10 @@ namespace Stiletto.Fody.Generators
                                  References.DictionaryOfStringToBindingFn_Add);
             }
 
-            il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Call, References.StringComparer_Ordinal_Getter);
-            il.Emit (OpCodes.Newobj, References.DictionaryOfStringToLazyBindingFn_New);
-            il.Emit (OpCodes.Stfld, lazyInjectsField);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Call, References.StringComparer_Ordinal_Getter);
+            il.Emit(OpCodes.Newobj, References.DictionaryOfStringToLazyBindingFn_New);
+            il.Emit(OpCodes.Stfld, lazyInjectsField);
 
             foreach (var keyedCtor in lazyBindingCtors)
             {
@@ -228,10 +228,10 @@ namespace Stiletto.Fody.Generators
                                  References.DictionaryOfStringToLazyBindingFn_Add);
             }
 
-            il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Call, References.StringComparer_Ordinal_Getter);
-            il.Emit (OpCodes.Newobj, References.DictionaryOfStringToProviderBindingFn_New);
-            il.Emit (OpCodes.Stfld, providersField);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Call, References.StringComparer_Ordinal_Getter);
+            il.Emit(OpCodes.Newobj, References.DictionaryOfStringToProviderBindingFn_New);
+            il.Emit(OpCodes.Stfld, providersField);
 
             foreach (var keyedCtor in providerBindingCtors)
             {
@@ -242,9 +242,9 @@ namespace Stiletto.Fody.Generators
                                  References.DictionaryOfStringToProviderBindingFn_Add);
             }
 
-            il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Newobj, References.DictionaryOfTypeToModuleFn_New);
-            il.Emit (OpCodes.Stfld, modulesField);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Newobj, References.DictionaryOfTypeToModuleFn_New);
+            il.Emit(OpCodes.Stfld, modulesField);
 
             foreach (var tuple in runtimeModuleCtors)
             {
@@ -252,17 +252,17 @@ namespace Stiletto.Fody.Generators
                 loader.Methods.Add(factory);
 
                 // Different because we don't care about keys for modules, we can just dispatch on type.
-                il.Emit (OpCodes.Ldarg_0);
-                il.Emit (OpCodes.Ldfld, modulesField);
-                il.Emit (OpCodes.Ldtoken, Import(tuple.Item1));
-                il.Emit (OpCodes.Call, References.Type_GetTypeFromHandle);
-                il.Emit (OpCodes.Ldarg_0);
-                il.Emit (OpCodes.Ldftn, factory);
-                il.Emit (OpCodes.Newobj, moduleFnCtor);
-                il.Emit (OpCodes.Call, References.DictionaryOfTypeToModuleFn_Add);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldfld, modulesField);
+                il.Emit(OpCodes.Ldtoken, Import(tuple.Item1));
+                il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
+                il.Emit(OpCodes.Ldarg_0);
+                il.Emit(OpCodes.Ldftn, factory);
+                il.Emit(OpCodes.Newobj, moduleFnCtor);
+                il.Emit(OpCodes.Call, References.DictionaryOfTypeToModuleFn_Add);
             }
 
-            il.Emit (OpCodes.Ret);
+            il.Emit(OpCodes.Ret);
 
             loader.Methods.Add(ctor);
             GeneratedCtor = ctor;
@@ -276,13 +276,13 @@ namespace Stiletto.Fody.Generators
             MethodReference fnCtor,
             MethodReference addFn)
         {
-            il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Ldfld, field);
-            il.Emit (OpCodes.Ldstr, key);
-            il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Ldftn, factory);
-            il.Emit (OpCodes.Newobj, fnCtor);
-            il.Emit (OpCodes.Call, addFn);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldfld, field);
+            il.Emit(OpCodes.Ldstr, key);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldftn, factory);
+            il.Emit(OpCodes.Newobj, fnCtor);
+            il.Emit(OpCodes.Call, addFn);
         }
 
         private MethodDefinition EmitInjectFactory(MethodReference ctor)
@@ -299,8 +299,8 @@ namespace Stiletto.Fody.Generators
                 References.Binding);
 
             var il = factory.Body.GetILProcessor();
-            il.Emit (OpCodes.Newobj, ctor);
-            il.Emit (OpCodes.Ret);
+            il.Emit(OpCodes.Newobj, ctor);
+            il.Emit(OpCodes.Ret);
 
             return factory;
         }
@@ -318,16 +318,16 @@ namespace Stiletto.Fody.Generators
                 MethodAttributes.Private,
                 References.Binding);
 
-            factory.Parameters.Add (new ParameterDefinition("key", ParameterAttributes.None, References.String));
-            factory.Parameters.Add (new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
-            factory.Parameters.Add (new ParameterDefinition("lazyKey", ParameterAttributes.None, References.String));
+            factory.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, References.String));
+            factory.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
+            factory.Parameters.Add(new ParameterDefinition("lazyKey", ParameterAttributes.None, References.String));
 
             var il = factory.Body.GetILProcessor();
-            il.Emit (OpCodes.Ldarg_1);
-            il.Emit (OpCodes.Ldarg_2);
-            il.Emit (OpCodes.Ldarg_3);
-            il.Emit (OpCodes.Newobj, ctor);
-            il.Emit (OpCodes.Ret);
+            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Ldarg_3);
+            il.Emit(OpCodes.Newobj, ctor);
+            il.Emit(OpCodes.Ret);
 
             return factory;
         }
@@ -344,20 +344,20 @@ namespace Stiletto.Fody.Generators
                 "ProviderBindingFactory_" + (factoryMethodsGenerated++),
                 MethodAttributes.Private,
                 References.Binding);
-            
-            factory.Parameters.Add (new ParameterDefinition("key", ParameterAttributes.None, References.String));
-            factory.Parameters.Add (new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
-            factory.Parameters.Add (new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, References.Boolean));
-            factory.Parameters.Add (new ParameterDefinition("providerKey", ParameterAttributes.None, References.String));
-            
+
+            factory.Parameters.Add(new ParameterDefinition("key", ParameterAttributes.None, References.String));
+            factory.Parameters.Add(new ParameterDefinition("requiredBy", ParameterAttributes.None, References.Object));
+            factory.Parameters.Add(new ParameterDefinition("mustBeInjectable", ParameterAttributes.None, References.Boolean));
+            factory.Parameters.Add(new ParameterDefinition("providerKey", ParameterAttributes.None, References.String));
+
             var il = factory.Body.GetILProcessor();
-            il.Emit (OpCodes.Ldarg_1);
-            il.Emit (OpCodes.Ldarg_2);
-            il.Emit (OpCodes.Ldarg_3);
-            il.Emit (OpCodes.Ldarg_S, factory.Parameters.Last());
-            il.Emit (OpCodes.Newobj, ctor);
-            il.Emit (OpCodes.Ret);
-            
+            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Ldarg_3);
+            il.Emit(OpCodes.Ldarg_S, factory.Parameters.Last());
+            il.Emit(OpCodes.Newobj, ctor);
+            il.Emit(OpCodes.Ret);
+
             return factory;
         }
 
@@ -373,11 +373,11 @@ namespace Stiletto.Fody.Generators
                 "ModuleFactory_" + (factoryMethodsGenerated++),
                 MethodAttributes.Private,
                 References.RuntimeModule);
-            
+
             var il = factory.Body.GetILProcessor();
-            il.Emit (OpCodes.Newobj, ctor);
-            il.Emit (OpCodes.Ret);
-            
+            il.Emit(OpCodes.Newobj, ctor);
+            il.Emit(OpCodes.Ret);
+
             return factory;
         }
 
@@ -447,19 +447,19 @@ namespace Stiletto.Fody.Generators
             var endOfFn = Instruction.Create(OpCodes.Ret);
 
             var il = getLazy.Body.GetILProcessor();
-            il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Ldfld, lazyInjectsField);
-            il.Emit (OpCodes.Ldarg_3);
-            il.Emit (OpCodes.Ldloca, vLazyBindingFn);
-            il.Emit (OpCodes.Callvirt, References.DictionaryOfStringToLazyBindingFn_TryGetValue);
-            il.Emit (OpCodes.Brtrue, loadLazyFn);
-            il.Emit (OpCodes.Ldnull);
-            il.Emit (OpCodes.Br, endOfFn);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldfld, lazyInjectsField);
+            il.Emit(OpCodes.Ldarg_3);
+            il.Emit(OpCodes.Ldloca, vLazyBindingFn);
+            il.Emit(OpCodes.Callvirt, References.DictionaryOfStringToLazyBindingFn_TryGetValue);
+            il.Emit(OpCodes.Brtrue, loadLazyFn);
+            il.Emit(OpCodes.Ldnull);
+            il.Emit(OpCodes.Br, endOfFn);
             il.Append(loadLazyFn);
-            il.Emit (OpCodes.Ldarg_1);
-            il.Emit (OpCodes.Ldarg_2);
-            il.Emit (OpCodes.Ldarg_3);
-            il.Emit (OpCodes.Callvirt, lazyFnInvoke);
+            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Ldarg_3);
+            il.Emit(OpCodes.Callvirt, lazyFnInvoke);
             il.Append(endOfFn);
 
             loader.Methods.Add(getLazy);
@@ -493,20 +493,20 @@ namespace Stiletto.Fody.Generators
             var endOfFn = Instruction.Create(OpCodes.Ret);
 
             var il = getProvider.Body.GetILProcessor();
-            il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Ldfld, providersField);
-            il.Emit (OpCodes.Ldarg_S, providerKeyArg);
-            il.Emit (OpCodes.Ldloca, vProviderFn);
-            il.Emit (OpCodes.Callvirt, References.DictionaryOfStringToProviderBindingFn_TryGetValue);
-            il.Emit (OpCodes.Brtrue, loadProviderFn);
-            il.Emit (OpCodes.Ldnull);
-            il.Emit (OpCodes.Br, endOfFn);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldfld, providersField);
+            il.Emit(OpCodes.Ldarg_S, providerKeyArg);
+            il.Emit(OpCodes.Ldloca, vProviderFn);
+            il.Emit(OpCodes.Callvirt, References.DictionaryOfStringToProviderBindingFn_TryGetValue);
+            il.Emit(OpCodes.Brtrue, loadProviderFn);
+            il.Emit(OpCodes.Ldnull);
+            il.Emit(OpCodes.Br, endOfFn);
             il.Append(loadProviderFn);
-            il.Emit (OpCodes.Ldarg_1);
-            il.Emit (OpCodes.Ldarg_2);
-            il.Emit (OpCodes.Ldarg_3);
-            il.Emit (OpCodes.Ldarg_S, providerKeyArg);
-            il.Emit (OpCodes.Callvirt, providerFnInvoke);
+            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Ldarg_3);
+            il.Emit(OpCodes.Ldarg_S, providerKeyArg);
+            il.Emit(OpCodes.Callvirt, providerFnInvoke);
             il.Append(endOfFn);
 
             loader.Methods.Add(getProvider);
@@ -536,19 +536,19 @@ namespace Stiletto.Fody.Generators
             var loadModuleFn = Instruction.Create(OpCodes.Ldloc, vModuleFn);
 
             var il = getModule.Body.GetILProcessor();
-            il.Emit (OpCodes.Ldarg_0);
-            il.Emit (OpCodes.Ldfld, modulesField);
-            il.Emit (OpCodes.Ldarg_1);
-            il.Emit (OpCodes.Ldloca, vModuleFn);
-            il.Emit (OpCodes.Callvirt, References.DictionaryOfTypeToModuleFn_TryGetValue);
-            il.Emit (OpCodes.Brtrue, loadModuleFn);
-            il.Emit (OpCodes.Ldnull);
-            il.Emit (OpCodes.Br, endOfFn);
-            il.Append (loadModuleFn);
-            il.Emit (OpCodes.Callvirt, moduleFnInvoke);
-            il.Append (endOfFn);
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldfld, modulesField);
+            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldloca, vModuleFn);
+            il.Emit(OpCodes.Callvirt, References.DictionaryOfTypeToModuleFn_TryGetValue);
+            il.Emit(OpCodes.Brtrue, loadModuleFn);
+            il.Emit(OpCodes.Ldnull);
+            il.Emit(OpCodes.Br, endOfFn);
+            il.Append(loadModuleFn);
+            il.Emit(OpCodes.Callvirt, moduleFnInvoke);
+            il.Append(endOfFn);
 
-            loader.Methods.Add (getModule);
+            loader.Methods.Add(getModule);
         }
     }
 }

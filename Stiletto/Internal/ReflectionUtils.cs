@@ -48,19 +48,23 @@ namespace Stiletto.Internal
                 loaders.Insert(0, (ILoader) Activator.CreateInstance(loader));
             }
 #else
-            AppDomain.CurrentDomain.AssemblyLoad += (o, e) => {
-                lock (knownAssemblies) {
-                    if (!knownAssemblies.Add(e.LoadedAssembly)) {
+            AppDomain.CurrentDomain.AssemblyLoad += (o, e) =>
+            {
+                lock (knownAssemblies)
+                {
+                    if (!knownAssemblies.Add(e.LoadedAssembly))
+                    {
                         return;
                     }
 
                     var loader = e.LoadedAssembly.GetType(CodegenLoader.CompiledLoaderFullName, false);
 
-                    if (loader == null) {
+                    if (loader == null)
+                    {
                         return;
                     }
 
-                    loaders.Insert(0, (ILoader) Activator.CreateInstance(loader));
+                    loaders.Insert(0, (ILoader)Activator.CreateInstance(loader));
                 }
             };
 #endif
@@ -68,24 +72,29 @@ namespace Stiletto.Internal
 
         public static IList<ILoader> GetCompiledLoaders()
         {
-            if (loaders != null) {
+            if (loaders != null)
+            {
                 return loaders;
             }
 
-            lock (knownAssemblies) {
+            lock (knownAssemblies)
+            {
                 loaders = new List<ILoader>();
-                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies()) {
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
                     knownAssemblies.Add(assembly);
 
                     var t = assembly.GetType(CodegenLoader.CompiledLoaderFullName);
 
-                    if (t == null) {
+                    if (t == null)
+                    {
                         continue;
                     }
 
                     var p = Activator.CreateInstance(t) as ILoader;
 
-                    if (p == null) {
+                    if (p == null)
+                    {
                         continue;
                     }
 
@@ -98,7 +107,7 @@ namespace Stiletto.Internal
 
         public bool HasAssemblyBeenExamined<T>()
         {
-            return knownAssemblies.Contains(typeof (T).Assembly);
+            return knownAssemblies.Contains(typeof(T).Assembly);
         }
 
         /// <summary>
@@ -115,12 +124,15 @@ namespace Stiletto.Internal
         {
             var t = Type.GetType(fullName, false);
 
-            if (t != null) {
+            if (t != null)
+            {
                 return t;
             }
 
-            lock (knownTypes) {
-                if (knownTypes.TryGetValue(fullName, out t)) {
+            lock (knownTypes)
+            {
+                if (knownTypes.TryGetValue(fullName, out t))
+                {
                     return t;
                 }
 
@@ -134,15 +146,18 @@ namespace Stiletto.Internal
         private static void ScanLoadedAssemblies()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            for (var i = 0; i < assemblies.Length; ++i) {
+            for (var i = 0; i < assemblies.Length; ++i)
+            {
                 var asm = assemblies[i];
                 knownAssemblies.Add(asm);
 
                 var types = asm.GetTypes();
-                for (var j = 0; j < types.Length; ++j) {
+                for (var j = 0; j < types.Length; ++j)
+                {
                     var t = types[j];
 
-                    if (knownTypes.ContainsKey(t.FullName)) {
+                    if (knownTypes.ContainsKey(t.FullName))
+                    {
                         continue;
                     }
 

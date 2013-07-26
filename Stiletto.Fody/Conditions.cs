@@ -27,7 +27,8 @@ namespace Stiletto.Fody
         public static T CheckNotNull<T>(T value, string name = null)
             where T : class
         {
-            if (!ReferenceEquals(value, null)) {
+            if (!ReferenceEquals(value, null))
+            {
                 return value;
             }
 

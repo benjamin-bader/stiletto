@@ -31,12 +31,15 @@ namespace Stiletto.Internal
 
         public void DetectCircularDependencies(IEnumerable<Binding> bindings, Stack<Binding> path)
         {
-            foreach (var binding in bindings) {
-                if (binding.IsCycleFree) {
+            foreach (var binding in bindings)
+            {
+                if (binding.IsCycleFree)
+                {
                     continue;
                 }
 
-                if (binding.IsVisiting) {
+                if (binding.IsVisiting)
+                {
                     var sb = new StringBuilder("Dependency cycle detected:")
                         .AppendLine()
                         .Append(binding)
@@ -61,13 +64,15 @@ namespace Stiletto.Internal
                 binding.IsVisiting = true;
                 path.Push(binding);
 
-                try {
+                try
+                {
                     var dependencies = new HashSet<Binding>();
                     binding.GetDependencies(dependencies, dependencies);
                     DetectCircularDependencies(dependencies, path);
                     binding.IsCycleFree = true;
                 }
-                finally {
+                finally
+                {
                     binding.IsVisiting = false;
                     path.Pop();
                 }
@@ -81,7 +86,8 @@ namespace Stiletto.Internal
                 .Select(CastOrUnwrapBinding)
                 .ToList();
 
-            if (unusedBindings.Count == 0) {
+            if (unusedBindings.Count == 0)
+            {
                 return;
             }
 
@@ -89,7 +95,8 @@ namespace Stiletto.Internal
                 .AppendLine("The following [Provides] methods are unused,")
                 .AppendLine("set 'IsLibrary = true' on their modules to suppress this error.");
 
-            for (var i = 0; i < unusedBindings.Count; ++i) {
+            for (var i = 0; i < unusedBindings.Count; ++i)
+            {
                 sb.AppendFormat("{0}. {1}", i + 1, unusedBindings[i].ProviderMethodName)
                   .AppendLine();
             }
@@ -100,16 +107,19 @@ namespace Stiletto.Internal
         private static ProviderMethodBindingBase CastOrUnwrapBinding(Binding binding)
         {
             var providerMethodBindingBase = binding as ProviderMethodBindingBase;
-            if (providerMethodBindingBase != null) {
+            if (providerMethodBindingBase != null)
+            {
                 return providerMethodBindingBase;
             }
 
             var singletonBinding = binding as SingletonBinding;
-            if (singletonBinding != null) {
+            if (singletonBinding != null)
+            {
                 providerMethodBindingBase = singletonBinding.DelegateBinding as ProviderMethodBindingBase;
             }
 
-            if (providerMethodBindingBase == null) {
+            if (providerMethodBindingBase == null)
+            {
                 throw new InvalidOperationException("WTF, how is an unused binding not a provides binding?");
             }
 

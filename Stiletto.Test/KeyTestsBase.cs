@@ -59,7 +59,7 @@ namespace Stiletto.Test
         public void Arrays_EqualReflectionFullNamePlusRankedSuffix()
         {
             var intArrayKey = GetKey<int[]>();
-            var multiDimensionalArrayKey = GetKey<object[,,]>();
+            var multiDimensionalArrayKey = GetKey<object[, ,]>();
             var jaggedArrayKey = GetKey<decimal[,][]>();
 
             Expect.The(intArrayKey).ToEqual("System.Int32[]");

@@ -11,7 +11,7 @@ namespace Stiletto.Test
         [Test]
         public void CanGetTheDude()
         {
-            var container = Container.Create(typeof (TestNamedModule));
+            var container = Container.Create(typeof(TestNamedModule));
             var dude = container.Get<Dude>();
             Expect.The(dude).Not.ToBeNull();
 
@@ -25,7 +25,7 @@ namespace Stiletto.Test
         [Test]
         public void CanGetTheDudeFromAnIncludedModule()
         {
-            var container = Container.Create(typeof (TestIncludedModules));
+            var container = Container.Create(typeof(TestIncludedModules));
             var dude = container.Get<Dude>();
             Expect.The(dude).Not.ToBeNull();
         }
@@ -33,7 +33,7 @@ namespace Stiletto.Test
         [Test]
         public void ThereCanBeOnlyOne()
         {
-            var container = Container.Create(typeof (TestNamedModule));
+            var container = Container.Create(typeof(TestNamedModule));
             var dude = container.Get<Dude>();
             var otherDude = container.Get<Dude>();
             Expect.The(otherDude).ToBeTheSameAs(dude);
@@ -42,7 +42,7 @@ namespace Stiletto.Test
         [Test]
         public void SingletonProviderMethodReturnsSameInstance()
         {
-            var container = Container.Create(typeof (TestSingletonProviderModule));
+            var container = Container.Create(typeof(TestSingletonProviderModule));
             var injectable = container.Get<SingletonTestInjectable>();
 
             Expect.The(injectable.One).ToBeTheSameAs(injectable.Another);
@@ -51,7 +51,7 @@ namespace Stiletto.Test
         [Test]
         public void NonSingletonProviderMethodReturnsDifferentInstances()
         {
-            var injectable = GetWithModules<NonSingletonTestInjectable>(typeof (TestSingletonProviderModule));
+            var injectable = GetWithModules<NonSingletonTestInjectable>(typeof(TestSingletonProviderModule));
 
             Expect.The(injectable.One).Not.ToBeTheSameAs(injectable.Another);
         }
@@ -127,7 +127,7 @@ namespace Stiletto.Test
         [Test, ExpectedException(typeof(ArgumentException))]
         public void BaseClassInstance_InjectingDerivedProperties_FailsWhenGenericIsUsed()
         {
-            var container = Container.Create(typeof (NameModule));
+            var container = Container.Create(typeof(NameModule));
             var baseInjectable = new DerivedInjectable("foo") as BaseInjectable;
             container.Inject(baseInjectable);
         }
@@ -143,17 +143,19 @@ namespace Stiletto.Test
         [Test]
         public void InjectableDerivedFromNonInjectableIsInjected()
         {
-            GetWithModules<DerivedFromNonInjectable>(typeof (BaseNonInjectableModule));
+            GetWithModules<DerivedFromNonInjectable>(typeof(BaseNonInjectableModule));
         }
 
         private class A
         {
-            [Inject] public A() {}
+            [Inject]
+            public A() { }
         }
 
         private class NeedsA
         {
-            [Inject] public A A { get; set; }
+            [Inject]
+            public A A { get; set; }
         }
 
         [Module(Injects = new[] { typeof(NeedsA) })]
@@ -167,7 +169,7 @@ namespace Stiletto.Test
         }
 
         [Module(
-            Injects = new[] { typeof(SingletonTestInjectable), typeof(NonSingletonTestInjectable)})]
+            Injects = new[] { typeof(SingletonTestInjectable), typeof(NonSingletonTestInjectable) })]
         public class TestSingletonProviderModule
         {
             [Provides, Named("n")]
@@ -185,14 +187,18 @@ namespace Stiletto.Test
 
         public class SingletonTestInjectable
         {
-            [Inject, Named("s")] public object One { get; set; }
-            [Inject, Named("s")] public object Another { get; set; }
+            [Inject, Named("s")]
+            public object One { get; set; }
+            [Inject, Named("s")]
+            public object Another { get; set; }
         }
 
         public class NonSingletonTestInjectable
         {
-            [Inject, Named("n")] public object One { get; set; }
-            [Inject, Named("n")] public object Another { get; set; }
+            [Inject, Named("n")]
+            public object One { get; set; }
+            [Inject, Named("n")]
+            public object Another { get; set; }
         }
 
         [Module(
@@ -343,7 +349,7 @@ namespace Stiletto.Test
             }
         }
 
-        [Module(Injects = new [] { typeof(DerivedFromNonInjectable) })]
+        [Module(Injects = new[] { typeof(DerivedFromNonInjectable) })]
         public class BaseNonInjectableModule
         {
             [Provides]

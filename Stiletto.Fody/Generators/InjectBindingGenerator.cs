@@ -50,7 +50,7 @@ namespace Stiletto.Fody.Generators
             : base(moduleDefinition, references)
         {
             this.injectedType = injectedType.IsDefinition
-                                    ? (TypeDefinition) injectedType
+                                    ? (TypeDefinition)injectedType
                                     : injectedType.Resolve();
 
             importedInjectedType = Import(injectedType);
@@ -131,7 +131,8 @@ namespace Stiletto.Fody.Generators
 
             if (InjectableCtor == null)
             {
-                if (InjectableProperties.Count == 0 && !IsModuleInjectable) {
+                if (InjectableProperties.Count == 0 && !IsModuleInjectable)
+                {
                     errorReporter.LogError("No injectable constructors or properties found on " + injectedType.FullName);
                 }
 
@@ -160,11 +161,14 @@ namespace Stiletto.Fody.Generators
                 || baseTypeAsmName.StartsWith("mscorlib")
                 || baseTypeAsmName.StartsWith("System")
                 || baseTypeAsmName.StartsWith("Microsoft")
-                || baseTypeAsmName.StartsWith("Mono")) {
+                || baseTypeAsmName.StartsWith("Mono"))
+            {
                 // We can safely skip types known not to have [Inject] bindings, i.e. types
                 // from the BCL, etc.
                 BaseTypeKey = null;
-            } else {
+            }
+            else
+            {
                 // Otherwise, base types might have [Inject] properties that we'll need
                 // to account for.
                 BaseTypeKey = Weaver.EnqueueBaseTypeBinding(baseType)
@@ -195,20 +199,23 @@ namespace Stiletto.Fody.Generators
 
             var propertyFields = new List<FieldDefinition>(InjectableProperties.Count);
 
-            foreach (var property in InjectableProperties) {
+            foreach (var property in InjectableProperties)
+            {
                 var propertyBinding = new FieldDefinition(property.PropertyName, FieldAttributes.Private, References.Binding);
                 injectBinding.Fields.Add(propertyBinding);
                 propertyFields.Add(propertyBinding);
             }
 
             FieldDefinition ctorParamsField = null;
-            if (CtorParams.Count > 0) {
+            if (CtorParams.Count > 0)
+            {
                 ctorParamsField = new FieldDefinition("ctorParamBindings", FieldAttributes.Private, References.BindingArray);
                 injectBinding.Fields.Add(ctorParamsField);
             }
 
             FieldDefinition baseTypeField = null;
-            if (BaseTypeKey != null) {
+            if (BaseTypeKey != null)
+            {
                 baseTypeField = new FieldDefinition("baseTypeBinding", FieldAttributes.Private, References.Binding);
                 injectBinding.Fields.Add(baseTypeField);
             }
@@ -219,7 +226,8 @@ namespace Stiletto.Fody.Generators
             var injectProperties = EmitInjectProperties(injectBinding, baseTypeField, propertyFields);
             EmitGet(injectBinding, injectProperties, ctorParamsField);
 
-            if (injectedType.DeclaringType != null) {
+            if (injectedType.DeclaringType != null)
+            {
                 injectBinding.DeclaringType = injectedType.DeclaringType;
             }
 
@@ -287,14 +295,16 @@ namespace Stiletto.Fody.Generators
                                    ? new VariableDefinition("ctorParamsBindings", References.BindingArray)
                                    : null;
 
-            if (vParamsArray != null) {
+            if (vParamsArray != null)
+            {
                 resolve.Body.Variables.Add(vParamsArray);
                 resolve.Body.InitLocals = true;
             }
 
             var il = resolve.Body.GetILProcessor();
 
-            for (var i = 0; i < InjectableProperties.Count; ++i) {
+            for (var i = 0; i < InjectableProperties.Count; ++i)
+            {
                 var property = InjectableProperties[i];
                 var field = propertyFields[i];
 
@@ -308,12 +318,14 @@ namespace Stiletto.Fody.Generators
                 il.Emit(OpCodes.Stfld, field);
             }
 
-            if (paramsField != null) {
+            if (paramsField != null)
+            {
                 il.Emit(OpCodes.Ldc_I4, CtorParams.Count);
                 il.Emit(OpCodes.Newarr, References.Binding);
                 il.Emit(OpCodes.Stloc, vParamsArray);
 
-                for (var i = 0; i < CtorParams.Count; ++i) {
+                for (var i = 0; i < CtorParams.Count; ++i)
+                {
                     var param = CtorParams[i];
 
                     il.Emit(OpCodes.Ldloc, vParamsArray);
@@ -332,7 +344,8 @@ namespace Stiletto.Fody.Generators
                 il.Emit(OpCodes.Stfld, paramsField);
             }
 
-            if (baseTypeField != null) {
+            if (baseTypeField != null)
+            {
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Ldstr, BaseTypeKey);
@@ -361,14 +374,16 @@ namespace Stiletto.Fody.Generators
 
             var il = getDependencies.Body.GetILProcessor();
 
-            if (ctorParamsField != null) {
+            if (ctorParamsField != null)
+            {
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, ctorParamsField);
                 il.Emit(OpCodes.Callvirt, References.SetOfBindings_UnionWith);
             }
 
-            foreach (var field in propertyFields) {
+            foreach (var field in propertyFields)
+            {
                 il.Emit(OpCodes.Ldarg_2);
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, field);
@@ -376,7 +391,8 @@ namespace Stiletto.Fody.Generators
                 il.Emit(OpCodes.Pop);
             }
 
-            if (baseTypeField != null) {
+            if (baseTypeField != null)
+            {
                 il.Emit(OpCodes.Ldarg_2);
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, baseTypeField);
@@ -397,14 +413,16 @@ namespace Stiletto.Fody.Generators
                 References.Object);
 
             VariableDefinition vResult = null;
-            if (injectProperties != null) {
+            if (injectProperties != null)
+            {
                 vResult = new VariableDefinition("result", References.Object);
                 get.Body.Variables.Add(vResult);
                 get.Body.InitLocals = true;
             }
 
             var il = get.Body.GetILProcessor();
-            for (var i = 0; i < CtorParams.Count; ++i) {
+            for (var i = 0; i < CtorParams.Count; ++i)
+            {
                 var param = CtorParams[i];
 
                 il.Emit(OpCodes.Ldarg_0);
@@ -417,7 +435,8 @@ namespace Stiletto.Fody.Generators
 
             il.Emit(OpCodes.Newobj, Import(InjectableCtor));
 
-            if (vResult != null) {
+            if (vResult != null)
+            {
                 il.Emit(OpCodes.Stloc, vResult);
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldloc, vResult);
@@ -432,7 +451,8 @@ namespace Stiletto.Fody.Generators
 
         private MethodReference EmitInjectProperties(TypeDefinition injectBinding, FieldDefinition baseTypeField, IList<FieldDefinition> propertyFields)
         {
-            if (propertyFields.Count == 0 && baseTypeField == null) {
+            if (propertyFields.Count == 0 && baseTypeField == null)
+            {
                 return null;
             }
 
@@ -452,7 +472,8 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Castclass, importedInjectedType);
             il.Emit(OpCodes.Stloc, vObj);
 
-            for (var i = 0; i < InjectableProperties.Count; ++i) {
+            for (var i = 0; i < InjectableProperties.Count; ++i)
+            {
                 var property = InjectableProperties[i];
                 var field = propertyFields[i];
 
@@ -461,11 +482,12 @@ namespace Stiletto.Fody.Generators
                 il.Emit(OpCodes.Ldfld, field);
                 il.Emit(OpCodes.Callvirt, References.Binding_Get);
                 il.Cast(property.Type);
-                
+
                 il.Emit(OpCodes.Callvirt, Import(property.Setter));
             }
 
-            if (baseTypeField != null) {
+            if (baseTypeField != null)
+            {
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, baseTypeField);
                 il.Emit(OpCodes.Ldloc, vObj);

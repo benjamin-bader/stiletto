@@ -82,8 +82,9 @@ namespace Stiletto.Fody
                 throw new ArgumentException("Open generic types are not supported.");
             }
 
-            if (typedef is GenericInstanceType) {
-                var genericType = (GenericInstanceType) typedef;
+            if (typedef is GenericInstanceType)
+            {
+                var genericType = (GenericInstanceType)typedef;
                 sb.Append(GetRawGenericName(typedef));
 
                 sb.Append("<");

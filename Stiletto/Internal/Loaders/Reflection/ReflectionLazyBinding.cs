@@ -50,7 +50,7 @@ namespace Stiletto.Internal.Loaders.Reflection
         private readonly string lazyKey;
         private readonly Type lazyType;
         private Binding delegateBinding;
-        private object delayedGet; 
+        private object delayedGet;
 
         public ReflectionLazyBinding(string key, object requiredBy, string lazyKey)
             : base(key, null, false, requiredBy)
@@ -74,7 +74,8 @@ namespace Stiletto.Internal.Loaders.Reflection
 
         public override object Get()
         {
-            if (delayedGet == null) {
+            if (delayedGet == null)
+            {
                 // So here's how it works.
                 // We're returning a Lazy<T>, but we don't know at compile-time what
                 // T is.  The Lazy<T> constructor requires a Func<T>, which we can't 
@@ -87,7 +88,7 @@ namespace Stiletto.Internal.Loaders.Reflection
                 var implType = IMPL_TYPE.MakeGenericType(lazyType);
                 var implGet = implType.GetMethod("GetLazyInstance");
                 Func<object> factory = () => delegateBinding.Get();
-                var impl = Activator.CreateInstance(implType, new object[] {factory});
+                var impl = Activator.CreateInstance(implType, new object[] { factory });
 
                 delayedGet = implGet.Invoke(impl, EMPTY_OBJECTS);
             }

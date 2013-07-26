@@ -90,7 +90,7 @@ namespace ValidateBuilds
 
         private bool ExecuteBuild(BuildState state)
         {
-            var req = new BuildRequestData(state.ProjectFile.FullName, globalBuildProperties, "4.0", new[] {"Clean", "Build"}, null);
+            var req = new BuildRequestData(state.ProjectFile.FullName, globalBuildProperties, "4.0", new[] { "Clean", "Build" }, null);
             var parameters = new BuildParameters();
             var buildResult = BuildManager.DefaultBuildManager.Build(parameters, req);
 

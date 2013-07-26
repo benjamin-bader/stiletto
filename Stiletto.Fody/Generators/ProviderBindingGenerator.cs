@@ -186,7 +186,7 @@ namespace Stiletto.Fody.Generators
 
             get.Overrides.Add(References.Binding_Get);
             getExplicit.Overrides.Add(providerOfT_get);
-            
+
             // First we emit a helper method to serve as the body of a Func<T>,
             // because lambdas don't exist in IL
             var il = getExplicit.Body.GetILProcessor();

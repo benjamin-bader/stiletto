@@ -49,7 +49,7 @@ namespace Stiletto.Fody.Generators
         }
 
         public bool IsSingleton { get; private set; }
-        public IList<string> ParamKeys { get; private set; } 
+        public IList<string> ParamKeys { get; private set; }
 
         public MethodDefinition GeneratedCtor { get; private set; }
 
@@ -75,31 +75,38 @@ namespace Stiletto.Fody.Generators
         public override void Validate(IErrorReporter errorReporter)
         {
             ParamKeys = new List<string>();
-            foreach (var param in ProviderMethod.Parameters) {
+            foreach (var param in ProviderMethod.Parameters)
+            {
                 ParamKeys.Add(CompilerKeys.ForParam(param));
             }
 
-            if (ProviderMethod.HasGenericParameters) {
+            if (ProviderMethod.HasGenericParameters)
+            {
                 errorReporter.LogError("Provider methods cannot be generic: " + ProviderMethod.FullName);
             }
 
-            if (ProviderMethod.IsStatic) {
+            if (ProviderMethod.IsStatic)
+            {
                 errorReporter.LogError("Provider methods cannot be static: " + ProviderMethod.FullName);
             }
 
-            if (ProviderMethod.MethodReturnType.ReturnType.Name == "Lazy`1") {
+            if (ProviderMethod.MethodReturnType.ReturnType.Name == "Lazy`1")
+            {
                 errorReporter.LogError("Provider methods cannot return System.Lazy<T> directly: " + ProviderMethod.FullName);
             }
 
-            if (ProviderMethod.ReturnType.Name == "IProvider`1") {
+            if (ProviderMethod.ReturnType.Name == "IProvider`1")
+            {
                 errorReporter.LogError("Provider methods cannot return IProvider<T> directly: " + ProviderMethod.FullName);
             }
 
-            if (ProviderMethod.IsPrivate) {
+            if (ProviderMethod.IsPrivate)
+            {
                 errorReporter.LogError("Provider methods cannot be private: " + ProviderMethod.FullName);
             }
 
-            if (ProviderMethod.IsAbstract) {
+            if (ProviderMethod.IsAbstract)
+            {
                 errorReporter.LogError("Provider methods cannot be abstract: " + ProviderMethod.FullName);
             }
         }
@@ -122,7 +129,8 @@ namespace Stiletto.Fody.Generators
 
             var parameters = new List<ParameterDefinition>();
             var fields = new List<FieldDefinition>();
-            foreach (var param in ProviderMethod.Parameters) {
+            foreach (var param in ProviderMethod.Parameters)
+            {
                 var field = new FieldDefinition(param.Name, FieldAttributes.Private, References.Binding);
                 providerType.Fields.Add(field);
                 parameters.Add(param);
@@ -140,7 +148,7 @@ namespace Stiletto.Fody.Generators
             return providerType;
         }
 
-        public override KeyedCtor GetKeyedCtor ()
+        public override KeyedCtor GetKeyedCtor()
         {
             // Ignored here, not needed by the ModuleGenerator.
             return null;
@@ -180,7 +188,8 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Stfld, moduleField);
 
-            if (IsLibrary) {
+            if (IsLibrary)
+            {
                 il.Emit(OpCodes.Ldarg_0);
                 il.EmitBoolean(true);
                 il.Emit(OpCodes.Callvirt, References.Binding_IsLibrarySetter);
@@ -203,7 +212,8 @@ namespace Stiletto.Fody.Generators
              * }
              */
 
-            if (parameters.Count == 0) {
+            if (parameters.Count == 0)
+            {
                 return;
             }
 
@@ -215,7 +225,8 @@ namespace Stiletto.Fody.Generators
 
             var il = resolve.Body.GetILProcessor();
 
-            for (var i = 0; i < parameters.Count; ++i) {
+            for (var i = 0; i < parameters.Count; ++i)
+            {
                 var param = parameters[i];
                 var field = fields[i];
 
@@ -249,7 +260,8 @@ namespace Stiletto.Fody.Generators
              * }
              */
 
-            if (bindings.Count == 0) {
+            if (bindings.Count == 0)
+            {
                 return;
             }
 
@@ -263,7 +275,8 @@ namespace Stiletto.Fody.Generators
 
             var il = getDependencies.Body.GetILProcessor();
 
-            foreach (var field in bindings) {
+            foreach (var field in bindings)
+            {
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Ldarg_0);
                 il.Emit(OpCodes.Ldfld, field);
@@ -287,7 +300,8 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldfld, moduleField);
 
-            for (var i = 0; i < parameters.Count; ++i ) {
+            for (var i = 0; i < parameters.Count; ++i)
+            {
                 var field = fields[i];
                 var parameter = parameters[i];
 
@@ -298,7 +312,8 @@ namespace Stiletto.Fody.Generators
             }
 
             il.Emit(OpCodes.Callvirt, Import(ProviderMethod));
-            if (ProviderMethod.ReturnType.IsValueType) {
+            if (ProviderMethod.ReturnType.IsValueType)
+            {
                 il.Emit(OpCodes.Box, Import(ProviderMethod.ReturnType));
             }
             il.Emit(OpCodes.Ret);
