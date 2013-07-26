@@ -62,7 +62,8 @@ namespace Stiletto.Internal.Loaders.Codegen
             //typeName = typeName.Replace('+', '.');
             var t = ReflectionUtils.GetType(typeName);
 
-            if (t == null) {
+            if (t == null)
+            {
                 return null;
             }
 

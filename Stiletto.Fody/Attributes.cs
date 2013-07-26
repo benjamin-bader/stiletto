@@ -83,7 +83,8 @@ namespace Stiletto.Fody
 
         private static bool Is(CustomAttribute attribute, string name)
         {
-            if (attribute == null) {
+            if (attribute == null)
+            {
                 return false;
             }
 
@@ -92,7 +93,8 @@ namespace Stiletto.Fody
 
         private static CustomAttribute ExtractCustomAttribute(this ICustomAttributeProvider parameterDefinition, Func<CustomAttribute, bool> predicate)
         {
-            if (!parameterDefinition.HasCustomAttributes) {
+            if (!parameterDefinition.HasCustomAttributes)
+            {
                 return null;
             }
 
@@ -101,7 +103,8 @@ namespace Stiletto.Fody
 
         private static CustomAttribute ExtractCustomAttribute(this MethodReturnType returnType, Func<CustomAttribute, bool> predicate)
         {
-            if (!returnType.HasCustomAttributes) {
+            if (!returnType.HasCustomAttributes)
+            {
                 return null;
             }
 

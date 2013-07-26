@@ -26,7 +26,8 @@ namespace Stiletto.Fody
             where TInput : class
             where TResult : class
         {
-            if (input == null) {
+            if (input == null)
+            {
                 return null;
             }
 

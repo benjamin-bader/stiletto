@@ -68,7 +68,7 @@ namespace ValidateBuilds
 
             var root = rootNodes[0];
 
-            var scriptFile = (string) root.Attribute("Script");
+            var scriptFile = (string)root.Attribute("Script");
 
             if (scriptFile != null)
             {
@@ -79,13 +79,13 @@ namespace ValidateBuilds
             var includedTypes = root
                 .Descendants("Classes")
                 .Descendants("Include")
-                .Select(el => (string) el.Attribute("Name"))
+                .Select(el => (string)el.Attribute("Name"))
                 .ToSet(StringComparer.Ordinal);
 
             var excludedTypes = root
                 .Descendants("Classes")
                 .Descendants("Exclude")
-                .Select(el => (string) el.Attribute("Name"))
+                .Select(el => (string)el.Attribute("Name"))
                 .ToSet(StringComparer.Ordinal);
 
             includedTypes.ExceptWith(excludedTypes);
@@ -100,12 +100,12 @@ namespace ValidateBuilds
                 .Descendants("Pattern")
                 .Select(ReadElementAsString);
 
-            return new ExpectedResults(warnings, errors, includedTypes, excludedTypes) {Script = scriptFile};
+            return new ExpectedResults(warnings, errors, includedTypes, excludedTypes) { Script = scriptFile };
         }
 
         private static string ReadElementAsString(XElement e)
         {
-            return (string) e;
+            return (string)e;
         }
     }
 }

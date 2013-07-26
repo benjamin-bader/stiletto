@@ -60,7 +60,7 @@ namespace Stiletto
             get { return includedModules ?? Type.EmptyTypes; }
             set { includedModules = value; }
         }
-        
+
         /// <summary>
         /// Gets or sets a value indicating whether this module has any outside
         /// dependencies, such as provider methods that require injected parameters.
@@ -102,7 +102,7 @@ namespace Stiletto
         ///         return false;
         ///     }
         /// }
-        /// 
+        ///
         /// [Module(IsOverride = true)]
         /// public class OverridingModule
         /// {
@@ -112,15 +112,15 @@ namespace Stiletto
         ///         return true;
         ///     }
         /// }
-        /// 
+        ///
         /// Container.Create(new Module(), new OverridingModule()).Get&lt;bool&gt;(); // true
         /// </code>
-        /// 
+        ///
         /// <para>
         /// This is especially useful during testing, when you may only want to
         /// alter one or two specific injections.
         /// </para>
-        /// 
+        ///
         /// </remarks>
         public bool IsOverride
         {

@@ -33,11 +33,16 @@ namespace Stiletto.Fody
 
         public static void Cast(this ILProcessor processor, TypeReference type)
         {
-            if (type.IsGenericParameter) {
+            if (type.IsGenericParameter)
+            {
                 processor.Emit(OpCodes.Unbox_Any, type);
-            } else if (type.IsValueType) {
+            }
+            else if (type.IsValueType)
+            {
                 processor.Emit(OpCodes.Unbox_Any, type);
-            } else {
+            }
+            else
+            {
                 processor.Emit(OpCodes.Castclass, type);
             }
         }

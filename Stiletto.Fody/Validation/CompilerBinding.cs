@@ -38,16 +38,19 @@ namespace Stiletto.Fody.Validation
         public override void Resolve(Resolver resolver)
         {
             ctorBindings = new List<Binding>(generator.CtorParams.Count);
-            foreach (var p in generator.CtorParams) {
+            foreach (var p in generator.CtorParams)
+            {
                 ctorBindings.Add(resolver.RequestBinding(p.Key, generator.InjectedType.FullName));
             }
 
             propertyBindings = new List<Binding>(generator.InjectableProperties.Count);
-            foreach (var p in generator.InjectableProperties) {
+            foreach (var p in generator.InjectableProperties)
+            {
                 propertyBindings.Add(resolver.RequestBinding(p.Key, generator.InjectedType.FullName));
             }
 
-            if (generator.BaseTypeKey != null) {
+            if (generator.BaseTypeKey != null)
+            {
                 baseTypeBinding = resolver.RequestBinding(generator.BaseTypeKey, generator.BaseTypeKey, false);
             }
         }
@@ -57,7 +60,8 @@ namespace Stiletto.Fody.Validation
             injectDependencies.UnionWith(ctorBindings);
             propertyDependencies.UnionWith(propertyBindings);
 
-            if (baseTypeBinding != null) {
+            if (baseTypeBinding != null)
+            {
                 propertyDependencies.Add(baseTypeBinding);
             }
         }

@@ -36,10 +36,10 @@ namespace Stiletto.Fody.Generators
         public bool IsComplete { get; private set; }
         public bool IsOverride { get; private set; }
         public bool IsLibrary { get; private set; }
-        public ISet<string> ProvidedKeys { get; private set; } 
+        public ISet<string> ProvidedKeys { get; private set; }
         public IList<TypeReference> IncludedModules { get; private set; }
         public IList<TypeReference> Injects { get; private set; }
-        public IList<MethodDefinition> BaseProvidesMethods { get { return baseProvidesMethods; }}
+        public IList<MethodDefinition> BaseProvidesMethods { get { return baseProvidesMethods; } }
         public IList<ProviderMethodBindingGenerator> ProviderGenerators { get; private set; }
         public bool IsVisibleToLoader { get; private set; }
 
@@ -52,7 +52,8 @@ namespace Stiletto.Fody.Generators
 
             var attr = moduleType.CustomAttributes.SingleOrDefault(Attributes.IsModuleAttribute);
 
-            if (attr == null) {
+            if (attr == null)
+            {
                 throw new ArgumentException(moduleType.FullName + " is not marked as a [Module].", "moduleType");
             }
 
@@ -62,8 +63,10 @@ namespace Stiletto.Fody.Generators
                                           argOverrides = null,
                                           argIsLibrary = null;
 
-            foreach (var arg in attr.Properties) {
-                switch (arg.Name) {
+            foreach (var arg in attr.Properties)
+            {
+                switch (arg.Name)
+                {
                     case "IsComplete":
                         argComplete = arg;
                         break;
@@ -89,17 +92,21 @@ namespace Stiletto.Fody.Generators
             IsLibrary = GetArgumentValue(argIsLibrary, false);
 
             Injects = new List<TypeReference>();
-            if (argInjects != null) {
-                foreach (var val in (CustomAttributeArgument[]) argInjects.Value.Argument.Value) {
-                    var injectType = (TypeReference) val.Value;
+            if (argInjects != null)
+            {
+                foreach (var val in (CustomAttributeArgument[])argInjects.Value.Argument.Value)
+                {
+                    var injectType = (TypeReference)val.Value;
                     Injects.Add(injectType);
                 }
             }
 
             IncludedModules = new List<TypeReference>();
-            if (argIncludes != null) {
-                foreach (var val in (CustomAttributeArgument[]) argIncludes.Value.Argument.Value) {
-                    var includeType = (TypeReference) val.Value;
+            if (argIncludes != null)
+            {
+                foreach (var val in (CustomAttributeArgument[])argIncludes.Value.Argument.Value)
+                {
+                    var includeType = (TypeReference)val.Value;
                     IncludedModules.Add(includeType);
                 }
             }
@@ -122,37 +129,45 @@ namespace Stiletto.Fody.Generators
         {
             return arg == null
                        ? defaultValue
-                       : (T) arg.Value.Argument.Value;
+                       : (T)arg.Value.Argument.Value;
         }
 
         public override void Validate(IErrorReporter errorReporter)
         {
-            if (moduleType.BaseType != null && moduleType.BaseType.FullName != References.Object.FullName) {
+            if (moduleType.BaseType != null && moduleType.BaseType.FullName != References.Object.FullName)
+            {
                 errorReporter.LogError(moduleType.FullName + ": Modules must inherit from System.Object only.");
             }
 
-            if (moduleType.IsAbstract) {
+            if (moduleType.IsAbstract)
+            {
                 errorReporter.LogError(moduleType.FullName + ": Modules cannot be abstract.");
             }
 
             moduleCtor = moduleType.GetConstructors().FirstOrDefault(m => m.Parameters.Count == 0);
-            if (moduleCtor == null) {
+            if (moduleCtor == null)
+            {
                 errorReporter.LogError(moduleType.FullName + " is marked as a [Module], but no default constructor is visible.");
-            } else {
+            }
+            else
+            {
                 moduleCtor = Import(moduleCtor);
             }
 
             ProvidedKeys = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var method in baseProvidesMethods) {
+            foreach (var method in baseProvidesMethods)
+            {
                 var name = method.GetNamedAttributeName();
                 var key = CompilerKeys.ForType(method.ReturnType, name);
 
-                if (!ProvidedKeys.Add(key)) {
+                if (!ProvidedKeys.Add(key))
+                {
                     errorReporter.LogError(moduleType.FullName + ": Duplicate provider key for method " + moduleType.FullName + "." + method.Name);
                 }
             }
 
-            switch (moduleType.Attributes & TypeAttributes.VisibilityMask) {
+            switch (moduleType.Attributes & TypeAttributes.VisibilityMask)
+            {
                 case TypeAttributes.NestedFamily:
                 case TypeAttributes.NestedFamANDAssem:
                 case TypeAttributes.NestedPrivate:
@@ -164,7 +179,8 @@ namespace Stiletto.Fody.Generators
                     break;
             }
 
-            foreach (var gen in ProviderGenerators) {
+            foreach (var gen in ProviderGenerators)
+            {
                 gen.Validate(errorReporter);
             }
         }
@@ -200,7 +216,8 @@ namespace Stiletto.Fody.Generators
 
             t.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
 
-            foreach (var gen in ProviderGenerators) {
+            foreach (var gen in ProviderGenerators)
+            {
                 gen.RuntimeModuleType = t;
                 gen.Generate(errorReporter);
             }
@@ -209,14 +226,15 @@ namespace Stiletto.Fody.Generators
             EmitCreateModule(t);
             EmitGetBindings(t);
 
-            if (moduleType.DeclaringType != null) {
+            if (moduleType.DeclaringType != null)
+            {
                 t.DeclaringType = moduleType.DeclaringType;
             }
 
             return t;
         }
 
-        public override KeyedCtor GetKeyedCtor ()
+        public override KeyedCtor GetKeyedCtor()
         {
             // We don't care about keys for modules, we can dispatch on moduleType.
             return null;
@@ -225,7 +243,7 @@ namespace Stiletto.Fody.Generators
         public Tuple<TypeReference, MethodReference> GetModuleTypeAndGeneratedCtor()
         {
             Conditions.CheckNotNull(generatedCtor);
-            return Tuple.Create((TypeReference) moduleType, generatedCtor);
+            return Tuple.Create((TypeReference)moduleType, generatedCtor);
         }
 
         private void EmitCreateModule(TypeDefinition runtimeModule)
@@ -277,7 +295,8 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Castclass, importedModuleType);
             il.Emit(OpCodes.Stloc, vModule);
 
-            foreach (var binding in ProviderGenerators) {
+            foreach (var binding in ProviderGenerators)
+            {
                 il.Emit(OpCodes.Ldarg_1);
                 il.Emit(OpCodes.Ldstr, binding.Key);
                 il.Emit(OpCodes.Ldloc, vModule);
@@ -313,11 +332,12 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldtoken, importedModuleType);
             il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
-            
+
             // make array of entry point keys
             il.Emit(OpCodes.Ldc_I4, Injects.Count);
             il.Emit(OpCodes.Newarr, References.String);
-            for (var i = 0; i < Injects.Count; ++i) {
+            for (var i = 0; i < Injects.Count; ++i)
+            {
                 il.Emit(OpCodes.Dup);
                 il.Emit(OpCodes.Ldc_I4, i);
                 il.Emit(OpCodes.Ldstr, CompilerKeys.GetMemberKey(Injects[i]));
@@ -327,7 +347,8 @@ namespace Stiletto.Fody.Generators
             // make array of included module types
             il.Emit(OpCodes.Ldc_I4, IncludedModules.Count);
             il.Emit(OpCodes.Newarr, References.Type);
-            for (var i = 0; i < IncludedModules.Count; ++i) {
+            for (var i = 0; i < IncludedModules.Count; ++i)
+            {
                 il.Emit(OpCodes.Dup);
                 il.Emit(OpCodes.Ldc_I4, i);
                 il.Emit(OpCodes.Ldtoken, Import(IncludedModules[i]));

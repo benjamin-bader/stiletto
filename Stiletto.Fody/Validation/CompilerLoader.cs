@@ -17,7 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
- using Stiletto.Fody.Generators;
+using Stiletto.Fody.Generators;
 ﻿using Stiletto.Internal;
 
 namespace Stiletto.Fody.Validation
@@ -34,7 +34,7 @@ namespace Stiletto.Fody.Validation
             IEnumerable<ProviderBindingGenerator> providerBindings)
         {
             var comparer = StringComparer.Ordinal;
-            this.bindings = bindings.ToDictionary(b => b.Key, b => (Binding) new CompilerBinding(b), comparer);
+            this.bindings = bindings.ToDictionary(b => b.Key, b => (Binding)new CompilerBinding(b), comparer);
             this.lazyBindings = lazyBindings.ToDictionary(b => b.Key, b => new CompilerParameterizedBinding(b), comparer);
             this.providerBindings = providerBindings.ToDictionary(b => b.Key, b => new CompilerParameterizedBinding(b), comparer);
         }
