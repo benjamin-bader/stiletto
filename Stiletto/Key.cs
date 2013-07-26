@@ -30,7 +30,7 @@ namespace Stiletto
         /// An <see cref="IEqualityComparer&lt;String&gt;"/> instance suitable
         /// for comparing keys.
         /// </summary>
-        public static readonly IEqualityComparer<string> Comparer = StringComparer.Ordinal; 
+        public static readonly IEqualityComparer<string> Comparer = StringComparer.Ordinal;
 
         /// <summary>
         /// A <see cref="StringComparison"/> suitable for comparing keys.
@@ -141,7 +141,8 @@ namespace Stiletto
         public static string GetProviderKey(string key)
         {
             var start = StartOfType(key);
-            if (!SubstringStartsWith(key, start, ProviderPrefix)) {
+            if (!SubstringStartsWith(key, start, ProviderPrefix))
+            {
                 return null;
             }
             return ExtractKey(key, start, key.Substring(0, start), ProviderPrefix);
@@ -168,7 +169,8 @@ namespace Stiletto
                 throw new ArgumentException("Open generic types are not supported: " + t.AssemblyQualifiedName);
             }
 
-            if (t.IsByRef) {
+            if (t.IsByRef)
+            {
                 throw new ArgumentException("Cannot inject ref or out constructor parameters.");
             }
 

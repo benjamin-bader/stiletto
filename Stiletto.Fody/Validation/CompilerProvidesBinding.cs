@@ -25,7 +25,7 @@ namespace Stiletto.Fody.Validation
     {
         private readonly ProviderMethodBindingGenerator generator;
 
-        private IList<Binding> paramBindings; 
+        private IList<Binding> paramBindings;
 
         public CompilerProvidesBinding(ProviderMethodBindingGenerator generator)
             : base(generator.Key, null, generator.IsSingleton, generator, generator.ModuleType.FullName, generator.ProviderMethod.Name)
@@ -37,7 +37,8 @@ namespace Stiletto.Fody.Validation
         public override void Resolve(Resolver resolver)
         {
             paramBindings = new List<Binding>(generator.ParamKeys.Count);
-            foreach (var key in generator.ParamKeys) {
+            foreach (var key in generator.ParamKeys)
+            {
                 paramBindings.Add(resolver.RequestBinding(key, generator.ProviderMethod.FullName));
             }
         }

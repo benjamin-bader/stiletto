@@ -66,7 +66,7 @@ namespace Stiletto.Fody
 
         private bool Find(string input, out byte node)
         {
-            node = (byte) root;
+            node = (byte)root;
             int i;
 
             for (i = 0; i < input.Length; ++i)
@@ -108,7 +108,7 @@ namespace Stiletto.Fody
                 throw new InvalidOperationException("Too many nodes - System.Byte may be too small.");
 
             // Initialize the array representation of the node structure
-            trie = new byte[canonicalNodes.Count + 1,supportedCharacters.Count + 1];
+            trie = new byte[canonicalNodes.Count + 1, supportedCharacters.Count + 1];
 
             // Establish a mapping between canonical nodes an array indices.
             var numToNode = new TrieNode[canonicalNodes.Keys.Count + 1];
@@ -116,7 +116,7 @@ namespace Stiletto.Fody
 
             var nodeToNum = new Dictionary<TrieNode, byte>(new NodeToNumComparer());
             for (var i = 1; i < numToNode.Length; ++i)
-                nodeToNum.Add(numToNode[i], (byte) i);
+                nodeToNum.Add(numToNode[i], (byte)i);
 
             // Populate the array, and let the garbage collecter handle the object refs.
             Fill(rootNode, nodeToNum);
@@ -196,7 +196,7 @@ namespace Stiletto.Fody
             for (var i = 0; i < node.Children.Count; ++i)
             {
                 trie[num, i] = ReferenceEquals(node.Children[i], null)
-                                   ? (byte) 0
+                                   ? (byte)0
                                    : nodeToNum[node.Children[i]];
             }
 

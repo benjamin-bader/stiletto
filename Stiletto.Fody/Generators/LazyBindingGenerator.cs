@@ -82,7 +82,7 @@ namespace Stiletto.Fody.Generators
             return t;
         }
 
-        public override KeyedCtor GetKeyedCtor ()
+        public override KeyedCtor GetKeyedCtor()
         {
             Conditions.CheckNotNull(generatedCtor);
             return new KeyedCtor(lazyKey, generatedCtor);

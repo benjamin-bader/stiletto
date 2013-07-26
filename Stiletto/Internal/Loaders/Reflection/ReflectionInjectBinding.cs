@@ -132,10 +132,10 @@ namespace Stiletto.Internal.Loaders.Reflection
                 propertyDependencies.Add(baseTypeBinding);
             }
         }
- 
+
         public static ReflectionInjectBinding Create(Type t, bool mustBeInjectable)
         {
-            var isSingleton = t.GetCustomAttributes(typeof (SingletonAttribute), false).Length > 0;
+            var isSingleton = t.GetCustomAttributes(typeof(SingletonAttribute), false).Length > 0;
             var keys = new List<string>();
             var properties = t.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
             var injectableProperties = new List<PropertyInfo>(properties.Length);

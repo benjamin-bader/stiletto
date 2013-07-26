@@ -114,7 +114,8 @@ namespace Stiletto.Fody
                 injectTypes,
                 moduleGenerators.SelectMany(m => m.Injects));
 
-            foreach (var g in injectGenerators) {
+            foreach (var g in injectGenerators)
+            {
                 // We need to validate the inject binding generators to
                 // discover their injectable constructors and properties,
                 // which we need to have to get lazy and IProvider bindings.
@@ -154,17 +155,20 @@ namespace Stiletto.Fody
 
         public void ValidateGenerators()
         {
-            foreach (var g in moduleGenerators) {
+            foreach (var g in moduleGenerators)
+            {
                 g.Validate(errorReporter);
             }
 
             // Inject bindings are already validated
 
-            foreach (var g in lazyGenerators) {
+            foreach (var g in lazyGenerators)
+            {
                 g.Validate(errorReporter);
             }
 
-            foreach (var g in providerGenerators) {
+            foreach (var g in providerGenerators)
+            {
                 g.Validate(errorReporter);
             }
         }
@@ -226,19 +230,23 @@ namespace Stiletto.Fody
             var generatedTypes = new HashSet<TypeDefinition>(new TypeReferenceComparer());
             var generators = new Queue<Generator>();
 
-            foreach (var g in moduleGenerators) {
+            foreach (var g in moduleGenerators)
+            {
                 generators.Enqueue(g);
             }
 
-            foreach (var g in injectGenerators) {
+            foreach (var g in injectGenerators)
+            {
                 generators.Enqueue(g);
             }
 
-            foreach (var g in lazyGenerators) {
+            foreach (var g in lazyGenerators)
+            {
                 generators.Enqueue(g);
             }
 
-            foreach (var g in providerGenerators) {
+            foreach (var g in providerGenerators)
+            {
                 generators.Enqueue(g);
             }
 
@@ -375,26 +383,33 @@ namespace Stiletto.Fody
 
         private void GatherParameterizedBindings()
         {
-            foreach (var inject in injectGenerators) {
+            foreach (var inject in injectGenerators)
+            {
                 LazyBindingGenerator lazyGenerator;
                 ProviderBindingGenerator providerGenerator;
 
-                foreach (var param in inject.CtorParams) {
-                    if (TryGetLazyGenerator(param, inject.InjectedType, "Constructor parameter", out lazyGenerator)) {
+                foreach (var param in inject.CtorParams)
+                {
+                    if (TryGetLazyGenerator(param, inject.InjectedType, "Constructor parameter", out lazyGenerator))
+                    {
                         lazyGenerators.Add(lazyGenerator);
                     }
 
-                    if (TryGetProviderGenerator(param, inject.InjectedType, "Constructor parameter", out providerGenerator)) {
+                    if (TryGetProviderGenerator(param, inject.InjectedType, "Constructor parameter", out providerGenerator))
+                    {
                         providerGenerators.Add(providerGenerator);
                     }
                 }
 
-                foreach (var prop in inject.InjectableProperties) {
-                    if (TryGetLazyGenerator(prop, inject.InjectedType, "Property", out lazyGenerator)) {
+                foreach (var prop in inject.InjectableProperties)
+                {
+                    if (TryGetLazyGenerator(prop, inject.InjectedType, "Property", out lazyGenerator))
+                    {
                         lazyGenerators.Add(lazyGenerator);
                     }
 
-                    if (TryGetProviderGenerator(prop, inject.InjectedType, "Property", out providerGenerator)) {
+                    if (TryGetProviderGenerator(prop, inject.InjectedType, "Property", out providerGenerator))
+                    {
                         providerGenerators.Add(providerGenerator);
                     }
                 }

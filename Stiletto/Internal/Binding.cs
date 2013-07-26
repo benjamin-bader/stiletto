@@ -32,7 +32,6 @@ namespace Stiletto.Internal
             IsCycleFree = 8,
             IsLibrary = 16,
             IsDependedOn = 32,
-
         }
 
         private readonly string providerKey;
@@ -150,7 +149,7 @@ namespace Stiletto.Internal
         {
             public UnresolvedBinding()
                 : base(null, null, false, null)
-            {}
+            { }
 
             public override object Get()
             {

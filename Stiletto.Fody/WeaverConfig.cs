@@ -40,7 +40,7 @@ namespace Stiletto.Fody
             if (excludedClassElement != null)
             {
                 var classes = from c in excludedClassElement.Elements("Class")
-                              select (string) c;
+                              select (string)c;
 
                 excludedClasses.AddRange(classes);
             }
@@ -55,8 +55,8 @@ namespace Stiletto.Fody
 
         private static bool? GetAttributeOrElement(XElement config, string name)
         {
-            return (bool?) config.Attribute(name)
-                ?? (bool?) config.Element(name);
+            return (bool?)config.Attribute(name)
+                ?? (bool?)config.Element(name);
         }
     }
 }

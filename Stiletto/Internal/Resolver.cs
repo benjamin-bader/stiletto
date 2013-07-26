@@ -106,7 +106,7 @@ namespace Stiletto.Internal
 
                 if (binding is DeferredBinding)
                 {
-                    var deferredBinding = (DeferredBinding) binding;
+                    var deferredBinding = (DeferredBinding)binding;
                     var key = deferredBinding.DeferredKey;
                     var mustBeInjectable = deferredBinding.MustBeInjectable;
 
@@ -116,11 +116,13 @@ namespace Stiletto.Internal
                         continue;
                     }
 
-                    try {
+                    try
+                    {
                         var jitBinding = CreateJitBinding(key, binding.RequiredBy, mustBeInjectable);
                         jitBinding.IsLibrary = binding.IsLibrary;
                         jitBinding.IsDependedOn = binding.IsDependedOn;
-                        if (!key.Equals(jitBinding.ProviderKey) && !key.Equals(jitBinding.MembersKey)) {
+                        if (!key.Equals(jitBinding.ProviderKey) && !key.Equals(jitBinding.MembersKey))
+                        {
                             throw new BindingException("Can't create binding for " + key);
                         }
 
@@ -128,7 +130,8 @@ namespace Stiletto.Internal
                         bindingsToResolve.Enqueue(scopedJitBinding);
                         AddBindingToDictionary(scopedJitBinding);
                     }
-                    catch (BindingException ex) {
+                    catch (BindingException ex)
+                    {
                         errors.Add(ex.Message + " required by " + binding.RequiredBy);
                         bindings[key] = Binding.Unresolved;
                     }
@@ -185,7 +188,8 @@ namespace Stiletto.Internal
         private Binding CreateJitBinding(string key, object requiredBy, bool mustBeInjectable)
         {
             var providerKey = Key.GetProviderKey(key);
-            if (providerKey != null) {
+            if (providerKey != null)
+            {
                 return loader.GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, providerKey);
             }
 

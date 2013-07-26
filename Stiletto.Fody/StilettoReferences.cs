@@ -71,7 +71,7 @@ namespace Stiletto.Fody
 
         private StilettoReferences()
         {
-            
+
         }
 
         /// <summary>

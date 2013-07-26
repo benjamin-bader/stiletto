@@ -19,7 +19,7 @@ namespace ValidateBuilds
         public IList<string> Errors { get; private set; }
         public IList<string> Warnings { get; private set; }
         public Exception WeaverException { get; private set; }
- 
+
         public FodyHelper(string projectPath, string assemblyPath)
         {
             if (string.IsNullOrEmpty(projectPath))
@@ -85,8 +85,8 @@ namespace ValidateBuilds
         {
             var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
             var name = assemblyNameReference.Name;
-            
-            foreach (var ext in new[] {".dll", ".exe"})
+
+            foreach (var ext in new[] { ".dll", ".exe" })
             {
                 var path = Path.Combine(assemblyDirectory, name + ext);
                 if (!File.Exists(path))

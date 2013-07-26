@@ -51,7 +51,7 @@ namespace Stiletto.Test
         public class NeedsProvider
         {
             [Inject]
-            public IProvider<string> ObjectProvider { get; set; } 
+            public IProvider<string> ObjectProvider { get; set; }
         }
     }
 }

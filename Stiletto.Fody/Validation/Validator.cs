@@ -28,7 +28,7 @@ namespace Stiletto.Fody.Validation
     {
         private readonly ILoader loader;
         private readonly ICollection<ModuleGenerator> moduleGenerators;
-        private readonly IDictionary<string, ModuleGenerator> modulesByTypeName; 
+        private readonly IDictionary<string, ModuleGenerator> modulesByTypeName;
         private readonly IErrorReporter errorReporter;
 
         public Validator(
