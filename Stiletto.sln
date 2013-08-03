@@ -46,6 +46,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnusedBindingsInLibraryModu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModulesNeedDefaultConstructors", "IntegrationTests\ModulesNeedDefaultConstructors\ModulesNeedDefaultConstructors.csproj", "{F2B7A491-F65E-4E90-86FB-C3DA8C7E2F88}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuplicateInjectsTypesFail", "IntegrationTests\DuplicateInjectsTypesFail\DuplicateInjectsTypesFail.csproj", "{47052838-D044-4399-AE69-17BD457A2265}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuplicateInjectsFromIncludedModuleFails", "IntegrationTests\DuplicateInjectsFromInIncludedModuleFails\DuplicateInjectsFromIncludedModuleFails.csproj", "{397FACB5-4857-446D-9B52-263F5D7CE12D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -208,6 +212,22 @@ Global
 		{F2B7A491-F65E-4E90-86FB-C3DA8C7E2F88}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F2B7A491-F65E-4E90-86FB-C3DA8C7E2F88}.Release|ARM.ActiveCfg = Release|Any CPU
 		{F2B7A491-F65E-4E90-86FB-C3DA8C7E2F88}.Release|x86.ActiveCfg = Release|Any CPU
+		{47052838-D044-4399-AE69-17BD457A2265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47052838-D044-4399-AE69-17BD457A2265}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47052838-D044-4399-AE69-17BD457A2265}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{47052838-D044-4399-AE69-17BD457A2265}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{47052838-D044-4399-AE69-17BD457A2265}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47052838-D044-4399-AE69-17BD457A2265}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47052838-D044-4399-AE69-17BD457A2265}.Release|ARM.ActiveCfg = Release|Any CPU
+		{47052838-D044-4399-AE69-17BD457A2265}.Release|x86.ActiveCfg = Release|Any CPU
+		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Release|ARM.ActiveCfg = Release|Any CPU
+		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -220,6 +240,8 @@ Global
 		{0D2FE127-BDC3-44A8-BCD0-66A2A415CD32} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
 		{D63FFF2B-F39B-490D-973A-249E7BADF832} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
 		{F2B7A491-F65E-4E90-86FB-C3DA8C7E2F88} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
+		{47052838-D044-4399-AE69-17BD457A2265} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
+		{397FACB5-4857-446D-9B52-263F5D7CE12D} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

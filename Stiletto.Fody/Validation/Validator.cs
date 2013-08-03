@@ -18,18 +18,26 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
-﻿using Stiletto.Fody.Generators;
+using Mono.Cecil;
+using Stiletto.Fody.Generators;
 ﻿using Stiletto.Internal;
+using Stiletto.Internal.Loaders.Codegen;
 
 namespace Stiletto.Fody.Validation
 {
     public class Validator
     {
-        private readonly ILoader loader;
         private readonly ICollection<ModuleGenerator> moduleGenerators;
         private readonly IDictionary<string, ModuleGenerator> modulesByTypeName;
         private readonly IErrorReporter errorReporter;
+        private readonly IEnumerable<InjectBindingGenerator> injectBindings;
+        private readonly IEnumerable<LazyBindingGenerator> lazyBindings; 
+        private readonly IEnumerable<ProviderBindingGenerator> providerBindings; 
+
+        private ILoader loader;
 
         public Validator(
             IErrorReporter errorReporter,
@@ -40,7 +48,10 @@ namespace Stiletto.Fody.Validation
         {
             modulesByTypeName = modules.ToDictionary(m => m.ModuleType.FullName, m => m);
             moduleGenerators = modulesByTypeName.Values;
-            loader = new CompilerLoader(injectBindings, lazyBindings, providerBindings);
+            this.injectBindings = injectBindings;
+            this.lazyBindings = lazyBindings;
+            this.providerBindings = providerBindings;
+            //loader = new CompilerLoader(injectBindings, lazyBindings, providerBindings);
             this.errorReporter = errorReporter;
         }
 
@@ -51,6 +62,75 @@ namespace Stiletto.Fody.Validation
             {
                 graphvizDirectory = PrepareGraphvizDirectory(outputDirectory);
             }
+
+            var invalidModules = new HashSet<ModuleGenerator>();
+            foreach (var moduleGenerator in moduleGenerators)
+            {
+                if (!moduleGenerator.IsComplete)
+                {
+                    continue;
+                }
+
+                try
+                {
+                    var modules = new Dictionary<string, ModuleGenerator>();
+                    GatherIncludedModules(moduleGenerator, modules, new Stack<string>());
+
+                    var injectTypesByModule = new Dictionary<TypeReference, IList<ModuleGenerator>>(new TypeReferenceComparer());
+                    foreach (var module in modules.Values)
+                    {
+                        foreach (var injectType in module.Injects)
+                        {
+                            IList<ModuleGenerator> providingModules;
+                            if (!injectTypesByModule.TryGetValue(injectType, out providingModules))
+                            {
+                                injectTypesByModule[injectType] = providingModules = new List<ModuleGenerator>();
+                            }
+
+                            providingModules.Add(module);
+                        }
+                    }
+
+                    foreach (var kvp in injectTypesByModule)
+                    {
+                        var type = kvp.Key;
+                        var providingModules = kvp.Value;
+
+                        if (providingModules.Count == 1)
+                        {
+                            continue;
+                        }
+
+                        var sb = new StringBuilder();
+                        sb.Append("The type ")
+                            .Append(type.FullName)
+                            .AppendLine(" is provided multiple types in one complete module network:");
+
+                        for (var i = 0; i < providingModules.Count; ++i)
+                        {
+                            sb.Append("  ")
+                                .Append(i + 1)
+                                .Append(": ")
+                                .AppendLine(providingModules[i].ModuleType.FullName);
+                        }
+
+                        errorReporter.LogError(sb.ToString());
+                        invalidModules.Add(moduleGenerator);
+                    }
+                }
+                catch (ValidationException ex)
+                {
+                    errorReporter.LogError(ex.Message);
+                    invalidModules.Add(moduleGenerator);
+                }
+            }
+
+            if (invalidModules.Count > 0)
+            {
+                return;
+            }
+
+            loader = new CompilerLoader(injectBindings, lazyBindings, providerBindings);
 
             foreach (var moduleGenerator in moduleGenerators)
             {

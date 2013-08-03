@@ -154,6 +154,15 @@ namespace Stiletto.Fody.Generators
                 moduleCtor = Import(moduleCtor);
             }
 
+            var injectTypeSet = new HashSet<TypeReference>(new TypeReferenceComparer());
+            foreach (var injectType in Injects)
+            {
+                if (!injectTypeSet.Add(injectType))
+                {
+                    errorReporter.LogError(moduleType.FullName + ": The type " + injectType.FullName + " is provided more than once.");
+                }
+            }
+
             ProvidedKeys = new HashSet<string>(StringComparer.Ordinal);
             foreach (var method in baseProvidesMethods)
             {
