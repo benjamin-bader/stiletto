@@ -78,6 +78,13 @@ namespace Stiletto.Internal.Loaders.Reflection
 
         private void AddNewBinding(IDictionary<string, Binding> bindings, string key, MethodInfo method)
         {
+            if (bindings.ContainsKey(key))
+            {
+                throw new ArgumentException(
+                    string.Format("The module {0} provides the type {1} multiple times.",
+                                  ModuleType.FullName, key));
+            }
+
             bindings.Add(key, new ProviderMethodBinding(method, key, Module, IsLibrary));
         }
 
