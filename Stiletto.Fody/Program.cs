@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using System.Xml.Linq;
 using Mono.Cecil;
 
 namespace Stiletto.Fody
@@ -33,12 +33,14 @@ namespace Stiletto.Fody
             var ad = AssemblyDefinition.ReadAssembly(asm, new ReaderParameters { ReadSymbols = true });
             var md = ad.MainModule;
 
+            var config = XElement.Parse("<Config SuppressGraphviz=\"true\" />");
             var weaver = new ModuleWeaver()
                              {
                                  LogError = Console.WriteLine,
                                  ModuleDefinition = md,
                                  ReferenceCopyLocalPaths = new List<string>(),
                                  AssemblyResolver = new DefaultAssemblyResolver(),
+                                 Config = config,
                              };
 
             weaver.Execute();

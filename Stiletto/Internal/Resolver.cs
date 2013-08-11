@@ -212,7 +212,7 @@ namespace Stiletto.Internal
             throw new BindingException("No binding for " + key);
         }
 
-        private static Binding Scope(Binding binding)
+        public static Binding Scope(Binding binding)
         {
             if (!binding.IsSingleton)
                 return binding;

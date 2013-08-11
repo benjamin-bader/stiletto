@@ -52,16 +52,19 @@
     <Compile Include="Internal\ILoader.cs" />
     <Compile Include="Internal\Loaders\Codegen\CodegenLoader.cs" />
     <Compile Include="Internal\Loaders\Codegen\ProcessedAssemblyAttribute.cs" />
+    <Compile Include="Internal\ReadOnlyHashSet.cs" />
+    <Compile Include="Internal\Loaders\Codegen\SetBinding.cs" />
     <Compile Include="Internal\Loaders\Reflection\ReflectionInjectBinding.cs" />
     <Compile Include="Internal\Loaders\Reflection\ReflectionLazyBinding.cs" />
     <Compile Include="Internal\Loaders\Reflection\ReflectionLoader.cs" />
     <Compile Include="Internal\Loaders\Reflection\ReflectionProviderBinding.cs" />
     <Compile Include="Internal\Loaders\Reflection\ReflectionRuntimeModule.cs" />
-    <Compile Include="Internal\ProviderMethodBindingBase.cs" />
+    <Compile Include="Internal\Loaders\Reflection\ReflectionSetBinding.cs" />
     <Compile Include="Internal\ReflectionUtils.cs" />
     <Compile Include="Internal\RuntimeAggregationLoader.cs" />
     <Compile Include="Internal\RuntimeModule.cs" />
     <Compile Include="Internal\Resolver.cs" />
+    <Compile Include="Internal\SetBindingBase.cs" />
     <Compile Include="Internal\SingletonBinding.cs" />
     <Compile Include="Internal\TypeExtensions.cs" />
     <Compile Include="IProvider.cs" />
@@ -70,6 +73,7 @@
     <Compile Include="ModuleAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProvidesAttribute.cs" />
+    <Compile Include="ProvidesType.cs" />
     <Compile Include="QualifierAttribute.cs" />
     <Compile Include="SingletonAttribute.cs" />
   </ItemGroup>

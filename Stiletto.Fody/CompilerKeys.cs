@@ -15,8 +15,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using Mono.Cecil;
+using Stiletto.Internal.Loaders.Codegen;
 
 namespace Stiletto.Fody
 {
@@ -25,6 +27,7 @@ namespace Stiletto.Fody
         public const string MemberKeyPrefix = "members/";
         private static readonly string LazyPrefix = typeof(Lazy<>).FullName + "<";
         private static readonly string ProviderPrefix = typeof(IProvider<>).FullName + "<";
+        private static readonly string SetPrefix = typeof (ISet<>).FullName + "<";
 
         public static string ForParam(ParameterDefinition param)
         {
@@ -150,6 +153,12 @@ namespace Stiletto.Fody
                 return null;
             }
             return ExtractKey(key, start, key.Substring(0, start), LazyPrefix);
+        }
+
+        public static string GetSetKey(string key)
+        {
+            var start = StartOfType(key);
+            return key.Substring(0, start) + SetPrefix + key.Substring(start) + ">";
         }
 
         private static int StartOfType(string key)

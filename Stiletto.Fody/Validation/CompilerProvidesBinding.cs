@@ -21,14 +21,20 @@ using Stiletto.Internal;
 
 namespace Stiletto.Fody.Validation
 {
-    public class CompilerProvidesBinding : ProviderMethodBindingBase
+    public class CompilerProvidesBinding : Binding
     {
         private readonly ProviderMethodBindingGenerator generator;
+
+        public ProviderMethodBindingGenerator Generator
+        {
+            get { return generator; }
+        }
 
         private IList<Binding> paramBindings;
 
         public CompilerProvidesBinding(ProviderMethodBindingGenerator generator)
-            : base(generator.Key, null, generator.IsSingleton, generator, generator.ModuleType.FullName, generator.ProviderMethod.Name)
+            : base(generator.Key, null, generator.IsSingleton,
+                   generator.ModuleType.FullName + "." + generator.ProviderMethod.Name)
         {
             this.generator = generator;
             IsLibrary = generator.IsLibrary;

@@ -25,6 +25,7 @@ namespace Stiletto
         private const string MemberKeyPrefix = "members/";
         private static readonly string LazyPrefix = GetRawGenericName(typeof (Lazy<object>)) + "<";
         private static readonly string ProviderPrefix = GetRawGenericName(typeof (IProvider<object>)) + "<";
+        private static readonly string SetPrefix = GetRawGenericName(typeof (ISet<object>)) + "<";
 
         /// <summary>
         /// An <see cref="IEqualityComparer&lt;String&gt;"/> instance suitable
@@ -160,6 +161,22 @@ namespace Stiletto
                 return null;
             }
             return ExtractKey(key, start, key.Substring(0, start), LazyPrefix);
+        }
+
+        public static string GetSetKey(string key)
+        {
+            var start = StartOfType(key);
+            return key.Substring(0, start) + SetPrefix + key.Substring(start) + ">";
+        }
+
+        public static string GetSetElementKey(string setKey)
+        {
+            var start = StartOfType(setKey);
+            if (!SubstringStartsWith(setKey, start, SetPrefix))
+            {
+                return null;
+            }
+            return ExtractKey(setKey, start, setKey.Substring(0, start), SetPrefix);
         }
 
         private static void ForType(Type t, StringBuilder sb)

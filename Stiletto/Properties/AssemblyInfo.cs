@@ -52,3 +52,4 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
 [assembly: InternalsVisibleTo("Stiletto.Test")]
+[assembly: InternalsVisibleTo("Stiletto.Fody")]

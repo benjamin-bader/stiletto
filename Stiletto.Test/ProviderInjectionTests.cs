@@ -12,11 +12,13 @@ namespace Stiletto.Test
     public class ProviderInjectionTests
     {
         private NeedsProvider testObj;
+        private TestModule module;
 
         [SetUp]
         public void Setup()
         {
-            var container = Container.Create(typeof(TestModule));
+            module = new TestModule();
+            var container = Container.Create(module);
             testObj = container.Get<NeedsProvider>();
         }
 
@@ -29,16 +31,16 @@ namespace Stiletto.Test
         [Test]
         public void InjectedProviderInvokesProviderMethod()
         {
-            Expect.The(TestModule.Invocations).ToEqual(0);
+            Expect.The(module.Invocations).ToEqual(0);
             testObj.ObjectProvider.Get();
             testObj.ObjectProvider.Get();
-            Expect.The(TestModule.Invocations).ToEqual(2);
+            Expect.The(module.Invocations).ToEqual(2);
         }
 
         [Module(Injects = new[] { typeof(NeedsProvider) })]
         public class TestModule
         {
-            public static int Invocations = 0;
+            public int Invocations = 0;
 
             [Provides]
             public string SomeObject()
