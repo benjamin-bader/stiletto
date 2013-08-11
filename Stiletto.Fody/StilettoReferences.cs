@@ -37,8 +37,8 @@ namespace Stiletto.Fody
         public MethodDefinition Binding_RequiredBy_Getter { get; private set; }
         public MethodDefinition Binding_IsLibrary_Setter { get; private set; }
 
-        public TypeDefinition ProviderMethodBindingBase { get; private set; }
-        public MethodDefinition ProviderMethodBindingBase_Ctor { get; private set; }
+        public TypeDefinition SetBindings { get; private set; }
+        public MethodDefinition SetBindings_Add { get; private set; }
 
         public TypeDefinition RuntimeModule { get; private set; }
         public MethodDefinition RuntimeModule_Ctor { get; private set; }
@@ -102,8 +102,8 @@ namespace Stiletto.Fody
             var tBinding_RequiredBy_Getter = tBinding.GetProperty("RequiredBy").GetMethod;
             var tBinding_IsLibrary_Setter = tBinding.GetProperty("IsLibrary").SetMethod;
 
-            var tProviderMethodBindingBase = types["Stiletto.Internal.ProviderMethodBindingBase"];
-            var tProviderMethodBingingBase_ctor = tProviderMethodBindingBase.GetMethod(".ctor");
+            var tSetBindings = types["Stiletto.Internal.Loaders.Codegen.SetBindings"];
+            var tSetBindings_Add = tSetBindings.GetMethod("Add");
 
             var tRuntimeModule = types["Stiletto.Internal.RuntimeModule"];
             var tRuntimeModule_ctor = tRuntimeModule.GetMethod(".ctor");
@@ -145,8 +145,8 @@ namespace Stiletto.Fody
                            Binding_RequiredBy_Getter = tBinding_RequiredBy_Getter,
                            Binding_IsLibrary_Setter = tBinding_IsLibrary_Setter,
 
-                           ProviderMethodBindingBase = tProviderMethodBindingBase,
-                           ProviderMethodBindingBase_Ctor = tProviderMethodBingingBase_ctor,
+                           SetBindings = tSetBindings,
+                           SetBindings_Add = tSetBindings_Add,
 
                            RuntimeModule = tRuntimeModule,
                            RuntimeModule_Ctor = tRuntimeModule_ctor,

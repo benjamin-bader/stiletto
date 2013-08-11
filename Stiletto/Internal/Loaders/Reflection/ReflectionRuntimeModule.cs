@@ -47,14 +47,24 @@ namespace Stiletto.Internal.Loaders.Reflection
                 for (var i = 0; i < methods.Length; ++i)
                 {
                     var m = methods[i];
-                    if (!m.HasAttribute<ProvidesAttribute>())
+                    var attr = m.GetSingleAttribute<ProvidesAttribute>();
+                    if (attr == null)
                     {
                         continue;
                     }
 
                     var key = Key.Get(m.ReturnType, m.GetQualifierName());
-                    AddNewBinding(bindings, key, m);
+                    switch (attr.ProvidesType)
+                    {
+                        case ProvidesType.Default:
+                            AddNewBinding(bindings, key, m);
+                            break;
 
+                        case ProvidesType.Set:
+
+                            ReflectionSetBinding.Add(bindings, Key.GetSetKey(key), new ProviderMethodBinding(m, key, Module, IsLibrary));
+                            break;
+                    }
                 }
             }
         }
@@ -88,15 +98,15 @@ namespace Stiletto.Internal.Loaders.Reflection
             bindings.Add(key, new ProviderMethodBinding(method, key, Module, IsLibrary));
         }
 
-        private class ProviderMethodBinding : ProviderMethodBindingBase
+        private class ProviderMethodBinding : Binding
         {
             private readonly MethodInfo method;
             private readonly object target;
             private Binding[] methodParameterBindings;
 
             public ProviderMethodBinding(MethodInfo method, string providerKey, object target, bool isLibrary)
-                : base(providerKey, null, method.HasAttribute<SingletonAttribute>(), method,
-                       method.DeclaringType.FullName, method.Name)
+                : base(providerKey, null, method.HasAttribute<SingletonAttribute>(),
+                       method.DeclaringType.FullName + "." + method.Name)
             {
                 this.method = method;
                 this.target = target;

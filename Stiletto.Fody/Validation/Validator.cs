@@ -104,7 +104,7 @@ namespace Stiletto.Fody.Validation
                         var sb = new StringBuilder();
                         sb.Append("The type ")
                             .Append(type.FullName)
-                            .AppendLine(" is provided multiple types in one complete module network:");
+                            .AppendLine(" is provided multiple times in one complete module network:");
 
                         for (var i = 0; i < providingModules.Count; ++i)
                         {
@@ -250,7 +250,6 @@ namespace Stiletto.Fody.Validation
 
                 foreach (var providerGenerator in module.ProviderGenerators)
                 {
-
                     var binding = new CompilerProvidesBinding(providerGenerator);
 
                     if (addTo.ContainsKey(binding.ProviderKey))
@@ -262,7 +261,20 @@ namespace Stiletto.Fody.Validation
                             (message, binding.ProviderKey, addendum, module.ModuleType.FullName));
                     }
 
-                    addTo.Add(binding.ProviderKey, binding);
+                    switch (providerGenerator.ProvidesType)
+                    {
+                        case ProvidesType.Default:
+                            addTo.Add(binding.ProviderKey, binding);
+                            break;
+
+                        case ProvidesType.Set:
+                            var setKey = CompilerKeys.GetSetKey(binding.ProviderKey);
+                            CompilerSetBinding.Add(addTo, setKey, binding);
+                            break;
+
+                        default:
+                            throw new ArgumentException("Unknown ProvidesType value: " + providerGenerator.ProvidesType);
+                    }
                 }
             }
 

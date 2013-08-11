@@ -1,6 +1,6 @@
-/*
+﻿/*
  * Copyright © 2013 Ben Bader
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-using System;
-
 namespace Stiletto
 {
-    /// <summary>
-    /// Marks a module method as providing a type.  All dependencies on this
-    /// method's return type will be provided by this method.
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
-    public class ProvidesAttribute : Attribute
+    public enum ProvidesType
     {
-        public ProvidesType ProvidesType { get; private set; }
-
-        public ProvidesAttribute()
-            : this(ProvidesType.Default)
-        {}
-
-        public ProvidesAttribute(ProvidesType type)
-        {
-            ProvidesType = type;
-        }
+        Default,
+        Set
     }
 }

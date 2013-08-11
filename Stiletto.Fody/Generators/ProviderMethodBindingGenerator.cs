@@ -48,6 +48,7 @@ namespace Stiletto.Fody.Generators
             get { return isLibrary; }
         }
 
+        public ProvidesType ProvidesType { get; private set; }
         public bool IsSingleton { get; private set; }
         public IList<string> ParamKeys { get; private set; }
 
@@ -70,6 +71,18 @@ namespace Stiletto.Fody.Generators
 
             var name = ProviderMethod.GetNamedAttributeName();
             key = CompilerKeys.ForType(ProviderMethod.ReturnType, name);
+
+            var attr = providerMethod.CustomAttributes.First(Attributes.IsProvidesAttribute);
+
+            if (attr.HasConstructorArguments)
+            {
+                var providesTypeArg = attr.ConstructorArguments.Single();
+                ProvidesType = (ProvidesType) providesTypeArg.Value;
+            }
+            else
+            {
+                ProvidesType = ProvidesType.Default;
+            }
         }
 
         public override void Validate(IErrorReporter errorReporter)
@@ -118,7 +131,7 @@ namespace Stiletto.Fody.Generators
                 RuntimeModuleType.Namespace,
                 "ProviderBinding_" + RuntimeModuleType.NestedTypes.Count,
                 TypeAttributes.NestedPublic,
-                References.ProviderMethodBindingBase);
+                References.Binding);
 
             providerType.CustomAttributes.Add(new CustomAttribute(References.CompilerGeneratedAttribute));
             providerType.DeclaringType = RuntimeModuleType;
@@ -158,7 +171,7 @@ namespace Stiletto.Fody.Generators
         {
             /**
              * public ProviderBinding_N(ModuleType module)
-             *     : base(Key, null, IsSingleton, typeof(ModuleType), ModuleType.FullName, ProviderMethod.FullName)
+             *     : base(Key, null, IsSingleton, "ModuleName.MethodName")
              * {
              *     this.module = module;
              *     // if IsLibrary
@@ -178,11 +191,8 @@ namespace Stiletto.Fody.Generators
             il.Emit(OpCodes.Ldstr, Key);
             il.Emit(OpCodes.Ldnull);
             il.EmitBoolean(IsSingleton);
-            il.Emit(OpCodes.Ldtoken, ModuleType);
-            il.Emit(OpCodes.Call, References.Type_GetTypeFromHandle);
-            il.Emit(OpCodes.Ldstr, ModuleType.FullName);
-            il.Emit(OpCodes.Ldstr, ProviderMethod.Name);
-            il.Emit(OpCodes.Call, References.ProviderMethodBindingBase_Ctor);
+            il.Emit(OpCodes.Ldstr, ModuleType.FullName + "." + ProviderMethod.Name);
+            il.Emit(OpCodes.Call, References.Binding_Ctor);
 
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldarg_1);

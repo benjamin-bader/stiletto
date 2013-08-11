@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Stiletto.Internal;
 
@@ -28,21 +30,50 @@ namespace Stiletto.Fody.Validation
         public void Write(DotWriter dotWriter, IDictionary<string, Binding> allBindings)
         {
             var nameIndex = GetNodeNames(allBindings);
+            var visited = new HashSet<Binding>();
+            var q = new Queue<Tuple<Binding, string>>(nameIndex.Select(kvp => Tuple.Create(kvp.Key, kvp.Value)));
 
             dotWriter.BeginGraph("cluster", "true");
-            foreach (var kvp in nameIndex)
+
+            while (q.Count > 0)
             {
-                var binding = kvp.Key;
-                var sourceName = kvp.Value;
+                var current = q.Dequeue();
+
+                if (visited.Contains(current.Item1))
+                {
+                    continue;
+                }
+
+                var binding = current.Item1;
+                var sourceName = current.Item2;
                 var dependencies = new HashSet<Binding>();
                 binding.GetDependencies(dependencies, dependencies);
 
                 foreach (var dependency in dependencies)
                 {
-                    var targetName = nameIndex[dependency];
-                    dotWriter.WriteEdge(sourceName, targetName);
+                    string targetName;
+                    if (nameIndex.TryGetValue(dependency, out targetName))
+                    {
+                        dotWriter.WriteEdge(sourceName, targetName);
+                        q.Enqueue(Tuple.Create(dependency, targetName));
+                    }
+                    else if (binding is CompilerSetBinding)
+                    {
+                        var providesBinding = Unwrap(dependency);
+                        var gen = providesBinding.Generator;
+                        var name = gen.Key + " (" + gen.ProviderMethod.Name + ")";
+                        dotWriter.WriteEdge(sourceName, name);
+                        q.Enqueue(Tuple.Create(dependency, name));
+                    }
+                    else
+                    {
+                        dotWriter.WriteEdge(sourceName, "Unbound: " + dependency.ProviderKey);
+                    }
                 }
+
+                visited.Add(binding);
             }
+
             dotWriter.EndGraph();
         }
 
@@ -126,6 +157,24 @@ namespace Stiletto.Fody.Validation
                        ? trimmedType
                        : label.Substring(0, startOfType) + trimmedType;
 
+        }
+
+        private static CompilerProvidesBinding Unwrap(Binding binding)
+        {
+            var providesBinding = binding as CompilerProvidesBinding;
+
+            if (providesBinding != null)
+            {
+                return providesBinding;
+            }
+
+            var singleton = binding as SingletonBinding;
+            if (singleton != null)
+            {
+                return Unwrap(singleton.DelegateBinding);
+            }
+
+            throw new ArgumentException("Not a provides binding: " + binding.ProviderKey);
         }
     }
 }
