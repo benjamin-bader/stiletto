@@ -83,7 +83,6 @@ namespace Stiletto.Internal
         {
             var unusedBindings = bindings
                 .Where(b => !b.IsLibrary && !b.IsDependedOn)
-                .Select(CastOrUnwrapBinding)
                 .ToList();
 
             if (unusedBindings.Count == 0)
@@ -97,33 +96,11 @@ namespace Stiletto.Internal
 
             for (var i = 0; i < unusedBindings.Count; ++i)
             {
-                sb.AppendFormat("{0}. {1}", i + 1, unusedBindings[i].ProviderMethodName)
+                sb.AppendFormat("{0}. {1}", i + 1, unusedBindings[i].RequiredBy)
                   .AppendLine();
             }
 
             throw new InvalidOperationException(sb.ToString());
-        }
-
-        private static ProviderMethodBindingBase CastOrUnwrapBinding(Binding binding)
-        {
-            var providerMethodBindingBase = binding as ProviderMethodBindingBase;
-            if (providerMethodBindingBase != null)
-            {
-                return providerMethodBindingBase;
-            }
-
-            var singletonBinding = binding as SingletonBinding;
-            if (singletonBinding != null)
-            {
-                providerMethodBindingBase = singletonBinding.DelegateBinding as ProviderMethodBindingBase;
-            }
-
-            if (providerMethodBindingBase == null)
-            {
-                throw new InvalidOperationException("WTF, how is an unused binding not a provides binding?");
-            }
-
-            return providerMethodBindingBase;
         }
     }
 }

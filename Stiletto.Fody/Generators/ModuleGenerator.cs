@@ -164,14 +164,14 @@ namespace Stiletto.Fody.Generators
             }
 
             ProvidedKeys = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var method in baseProvidesMethods)
+            foreach (var gen in ProviderGenerators)
             {
-                var name = method.GetNamedAttributeName();
-                var key = CompilerKeys.ForType(method.ReturnType, name);
-
-                if (!ProvidedKeys.Add(key))
+                if (gen.ProvidesType != ProvidesType.Set)
                 {
-                    errorReporter.LogError(moduleType.FullName + ": Duplicate provider key for method " + moduleType.FullName + "." + method.Name);
+                    if (!ProvidedKeys.Add(gen.Key))
+                    {
+                        errorReporter.LogError(moduleType.FullName + ": Duplicate provider key for method " + moduleType.FullName + "." + gen.ProviderMethod.Name);
+                    }
                 }
             }
 
@@ -306,11 +306,29 @@ namespace Stiletto.Fody.Generators
 
             foreach (var binding in ProviderGenerators)
             {
-                il.Emit(OpCodes.Ldarg_1);
-                il.Emit(OpCodes.Ldstr, binding.Key);
-                il.Emit(OpCodes.Ldloc, vModule);
-                il.Emit(OpCodes.Newobj, binding.GeneratedCtor);
-                il.Emit(OpCodes.Callvirt, References.DictionaryOfStringToBinding_Add);
+                switch (binding.ProvidesType)
+                {
+                    case ProvidesType.Default:
+                        il.Emit(OpCodes.Ldarg_1);
+                        il.Emit(OpCodes.Ldstr, binding.Key);
+                        il.Emit(OpCodes.Ldloc, vModule);
+                        il.Emit(OpCodes.Newobj, binding.GeneratedCtor);
+                        il.Emit(OpCodes.Callvirt, References.DictionaryOfStringToBinding_Add);
+                        break;
+
+                    case ProvidesType.Set:
+                        var addMethodRef = new GenericInstanceMethod(References.SetBindings_AddOfT);
+                        addMethodRef.GenericArguments.Add(binding.ProviderMethod.ReturnType);
+                        il.Emit(OpCodes.Ldarg_1);
+                        il.Emit(OpCodes.Ldstr, CompilerKeys.GetSetKey(binding.Key));
+                        il.Emit(OpCodes.Ldloc, vModule);
+                        il.Emit(OpCodes.Newobj, binding.GeneratedCtor);
+                        il.Emit(OpCodes.Call, addMethodRef);
+                        break;
+
+                    default:
+                        throw new InvalidOperationException("Unknown ProvidesType value: " + binding.ProvidesType);
+                }
             }
 
             il.Emit(OpCodes.Ret);

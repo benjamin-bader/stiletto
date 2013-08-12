@@ -42,8 +42,8 @@ namespace Stiletto.Fody
         public MethodReference Binding_RequiredByGetter { get; private set; }
         public MethodReference Binding_IsLibrarySetter { get; private set; }
 
-        public TypeReference ProviderMethodBindingBase { get; private set; }
-        public MethodReference ProviderMethodBindingBase_Ctor { get; private set; }
+        public TypeReference SetBindings { get; private set; }
+        public MethodReference SetBindings_AddOfT { get; private set; }
 
         public TypeReference BindingArray { get; private set; }
 
@@ -196,8 +196,8 @@ namespace Stiletto.Fody
 
             BindingArray = new ArrayType(Binding);
 
-            ProviderMethodBindingBase = module.Import(stilettoReferences.ProviderMethodBindingBase);
-            ProviderMethodBindingBase_Ctor = module.Import(stilettoReferences.ProviderMethodBindingBase_Ctor);
+            SetBindings = module.Import(stilettoReferences.SetBindings);
+            SetBindings_AddOfT = module.Import(stilettoReferences.SetBindings_Add);
 
             RuntimeModule = module.Import(stilettoReferences.RuntimeModule);
             RuntimeModule_Ctor = module.Import(stilettoReferences.RuntimeModule_Ctor);

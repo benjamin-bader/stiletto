@@ -66,6 +66,9 @@
     <Compile Include="..\Stiletto.Test\RudimentaryInjectionTest.cs">
       <Link>RudimentaryInjectionTest.cs</Link>
     </Compile>
+    <Compile Include="..\Stiletto.Test\SetInjectionTests.cs">
+      <Link>SetInjectionTests.cs</Link>
+    </Compile>
     <Compile Include="..\Stiletto.Test\ValidatorTests.cs">
       <Link>ValidatorTests.cs</Link>
     </Compile>
