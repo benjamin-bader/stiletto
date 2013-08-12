@@ -175,6 +175,34 @@ var nums = entryPoint.RandomNumbers;
 Console.WriteLine("Numbers: {0} {1} {2}", nums.Get(), nums.Get(), nums.Get()); // "Numbers: 3 19 36"
 ```
 
+## Multibindings
+
+Stiletto supports multibindings in the form of `ISet<T>`.  Multiple `[Provides]` methods can contribute to the same set, as follows:
+
+```csharp
+[Module(Injects = new[] { typeof(SetEntryPoint) )]
+public class SetModule
+{
+  [Provides(ProvidesType.Set)]
+  public string ProvideStringOne()
+  {
+    return "foo";
+  }
+  
+  [Provides(ProvidesType.Set)]
+  public string ProvideStringTwo()
+  {
+    return "bar";
+  }
+}
+
+public class SetEntryPoint
+{
+  [Inject]
+  public ISet<string> Strings { get; set; }
+}
+```
+
 # Building
 
 It's not easy to make a full build of Stiletto, but building for one platform is easy; requirements vary per platform:
