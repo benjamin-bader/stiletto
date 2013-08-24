@@ -50,6 +50,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuplicateInjectsTypesFail",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuplicateInjectsFromIncludedModuleFails", "IntegrationTests\DuplicateInjectsFromInIncludedModuleFails\DuplicateInjectsFromIncludedModuleFails.csproj", "{397FACB5-4857-446D-9B52-263F5D7CE12D}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CanInjectCrossAssemblies", "CanInjectCrossAssemblies", "{2B8CBD56-3596-4C9B-B673-BFE5B1FECF9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "IntegrationTests\CanInjectCrossAssemblies\Common\Common.csproj", "{9EC134AE-F369-49C4-A89A-3576552F1BAB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Main", "IntegrationTests\CanInjectCrossAssemblies\Main\Main.csproj", "{9EC134AE-F369-49C4-A89A-3576552F1BAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -228,6 +234,22 @@ Global
 		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Release|ARM.ActiveCfg = Release|Any CPU
 		{397FACB5-4857-446D-9B52-263F5D7CE12D}.Release|x86.ActiveCfg = Release|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAB}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAB}.Release|ARM.ActiveCfg = Release|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAB}.Release|x86.ActiveCfg = Release|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAA}.Debug|ARM.ActiveCfg = Debug|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAA}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAA}.Release|ARM.ActiveCfg = Release|Any CPU
+		{9EC134AE-F369-49C4-A89A-3576552F1BAA}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -242,6 +264,9 @@ Global
 		{F2B7A491-F65E-4E90-86FB-C3DA8C7E2F88} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
 		{47052838-D044-4399-AE69-17BD457A2265} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
 		{397FACB5-4857-446D-9B52-263F5D7CE12D} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
+		{2B8CBD56-3596-4C9B-B673-BFE5B1FECF9A} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
+		{9EC134AE-F369-49C4-A89A-3576552F1BAB} = {2B8CBD56-3596-4C9B-B673-BFE5B1FECF9A}
+		{9EC134AE-F369-49C4-A89A-3576552F1BAA} = {2B8CBD56-3596-4C9B-B673-BFE5B1FECF9A}
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true
