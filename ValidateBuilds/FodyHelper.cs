@@ -63,7 +63,7 @@ namespace ValidateBuilds
 
             try
             {
-                moduleWeaver.Execute();
+                DoInWorkingDirectory(Path.GetDirectoryName(assemblyPath), moduleWeaver.Execute);
             }
             catch (Exception ex)
             {
@@ -72,6 +72,26 @@ namespace ValidateBuilds
             }
 
             return assemblyDefinition.MainModule;
+        }
+
+        private void DoInWorkingDirectory(string directory, Action action)
+        {
+            var directoryChanged = false;
+            var currentDirectory = Environment.CurrentDirectory;
+            try
+            {
+                Environment.CurrentDirectory = directory;
+                directoryChanged = true;
+
+                action();
+            }
+            finally
+            {
+                if (directoryChanged)
+                {
+                    Environment.CurrentDirectory = currentDirectory;
+                }
+            }
         }
 
         private IAssemblyResolver CreateAssemblyResolver()
