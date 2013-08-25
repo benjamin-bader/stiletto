@@ -27,7 +27,6 @@ namespace Stiletto.Fody
             if (ReferenceEquals(x, y)) return true;
             if (ReferenceEquals(x, null)) return false;
             if (ReferenceEquals(y, null)) return false;
-            if (x.GetType() != y.GetType()) return false;
 
             return x.FullName.Equals(y.FullName, StringComparison.Ordinal);
         }
