@@ -37,7 +37,7 @@ namespace Stiletto.Fody.Validation
         private readonly IEnumerable<LazyBindingGenerator> lazyBindings; 
         private readonly IEnumerable<ProviderBindingGenerator> providerBindings; 
 
-        private ILoader loader;
+        private CompilerLoader loader;
 
         public Validator(
             IErrorReporter errorReporter,
@@ -130,7 +130,12 @@ namespace Stiletto.Fody.Validation
                 return;
             }
 
-            loader = new CompilerLoader(injectBindings, lazyBindings, providerBindings);
+            loader = new CompilerLoader(injectBindings, lazyBindings, providerBindings, errorReporter);
+
+            if (loader.HasError)
+            {
+                return;
+            }
 
             foreach (var moduleGenerator in moduleGenerators)
             {

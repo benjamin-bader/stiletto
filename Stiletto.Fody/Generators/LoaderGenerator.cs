@@ -386,8 +386,8 @@ namespace Stiletto.Fody.Generators
             /**
              * public virtual Binding GetInjectBinding(string key, string className, object requiredBy)
              * {
-             *     Binding binding;
-             *     return bindings.TryGetValue(className, out binding) ? binding : null;
+             *     Func<Binding> bindingFn;
+             *     return injectBindings.TryGetValue(className, out bindingFn) ? bindingFn() : null;
              * }
              */
             var getInjectBinding = new MethodDefinition(
@@ -427,7 +427,10 @@ namespace Stiletto.Fody.Generators
             /**
              * public virtual Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
              * {
-             *     return lazyBindings[lazyKey](key, requiredBy, lazyKey);
+             *     Func<string, object, string, Binding> lazyBindingFn;
+             *     return lazyBindings.TryGetValue(lazyKey, out lazyBindingFn)
+             *         ? lazyBindingFn(key, requiredBy, lazyKey)
+             *         : null;
              * }
              */
             var getLazy = new MethodDefinition(
@@ -470,7 +473,10 @@ namespace Stiletto.Fody.Generators
             /**
              * public virtual Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
              * {
-             *     return providerBindings[providerKey](key, requiredBy, mustBeInjectable, providerKey);
+             *     Func<string, object, bool, string, Binding> providerFn;
+             *     return providerBindings.TryGetValue(providerKey, out providerFn)
+             *         ? providerFn(key, requiredBy, mustBeInjectable, providerKey)
+             *         : null;
              * }
              */
             var getProvider = new MethodDefinition(
@@ -517,7 +523,8 @@ namespace Stiletto.Fody.Generators
             /**
              * public virtual RuntimeModule GetRuntimeModule(Type type, object instance)
              * {
-             *     return modules[type]();
+             *     Func<RuntimeModule> moduleFn;
+             *     return modules.TryGetValue(type, out moduleFn) ? moduleFn() : null;
              * }
              */
             var getModule = new MethodDefinition(
