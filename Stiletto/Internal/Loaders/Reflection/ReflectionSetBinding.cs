@@ -26,11 +26,11 @@ namespace Stiletto.Internal.Loaders.Reflection
         public static void Add(IDictionary<string, Binding> bindings, string key, Binding binding)
         {
             Binding previous;
-            ReflectionSetBinding setBinding;
+            SetBindingBase setBinding;
 
             if (bindings.TryGetValue(key, out previous))
             {
-                setBinding = previous as ReflectionSetBinding;
+                setBinding = previous as SetBindingBase;
 
                 if (setBinding == null)
                 {

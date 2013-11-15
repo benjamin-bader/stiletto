@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using NUnit.Framework;
-using Stiletto.Internal;
 
 namespace Stiletto.Test
 {
@@ -43,11 +42,10 @@ namespace Stiletto.Test
             container.Validate();
         }
 
-        [Test, ExpectedException(typeof (InvalidOperationException))]
+        [Test, ExpectedException(typeof(InvalidOperationException))]
         public void SetElements_InNonLibraryModules_AreSubjectToOrphanAnalysis()
         {
-            var container = Container.Create(typeof (ModuleWithNonLibraryOrphanStringSet));
-            container.Validate();
+            Container.Create(typeof(ModuleWithNonLibraryOrphanStringSet)).Validate();
         }
 
         public class NeedsSet

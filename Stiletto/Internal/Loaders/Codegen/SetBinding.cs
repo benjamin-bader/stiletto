@@ -25,11 +25,11 @@ namespace Stiletto.Internal.Loaders.Codegen
         public static void Add<T>(IDictionary<string, Binding> bindings, string key, Binding binding)
         {
             Binding previous;
-            SetBinding<T> setBinding;
+            SetBindingBase setBinding;
 
             if (bindings.TryGetValue(key, out previous))
             {
-                setBinding = previous as SetBinding<T>;
+                setBinding = previous as SetBindingBase;
                 if (setBinding == null)
                 {
                     throw new InvalidOperationException("Duplicates:\n" + previous + "\n" + binding);
