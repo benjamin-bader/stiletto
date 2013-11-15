@@ -146,6 +146,12 @@ namespace Stiletto.Test
             GetWithModules<DerivedFromNonInjectable>(typeof(BaseNonInjectableModule));
         }
 
+        [Test]
+        public void InjectableDerivedFromNonInjectable_WithSuper_IsInjected()
+        {
+            GetWithModules<DerivedWithSuper>(typeof (TypeProvidingModule));
+        }
+
         private class A
         {
             [Inject]
@@ -356,6 +362,34 @@ namespace Stiletto.Test
             public string ProvideFoo()
             {
                 return "foo";
+            }
+        }
+
+        public class BaseNonInjectibleWithSuperRequired
+        {
+            public Type Type { get; private set; }
+
+            public BaseNonInjectibleWithSuperRequired(Type t)
+            {
+                Type = t;
+            }
+        }
+
+        public class DerivedWithSuper : BaseNonInjectibleWithSuperRequired 
+        {
+            [Inject]
+            public DerivedWithSuper(Type t)
+                : base(t)
+            { }
+        }
+
+        [Module(Injects = new[] { typeof(DerivedWithSuper) })]
+        public class TypeProvidingModule
+        {
+            [Provides]
+            public Type HaveAType()
+            {
+                return typeof (TypeProvidingModule);
             }
         }
 

@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Stiletto.Internal.Loaders.Reflection
@@ -216,6 +217,13 @@ namespace Stiletto.Internal.Loaders.Reflection
                 {
                     baseType = null;
                 }
+                    // If supertype has no injectable members, we're OK - the CLR guarantees that
+                    // constructors are set up properly, and with nothing indicated as injectable,
+                    // we shouldn't continue to create bindings - otherwise we crash and burn.
+                else if (!HasInjectMembers(baseType))
+                {
+                    baseType = null;
+                }
                 else
                 {
                     keys.Add(Key.GetMemberKey(baseType));
@@ -228,6 +236,25 @@ namespace Stiletto.Internal.Loaders.Reflection
             return new ReflectionInjectBinding(providerKey, membersKey, isSingleton,
                 t, injectableProperties.ToArray(), injectableCtor, parameters.Length,
                 baseType, keys.ToArray());
+        }
+
+        private static bool HasInjectMembers(Type t)
+        {
+            if (t.GetConstructors()
+                .SelectMany(c => c.GetCustomAttributes(true))
+                .Any(attr => attr is InjectAttribute))
+            {
+                return true;
+            }
+
+            if (t.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .SelectMany(p => p.GetCustomAttributes(true))
+                .Any(attr => attr is InjectAttribute))
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -107,7 +107,6 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   <Import Project="Fody.targets" />
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(OutputPath)$(AssemblyName).exe" DestinationFolder="$(SolutionDir)\IntegrationTests" OverwriteReadOnlyFiles="True" />

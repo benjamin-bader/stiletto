@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stiletto", "Stiletto\Stiletto.csproj", "{B661E302-2234-48D3-8BE4-684C0963EB35}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stiletto.Test", "Stiletto.Test\Stiletto.Test.csproj", "{CEF2A81C-1960-47DA-A62A-E2CDA10CD6E7}"
@@ -14,8 +16,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{609ED60C-EA9F-4E98-9BA0-0267E51A4374}"
 	ProjectSection(SolutionItems) = preProject
 		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibraryExample", "LibraryExample\LibraryExample.csproj", "{16F8CAD4-1072-472D-919F-8266A250E9E4}"
@@ -267,8 +267,5 @@ Global
 		{2B8CBD56-3596-4C9B-B673-BFE5B1FECF9A} = {D6076D93-CC12-40B4-B4E6-FBCCD520AB87}
 		{9EC134AE-F369-49C4-A89A-3576552F1BAB} = {2B8CBD56-3596-4C9B-B673-BFE5B1FECF9A}
 		{9EC134AE-F369-49C4-A89A-3576552F1BAA} = {2B8CBD56-3596-4C9B-B673-BFE5B1FECF9A}
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

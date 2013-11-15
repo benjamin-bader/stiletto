@@ -2,6 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Target Name="MergeWeaverTarget"
             AfterTargets="AfterBuild">
-        <Exec Command="$(SolutionDir)Tools\ILMerge.exe /Internalize /targetplatform:4.0 /out:$(SolutionDir)Tools\Stiletto.Fody.dll $(OutputPath)Stiletto.Fody.dll $(OutputPath)Stiletto.dll"/>
+        <Exec Command="&quot;$(SolutionDir)Tools\ILMerge.exe&quot; /Internalize /targetplatform:4.0 /out:&quot;$(SolutionDir)Tools\Stiletto.Fody.dll&quot; &quot;$(OutputPath)Stiletto.Fody.dll&quot; &quot;$(OutputPath)Stiletto.dll&quot;"/>
     </Target>
 </Project>
