@@ -35,10 +35,15 @@ namespace Stiletto.Fody.Validation
                 {
                     throw new ValidationException("Duplicates:\n" + previous + "\n" + binding);
                 }
+
+                setBinding.IsLibrary = setBinding.IsLibrary && binding.IsLibrary;
             }
             else
             {
-                bindings[key] = setBinding = new CompilerSetBinding(key, binding.RequiredBy);
+                bindings[key] = setBinding = new CompilerSetBinding(key, binding.RequiredBy)
+                {
+                    IsLibrary = binding.IsLibrary
+                };
             }
 
             setBinding.Contributors.Add(Resolver.Scope(binding));

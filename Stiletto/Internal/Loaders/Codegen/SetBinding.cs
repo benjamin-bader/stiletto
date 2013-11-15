@@ -34,10 +34,15 @@ namespace Stiletto.Internal.Loaders.Codegen
                 {
                     throw new InvalidOperationException("Duplicates:\n" + previous + "\n" + binding);
                 }
+
+                setBinding.IsLibrary = setBinding.IsLibrary && binding.IsLibrary;
             }
             else
             {
-                bindings[key] = setBinding = new SetBinding<T>(key, binding.RequiredBy);
+                bindings[key] = setBinding = new SetBinding<T>(key, binding.RequiredBy)
+                {
+                    IsLibrary = binding.IsLibrary
+                };
             }
 
             setBinding.Contributors.Add(Resolver.Scope(binding));
