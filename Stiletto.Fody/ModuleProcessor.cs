@@ -373,8 +373,12 @@ namespace Stiletto.Fody
 
             foreach (var moduleInjectType in moduleInjectTypes)
             {
-                injectTypeSet.Remove(moduleInjectType);
-                injectGenerators.Add(new InjectBindingGenerator(moduleDefinition, references, moduleInjectType, true));
+                // Multiple modules can have the same type in their Injects list, but
+                // even so we only need to generate the binding type once.
+                if (injectTypeSet.Remove(moduleInjectType))
+                {
+                    injectGenerators.Add(new InjectBindingGenerator(moduleDefinition, references, moduleInjectType, true));
+                }
             }
 
             injectGenerators.AddRange(injectTypeSet.Select(i =>
