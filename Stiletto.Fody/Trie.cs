@@ -38,7 +38,7 @@ namespace Stiletto.Fody
         /// This is equivalent to an object-graph representation, but is more compact
         /// and offers greater locality of reference.
         /// </summary>
-        private byte[,] trie;
+        private ushort[,] trie;
 
         public Trie(IEnumerable<string> input)
         {
@@ -50,23 +50,23 @@ namespace Stiletto.Fody
 
         public bool Contains(string input)
         {
-            byte node;
+            ushort node;
             return Find(input, out node);
         }
 
-        private byte NextChar(byte node, char c)
+        private ushort NextChar(ushort node, char c)
         {
             return trie[node, supportedCharacters.IndexOf(c)];
         }
 
-        private bool IsEndOfWord(byte node)
+        private bool IsEndOfWord(ushort node)
         {
             return trie[node, supportedCharacters.Count] == 1;
         }
 
-        private bool Find(string input, out byte node)
+        private bool Find(string input, out ushort node)
         {
-            node = (byte)root;
+            node = (ushort)root;
             int i;
 
             for (i = 0; i < input.Length; ++i)
@@ -104,19 +104,19 @@ namespace Stiletto.Fody
             var canonicalNodes = CreateCanonicalNodeDictionary(rootNode);
 
             // Make sure that our array representation can contain the number of nodes
-            if (canonicalNodes.Count >= byte.MaxValue)
-                throw new InvalidOperationException("Too many nodes - System.Byte may be too small.");
+            if (canonicalNodes.Count >= ushort.MaxValue)
+                throw new InvalidOperationException("Too many nodes - System.UInt16 may be too small.");
 
             // Initialize the array representation of the node structure
-            trie = new byte[canonicalNodes.Count + 1, supportedCharacters.Count + 1];
+            trie = new ushort[canonicalNodes.Count + 1, supportedCharacters.Count + 1];
 
             // Establish a mapping between canonical nodes an array indices.
             var numToNode = new TrieNode[canonicalNodes.Keys.Count + 1];
             canonicalNodes.Keys.CopyTo(numToNode, 1); // Leave the first row (number 0) null.
 
-            var nodeToNum = new Dictionary<TrieNode, byte>(new NodeToNumComparer());
+            var nodeToNum = new Dictionary<TrieNode, ushort>(new NodeToNumComparer());
             for (var i = 1; i < numToNode.Length; ++i)
-                nodeToNum.Add(numToNode[i], (byte)i);
+                nodeToNum.Add(numToNode[i], (ushort)i);
 
             // Populate the array, and let the garbage collecter handle the object refs.
             Fill(rootNode, nodeToNum);
@@ -181,7 +181,7 @@ namespace Stiletto.Fody
             }
         }
 
-        private void Fill(TrieNode node, Dictionary<TrieNode, byte> nodeToNum)
+        private void Fill(TrieNode node, Dictionary<TrieNode, ushort> nodeToNum)
         {
             if (ReferenceEquals(node, null))
                 return;
@@ -196,7 +196,7 @@ namespace Stiletto.Fody
             for (var i = 0; i < node.Children.Count; ++i)
             {
                 trie[num, i] = ReferenceEquals(node.Children[i], null)
-                                   ? (byte)0
+                                   ? (ushort)0
                                    : nodeToNum[node.Children[i]];
             }
 

@@ -16,7 +16,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Stiletto.Fody.Generators;
 ﻿using Stiletto.Internal;
 
@@ -28,15 +27,60 @@ namespace Stiletto.Fody.Validation
         private readonly IDictionary<string, CompilerParameterizedBinding> lazyBindings;
         private readonly IDictionary<string, CompilerParameterizedBinding> providerBindings;
 
+        public bool HasError { get; private set; }
+
         public CompilerLoader(
             IEnumerable<InjectBindingGenerator> bindings,
             IEnumerable<LazyBindingGenerator> lazyBindings,
-            IEnumerable<ProviderBindingGenerator> providerBindings)
+            IEnumerable<ProviderBindingGenerator> providerBindings,
+            IErrorReporter errorReporter)
         {
             var comparer = StringComparer.Ordinal;
-            this.bindings = bindings.ToDictionary(b => b.Key, b => (Binding)new CompilerBinding(b), comparer);
-            this.lazyBindings = lazyBindings.ToDictionary(b => b.Key, b => new CompilerParameterizedBinding(b), comparer);
-            this.providerBindings = providerBindings.ToDictionary(b => b.Key, b => new CompilerParameterizedBinding(b), comparer);
+
+            this.bindings = new Dictionary<string, Binding>(comparer);
+            foreach (var gen in bindings)
+            {
+                try
+                {
+                    this.bindings.Add(gen.Key, new CompilerBinding(gen));
+                }
+                catch (ArgumentException)
+                {
+                    const string format = "The inject binding {0} is erroneously duplicated - please report this, with a repro if possible!";
+                    errorReporter.LogError(string.Format(format, gen.Key));
+                    HasError = true;
+                }
+            }
+
+            this.lazyBindings = new Dictionary<string, CompilerParameterizedBinding>(comparer);
+            foreach (var gen in lazyBindings)
+            {
+                try
+                {
+                    this.lazyBindings.Add(gen.Key, new CompilerParameterizedBinding(gen));
+                }
+                catch (ArgumentException)
+                {
+                    var message = string.Format("The lazy binding {0} is erroneously duplicated - please report this, with a repro if possible!", gen.Key);
+                    errorReporter.LogError(message);
+                    HasError = true;
+                }
+            }
+
+            this.providerBindings = new Dictionary<string, CompilerParameterizedBinding>(comparer);
+            foreach (var gen in providerBindings)
+            {
+                try
+                {
+                    this.providerBindings.Add(gen.Key, new CompilerParameterizedBinding(gen));
+                }
+                catch (ArgumentException)
+                {
+                    var message = string.Format("The IProvider binding {0} is erroneously duplicated - please report this, with a repro if possible!", gen.Key);
+                    errorReporter.LogError(message);
+                    HasError = true;
+                }
+            }
         }
 
         public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)

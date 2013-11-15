@@ -36,10 +36,16 @@ namespace Stiletto.Internal.Loaders.Reflection
                 {
                     throw new ArgumentException("Duplicates:\n" + previous + "\n" + binding);
                 }
+
+                setBinding.IsLibrary = setBinding.IsLibrary && binding.IsLibrary;
             }
             else
             {
-                setBinding = new ReflectionSetBinding(key, binding.RequiredBy);
+                setBinding = new ReflectionSetBinding(key, binding.RequiredBy)
+                {
+                    IsLibrary = binding.IsLibrary
+                };
+
                 bindings.Add(key, setBinding);
             }
 

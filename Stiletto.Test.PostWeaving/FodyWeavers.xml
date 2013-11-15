@@ -15,6 +15,12 @@
       <Class>Stiletto.Test.ValidatorTests/NeedsSomethingMore/Dep</Class>
       <Class>Stiletto.Test.ValidatorTests/MissingProviderParamModule</Class>
       <Class>Stiletto.Test.ValidatorTests/CircularModule</Class>
+
+      <Class>Stiletto.Test.RudimentaryInjectionTest/NonOverridingModule</Class>
+
+      <Class>Stiletto.Test.SetInjectionTests/ModuleWithLibraryOrphanStringSet</Class>
+      <Class>Stiletto.Test.SetInjectionTests/ModuleWithNonLibraryOrphanStringSet</Class>
+      <Class>Stiletto.Test.SetInjectionTests/StringSetNonLibraryModule</Class>
     </ExcludeClasses>
   </Stiletto>
 </Weavers>

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
+using Stiletto.Internal;
 
 namespace Stiletto.Test
 {
@@ -32,6 +34,20 @@ namespace Stiletto.Test
         {
             var sets = Container.Create(typeof (SingletonSetElementModule)).Get<HasSingletonSetElement>();
             Assert.IsTrue(sets.SetOne.Overlaps(sets.SetTwo));
+        }
+
+        [Test]
+        public void SetElements_InLibraryModules_AreNotSubjectToOrphanAnalysis()
+        {
+            var container = Container.Create(typeof (ModuleWithLibraryOrphanStringSet));
+            container.Validate();
+        }
+
+        [Test, ExpectedException(typeof (InvalidOperationException))]
+        public void SetElements_InNonLibraryModules_AreSubjectToOrphanAnalysis()
+        {
+            var container = Container.Create(typeof (ModuleWithNonLibraryOrphanStringSet));
+            container.Validate();
         }
 
         public class NeedsSet
@@ -120,6 +136,43 @@ namespace Stiletto.Test
             {
                 return new object();
             }
+        }
+
+        public class NeedsNothing
+        {
+        }
+
+        [Module(IsLibrary = true)]
+        public class StringSetLibraryModule
+        {
+            [Provides(ProvidesType.Set)]
+            public string ProvideString()
+            {
+                return "foo";
+            }
+        }
+
+        [Module(Injects = new[] {typeof (NeedsNothing)},
+            IncludedModules = new[] {typeof (StringSetLibraryModule)})]
+        public class ModuleWithLibraryOrphanStringSet
+        {
+            
+        }
+
+        [Module]
+        public class StringSetNonLibraryModule
+        {
+            [Provides(ProvidesType.Set)]
+            public string ProvideAnotherString()
+            {
+                return "bar";
+            }
+        }
+
+        [Module(Injects = new [] { typeof(NeedsNothing) },
+            IncludedModules = new [] { typeof(StringSetLibraryModule), typeof(StringSetNonLibraryModule) })]
+        public class ModuleWithNonLibraryOrphanStringSet
+        {
         }
     }
 }

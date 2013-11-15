@@ -247,6 +247,8 @@ namespace Stiletto.Internal.Loaders.Reflection
                 return true;
             }
 
+            // these binding flags are actually more permissive than Stiletto itself, but
+            // we want to be able to detect incorrect usages as well.
             if (t.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                 .SelectMany(p => p.GetCustomAttributes(true))
                 .Any(attr => attr is InjectAttribute))
