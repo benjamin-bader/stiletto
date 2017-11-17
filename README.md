@@ -1,6 +1,8 @@
 Stiletto
 ========
 
+_NOTE:_ This project is no longer being actively developed, as I no longer do mobile C# development.  If someone wants to take over, please let me know!
+
 A fast dependency injector in C# for .NET and Mono; please see [the introductory website][0] for more information.
 
 This is a port of the [Square's Dagger IoC library][1], intended to be usable everywhere C# is usable, including MonoTouch where `System.Reflection.Emit` is unavailable.
