@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/Stiletto.AotSmokeTest/Stiletto.AotSmokeTest.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/Stiletto.Generator/Stiletto.Generator.csproj" />
     <Project Path="src/Stiletto/Stiletto.csproj" />
