@@ -48,9 +48,15 @@ namespace Stiletto
         /// </returns>
         public static Container Create(params object[] modules)
         {
-            var loaders = ReflectionUtils.GetCompiledLoaders();
-            loaders.Add(new CodegenLoader());
-            loaders.Add(new ReflectionLoader());
+            // Source-generated loaders self-register via [ModuleInitializer]; consult
+            // them first, then fall back to reflection-by-name (CodegenLoader) and pure
+            // reflection for anything not compiled. The fallback keeps behavior a strict
+            // superset of the old AppDomain-scanning path.
+            var loaders = new List<ILoader>(LoaderRegistry.Snapshot())
+            {
+                new CodegenLoader(),
+                new ReflectionLoader(),
+            };
 
             var loader = new RuntimeAggregationLoader(loaders.ToArray());
             return StilettoContainer.MakeContainer(null, loader, modules);
@@ -58,11 +64,11 @@ namespace Stiletto
 
         public static Container CreateWithLoaders(object[] modules, ILoader[] loaders)
         {
-            var allLoaders = new ILoader[loaders.Length + 2];
-            Array.Copy(loaders, allLoaders, loaders.Length);
-            allLoaders[loaders.Length] = new CodegenLoader();
-            allLoaders[loaders.Length + 1] = new ReflectionLoader();
-            return StilettoContainer.MakeContainer(null, new RuntimeAggregationLoader(allLoaders), modules);
+            var allLoaders = new List<ILoader>(loaders);
+            allLoaders.AddRange(LoaderRegistry.Snapshot());
+            allLoaders.Add(new CodegenLoader());
+            allLoaders.Add(new ReflectionLoader());
+            return StilettoContainer.MakeContainer(null, new RuntimeAggregationLoader(allLoaders.ToArray()), modules);
         }
 
         private class StilettoContainer : Container

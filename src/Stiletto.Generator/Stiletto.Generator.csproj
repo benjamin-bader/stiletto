@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Roslyn loads analyzers into a netstandard2.0 host; this TFM is mandatory. -->
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Stiletto.Generator</RootNamespace>
+    <AssemblyName>Stiletto.Generator</AssemblyName>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+  </ItemGroup>
+
+</Project>

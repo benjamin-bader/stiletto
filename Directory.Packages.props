@@ -1,0 +1,22 @@
+<Project>
+
+  <!-- Central Package Management: versions live here, PackageReferences in csproj carry no version. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="Testing">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
+    <PackageVersion Include="xunit.v3" Version="3.2.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+
+  <ItemGroup Label="Source generator">
+    <!-- 4.14 (not host 5.x) so the generator loads in any Roslyn 4.14+ compiler host. -->
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+    <PackageVersion Include="Verify.XunitV3" Version="31.20.0" />
+    <PackageVersion Include="Verify.SourceGenerators" Version="2.5.0" />
+  </ItemGroup>
+
+</Project>

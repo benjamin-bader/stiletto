@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Verify.XunitV3" />
+    <PackageReference Include="Verify.SourceGenerators" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Plain reference: we drive the generator manually via CSharpGeneratorDriver,
+         so it must NOT be registered as an analyzer on this project. -->
+    <ProjectReference Include="..\..\src\Stiletto.Generator\Stiletto.Generator.csproj" />
+    <!-- Referenced so the in-memory test compilation can bind [Inject] etc. -->
+    <ProjectReference Include="..\..\src\Stiletto\Stiletto.csproj" />
+  </ItemGroup>
+
+</Project>

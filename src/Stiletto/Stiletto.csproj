@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
+    <RootNamespace>Stiletto</RootNamespace>
+    <AssemblyName>Stiletto</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <Description>A compile-time and reflection-based dependency injector for .NET, ported from Square's Dagger.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Stiletto.Tests" />
+    <InternalsVisibleTo Include="Stiletto.Generator.Tests" />
+  </ItemGroup>
+
+</Project>

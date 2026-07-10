@@ -1,0 +1,25 @@
+<Project>
+
+  <!--
+    Shared defaults for all modern (SDK-style) projects in this repo.
+    Legacy net4.0 projects (Stiletto.Fody, mobile heads, ValidateBuilds, Example)
+    are old-style .csproj kept only as reference for the source-generator port;
+    they are not part of Stiletto.slnx and do not build on this toolchain.
+  -->
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- NRT migration is a tracked backlog, not a build blocker (yet). -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+    <Authors>Ben Bader</Authors>
+    <Product>Stiletto</Product>
+    <Copyright>Copyright © Ben Bader</Copyright>
+  </PropertyGroup>
+
+</Project>

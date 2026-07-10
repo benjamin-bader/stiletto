@@ -17,6 +17,9 @@ NuGetBuild/
 *.nupkg
 Tools/Stiletto*
 
+# Verify snapshot testing — *.received.* are transient, *.verified.* are committed
+*.received.*
+
 # graphviz detritus
 *.dot
 *.pdf
