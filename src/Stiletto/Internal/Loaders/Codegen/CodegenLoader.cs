@@ -20,10 +20,6 @@ namespace Stiletto.Internal.Loaders.Codegen
 {
     public class CodegenLoader : ILoader
     {
-        public const string CompiledLoaderNamespace = "Stiletto.Generated";
-        public const string CompiledLoaderName = "$CompiledLoader$";
-        public const string CompiledLoaderFullName = CompiledLoaderNamespace + "." + CompiledLoaderName;
-
         public const string InjectSuffix    = "_CompiledBinding";
         public const string ModuleSuffix    = "_CompiledModule";
         public const string LazySuffix      = "_CompiledLazyBinding";
