@@ -23,30 +23,6 @@ namespace Stiletto.Internal.Loaders.Reflection
         private static readonly Type IMPL_TYPE = typeof (LazyImpl<>);
         private static readonly object[] EMPTY_OBJECTS = new object[0];
 
-        static ReflectionLazyBinding()
-        {
-            // Try to compensate for the MonoTouch compiler, which can't
-            // correctly predict which generics need to be included in
-            // the final binary.  If we try to instantiate one that it didn't
-            // pick up, the app crashes.  Here we're specifying the common
-            // value types, string, and object, which should cover the 90% case.
-            //
-            // Is it too confusing to say "no value-type Lazy<T> on iOS", or should
-            // we just disallow lazy/provider reflection bindings entirely on iOS?
-
-            new LazyImpl<int>(() => 0).GetLazyInstance();
-            new LazyImpl<byte>(() => 0).GetLazyInstance();
-            new LazyImpl<sbyte>(() => 0).GetLazyInstance();
-            new LazyImpl<short>(() => 0).GetLazyInstance();
-            new LazyImpl<ushort>(() => 0).GetLazyInstance();
-            new LazyImpl<int>(() => 0).GetLazyInstance();
-            new LazyImpl<uint>(() => 0).GetLazyInstance();
-            new LazyImpl<long>(() => 0).GetLazyInstance();
-            new LazyImpl<ulong>(() => 0).GetLazyInstance();
-            new LazyImpl<string>(() => "").GetLazyInstance();
-            new LazyImpl<object>(() => null).GetLazyInstance();
-        }
-
         private readonly string lazyKey;
         private readonly Type lazyType;
         private Binding delegateBinding;
@@ -55,9 +31,6 @@ namespace Stiletto.Internal.Loaders.Reflection
         public ReflectionLazyBinding(string key, object requiredBy, string lazyKey)
             : base(key, null, false, requiredBy)
         {
-#if MONOTOUCH
-            throw new PlatformNotSupportedException("Reflection-based Lazy<T> bindings are not supported on MonoTouch - please use the Fody plugin.");
-#endif
             this.lazyKey = lazyKey;
             this.lazyType = ReflectionUtils.GetType(Key.GetTypeName(lazyKey));
         }

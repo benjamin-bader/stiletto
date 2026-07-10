@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Stiletto</RootNamespace>
     <AssemblyName>Stiletto</AssemblyName>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>

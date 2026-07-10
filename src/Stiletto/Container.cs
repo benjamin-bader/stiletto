@@ -45,11 +45,9 @@ namespace Stiletto
         /// reflection code is removed entirely and missing bindings fail loudly rather
         /// than silently reflecting.
         /// </summary>
-#if NET
         [System.Diagnostics.CodeAnalysis.FeatureSwitchDefinition(ReflectionFallbackSwitch)]
         [System.Diagnostics.CodeAnalysis.FeatureGuard(typeof(System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute))]
         [System.Diagnostics.CodeAnalysis.FeatureGuard(typeof(System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute))]
-#endif
         public static bool ReflectionFallbackEnabled
             => !AppContext.TryGetSwitch(ReflectionFallbackSwitch, out var enabled) || enabled;
 
@@ -92,12 +90,10 @@ namespace Stiletto
             return StilettoContainer.MakeContainer(null, new RuntimeAggregationLoader(allLoaders.ToArray()), modules);
         }
 
-#if NET
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
             "The reflection fallback discovers compiled bindings by name and builds reflection bindings; disable it with the Stiletto.ReflectionFallback feature switch under trimming/AOT.")]
         [System.Diagnostics.CodeAnalysis.RequiresDynamicCode(
             "Reflection bindings construct types and generic instantiations at runtime.")]
-#endif
         private static void AddReflectionFallback(List<ILoader> loaders)
         {
             loaders.Add(new CodegenLoader());
