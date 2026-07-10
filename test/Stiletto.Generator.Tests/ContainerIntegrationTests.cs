@@ -178,6 +178,62 @@ namespace Stiletto.Generator.Tests
             Assert.NotNull(get.Invoke(container, null));
         }
 
+        private const string WrapperSource = """
+            using System;
+            using Stiletto;
+
+            namespace WrapperSample
+            {
+                public class Leaf { [Inject] public Leaf() { } }
+
+                public class Consumer
+                {
+                    public Lazy<Leaf> LazyLeaf;
+                    public IProvider<Leaf> LeafProvider;
+
+                    [Inject] public Consumer(Lazy<Leaf> lazyLeaf, IProvider<Leaf> leafProvider)
+                    {
+                        LazyLeaf = lazyLeaf;
+                        LeafProvider = leafProvider;
+                    }
+                }
+
+                [Module(Injects = new[] { typeof(Consumer) })]
+                public class WrapperModule { }
+            }
+            """;
+
+        [Fact]
+        public void LazyAndProviderResolveThroughCompiledBindings()
+        {
+            var assembly = CompileAndLoad(WrapperSource, "StilettoWrapperSample");
+
+            // The compiled loader (with the Lazy/Provider switches) self-registers.
+            System.Runtime.CompilerServices.RuntimeHelpers.RunModuleConstructor(assembly.ManifestModule.ModuleHandle);
+            Assert.Contains(
+                Stiletto.LoaderRegistry.Snapshot(),
+                l => l.GetType().Assembly == assembly && l.GetType().Name == "CompiledLoader");
+
+            var container = Stiletto.Container.Create(assembly.GetType("WrapperSample.WrapperModule")!);
+            var consumerType = assembly.GetType("WrapperSample.Consumer")!;
+            var get = typeof(Stiletto.Container).GetMethod("Get")!.MakeGenericMethod(consumerType);
+            var consumer = get.Invoke(container, null)!;
+
+            var leafType = assembly.GetType("WrapperSample.Leaf")!;
+
+            // Lazy<Leaf>: the compiled binding produced a real System.Lazy<Leaf>.
+            dynamic lazy = consumerType.GetField("LazyLeaf")!.GetValue(consumer)!;
+            Assert.False((bool)lazy.IsValueCreated);      // deferred
+            object leafFromLazy = lazy.Value;
+            Assert.True((bool)lazy.IsValueCreated);
+            Assert.IsType(leafType, leafFromLazy);
+
+            // IProvider<Leaf>: .Get() yields instances of Leaf. Reached via the
+            // covariant public interface (the concrete impl is a private nested type).
+            var provider = (Stiletto.IProvider<object>)consumerType.GetField("LeafProvider")!.GetValue(consumer)!;
+            Assert.IsType(leafType, provider.Get());
+        }
+
         private static Assembly CompileAndLoad(string source, string assemblyName)
         {
             var references = AppDomain.CurrentDomain.GetAssemblies()

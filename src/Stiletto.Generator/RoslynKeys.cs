@@ -136,6 +136,45 @@ namespace Stiletto.Generator
             => symbol.GetAttributes().Any(a =>
                 a.AttributeClass?.ToDisplayString() == SingletonAttributeMetadataName);
 
+        public static bool IsLazy(ITypeSymbol type)
+            => type is INamedTypeSymbol { MetadataName: "Lazy`1", TypeArguments.Length: 1 } n
+               && n.ContainingNamespace?.ToDisplayString() == "System";
+
+        public static bool IsProvider(ITypeSymbol type)
+            => type is INamedTypeSymbol { MetadataName: "IProvider`1", TypeArguments.Length: 1 } n
+               && n.ContainingNamespace?.ToDisplayString() == "Stiletto";
+
+        /// <summary>
+        /// If <paramref name="type"/> is a <c>Lazy&lt;T&gt;</c> or
+        /// <c>IProvider&lt;T&gt;</c> whose element is keyable, produces the delegate
+        /// key the resolver will pass to the loader (qualifier-prefixed element key,
+        /// matching <c>Key.GetLazyKey</c>/<c>GetProviderKey</c>) and the element's
+        /// fully-qualified name for the generic binding instantiation.
+        /// </summary>
+        public static bool TryWrapper(ITypeSymbol type, string? qualifier, out bool isProvider, out string delegateKey, out string elementGlobalName)
+        {
+            isProvider = false;
+            delegateKey = string.Empty;
+            elementGlobalName = string.Empty;
+
+            var lazy = IsLazy(type);
+            var provider = IsProvider(type);
+            if (!lazy && !provider)
+            {
+                return false;
+            }
+
+            var element = ((INamedTypeSymbol)type).TypeArguments[0];
+            if (!TryKeyForType(element, qualifier, out delegateKey))
+            {
+                return false;
+            }
+
+            isProvider = provider;
+            elementGlobalName = element.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            return true;
+        }
+
         /// <summary>
         /// The namespace-qualified, <c>+</c>-nested, backtick-arity name (no type
         /// arguments), e.g. <c>System.Collections.Generic.IList`1</c> — matching the

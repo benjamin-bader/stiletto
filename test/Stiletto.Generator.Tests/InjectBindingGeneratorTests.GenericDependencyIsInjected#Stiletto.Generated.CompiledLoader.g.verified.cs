@@ -25,8 +25,22 @@ namespace Stiletto.Generated
             }
         }
 
-        public global::Stiletto.Internal.Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey) => null!;
-        public global::Stiletto.Internal.Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey) => null!;
+        public global::Stiletto.Internal.Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
+        {
+            switch (lazyKey)
+            {
+                case "Sample.Bean": return new global::Stiletto.Internal.Loaders.Codegen.LazyBinding<global::Sample.Bean>(key, requiredBy, lazyKey);
+                default: return null!;
+            }
+        }
+        public global::Stiletto.Internal.Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
+        {
+            switch (providerKey)
+            {
+                case "Sample.Bean": return new global::Stiletto.Internal.Loaders.Codegen.ProviderBinding<global::Sample.Bean>(key, requiredBy, mustBeInjectable, providerKey);
+                default: return null!;
+            }
+        }
     }
 
     [global::System.Runtime.CompilerServices.CompilerGenerated]
