@@ -127,9 +127,35 @@ namespace Stiletto.Generator
             sb.AppendLine("        }");
             sb.AppendLine();
 
-            // Lazy / IProvider are Phase 2 — fall through to the reflection fallback for now.
-            sb.AppendLine("        public global::Stiletto.Internal.Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey) => null!;");
-            sb.AppendLine("        public global::Stiletto.Internal.Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey) => null!;");
+            // Lazy<T> / IProvider<T> dependencies discovered anywhere in the assembly
+            // become concrete LazyBinding<T> / ProviderBinding<T> instantiations.
+            var lazyCases = new List<WrapperModel>();
+            var providerCases = new List<WrapperModel>();
+            var lazySeen = new HashSet<string>();
+            var providerSeen = new HashSet<string>();
+            foreach (var model in injectModels)
+            {
+                CollectWrappers(model.Wrappers, lazyCases, providerCases, lazySeen, providerSeen);
+            }
+            foreach (var model in moduleModels)
+            {
+                CollectWrappers(model.Wrappers, lazyCases, providerCases, lazySeen, providerSeen);
+            }
+
+            EmitWrapperMethod(
+                sb,
+                "public global::Stiletto.Internal.Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)",
+                switchVar: "lazyKey",
+                cases: lazyCases,
+                buildCase: w => "new global::Stiletto.Internal.Loaders.Codegen.LazyBinding<" + w.ElementGlobalTypeName + ">(key, requiredBy, lazyKey)");
+
+            EmitWrapperMethod(
+                sb,
+                "public global::Stiletto.Internal.Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)",
+                switchVar: "providerKey",
+                cases: providerCases,
+                buildCase: w => "new global::Stiletto.Internal.Loaders.Codegen.ProviderBinding<" + w.ElementGlobalTypeName + ">(key, requiredBy, mustBeInjectable, providerKey)");
+
             sb.AppendLine("    }");
             sb.AppendLine();
 
@@ -142,6 +168,54 @@ namespace Stiletto.Generator
             sb.AppendLine("}");
 
             spc.AddSource("Stiletto.Generated.CompiledLoader.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
+        }
+
+        private static void CollectWrappers(
+            EquatableArray<WrapperModel> wrappers,
+            List<WrapperModel> lazyCases,
+            List<WrapperModel> providerCases,
+            HashSet<string> lazySeen,
+            HashSet<string> providerSeen)
+        {
+            foreach (var w in wrappers)
+            {
+                if (w.IsProvider)
+                {
+                    if (providerSeen.Add(w.DelegateKey)) providerCases.Add(w);
+                }
+                else
+                {
+                    if (lazySeen.Add(w.DelegateKey)) lazyCases.Add(w);
+                }
+            }
+        }
+
+        private static void EmitWrapperMethod(
+            StringBuilder sb,
+            string signature,
+            string switchVar,
+            List<WrapperModel> cases,
+            System.Func<WrapperModel, string> buildCase)
+        {
+            if (cases.Count == 0)
+            {
+                // No such wrappers here — defer to the reflection fallback.
+                sb.Append("        ").Append(signature).AppendLine(" => null!;");
+                return;
+            }
+
+            sb.Append("        ").AppendLine(signature);
+            sb.AppendLine("        {");
+            sb.Append("            switch (").Append(switchVar).AppendLine(")");
+            sb.AppendLine("            {");
+            foreach (var w in cases)
+            {
+                sb.Append("                case ").Append(Literal(w.DelegateKey)).Append(": return ")
+                  .Append(buildCase(w)).AppendLine(";");
+            }
+            sb.AppendLine("                default: return null!;");
+            sb.AppendLine("            }");
+            sb.AppendLine("        }");
         }
 
         private static string GlobalName(string? ns, string typeName)

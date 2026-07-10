@@ -64,12 +64,14 @@ namespace Stiletto.Generator
                 return null;
             }
 
-            if (!TryBuildParams(ctor, out var parameters))
+            var wrappers = ImmutableArray.CreateBuilder<WrapperModel>();
+
+            if (!TryBuildParams(ctor, wrappers, out var parameters))
             {
                 return null;
             }
 
-            if (!TryBuildProperties(type, out var properties))
+            if (!TryBuildProperties(type, wrappers, out var properties))
             {
                 return null;
             }
@@ -102,15 +104,17 @@ namespace Stiletto.Generator
                 RequiredByCtor: reflectionName + "::.ctor",
                 Params: parameters,
                 Properties: properties,
-                BaseMemberKey: baseMemberKey);
+                BaseMemberKey: baseMemberKey,
+                Wrappers: wrappers.ToImmutable());
         }
 
-        private static bool TryBuildParams(IMethodSymbol ctor, out ImmutableArray<ParamModel> parameters)
+        private static bool TryBuildParams(IMethodSymbol ctor, ImmutableArray<WrapperModel>.Builder wrappers, out ImmutableArray<ParamModel> parameters)
         {
             var builder = ImmutableArray.CreateBuilder<ParamModel>(ctor.Parameters.Length);
             foreach (var p in ctor.Parameters)
             {
-                if (!RoslynKeys.TryKeyForType(p.Type, RoslynKeys.NamedQualifier(p), out var key))
+                var qualifier = RoslynKeys.NamedQualifier(p);
+                if (!RoslynKeys.TryKeyForType(p.Type, qualifier, out var key))
                 {
                     parameters = default;
                     return false;
@@ -119,13 +123,15 @@ namespace Stiletto.Generator
                 builder.Add(new ParamModel(
                     Key: key,
                     GlobalTypeName: p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+
+                AddWrapperIfAny(p.Type, qualifier, wrappers);
             }
 
             parameters = builder.MoveToImmutable();
             return true;
         }
 
-        private static bool TryBuildProperties(INamedTypeSymbol type, out ImmutableArray<PropertyModel> properties)
+        private static bool TryBuildProperties(INamedTypeSymbol type, ImmutableArray<WrapperModel>.Builder wrappers, out ImmutableArray<PropertyModel> properties)
         {
             var builder = ImmutableArray.CreateBuilder<PropertyModel>();
             var reflectionName = RoslynKeys.ReflectionName(type);
@@ -137,11 +143,13 @@ namespace Stiletto.Generator
                     continue;
                 }
 
+                var qualifier = RoslynKeys.NamedQualifier(prop);
+
                 // Needs an accessible, non-init instance setter and a keyable type.
                 if (prop.IsStatic
                     || prop.SetMethod is not { IsInitOnly: false } setter
                     || setter.DeclaredAccessibility is not (Accessibility.Public or Accessibility.Internal)
-                    || !RoslynKeys.TryKeyForType(prop.Type, RoslynKeys.NamedQualifier(prop), out var key))
+                    || !RoslynKeys.TryKeyForType(prop.Type, qualifier, out var key))
                 {
                     properties = default;
                     return false;
@@ -152,6 +160,8 @@ namespace Stiletto.Generator
                     GlobalTypeName: prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
                     PropertyName: prop.Name,
                     RequiredBy: reflectionName + "." + prop.Name));
+
+                AddWrapperIfAny(prop.Type, qualifier, wrappers);
             }
 
             properties = builder.ToImmutable();
@@ -231,6 +241,15 @@ namespace Stiletto.Generator
 
         private static bool IsNonGeneric(INamedTypeSymbol type)
             => type.Arity == 0 && !type.IsGenericType && !type.IsUnboundGenericType;
+
+        /// <summary>Records a Lazy/Provider wrapper if the dependency type is one.</summary>
+        internal static void AddWrapperIfAny(ITypeSymbol type, string? qualifier, ImmutableArray<WrapperModel>.Builder wrappers)
+        {
+            if (RoslynKeys.TryWrapper(type, qualifier, out var isProvider, out var delegateKey, out var elementGlobalName))
+            {
+                wrappers.Add(new WrapperModel(isProvider, delegateKey, elementGlobalName));
+            }
+        }
 
         private static bool HasInjectAttribute(ISymbol symbol)
             => symbol.GetAttributes().Any(a =>
@@ -426,5 +445,14 @@ namespace Stiletto.Generator
         string RequiredByCtor,
         EquatableArray<ParamModel> Params,
         EquatableArray<PropertyModel> Properties,
-        string? BaseMemberKey);
+        string? BaseMemberKey,
+        EquatableArray<WrapperModel> Wrappers);
+
+    /// <summary>
+    /// A <c>Lazy&lt;T&gt;</c> or <c>IProvider&lt;T&gt;</c> dependency discovered at an
+    /// injection point, which the aggregated loader turns into a <c>LazyBinding&lt;T&gt;</c>
+    /// / <c>ProviderBinding&lt;T&gt;</c>. <see cref="DelegateKey"/> is the switch label
+    /// (the key the resolver passes); <see cref="ElementGlobalTypeName"/> is <c>T</c>.
+    /// </summary>
+    internal sealed record WrapperModel(bool IsProvider, string DelegateKey, string ElementGlobalTypeName);
 }

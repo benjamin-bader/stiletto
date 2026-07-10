@@ -53,7 +53,8 @@ namespace Stiletto.Generator
                 return null;
             }
 
-            if (!TryBuildProviders(type, moduleReflectionName, out var providers))
+            var wrappers = ImmutableArray.CreateBuilder<WrapperModel>();
+            if (!TryBuildProviders(type, moduleReflectionName, wrappers, out var providers))
             {
                 return null;
             }
@@ -73,7 +74,8 @@ namespace Stiletto.Generator
                 IsOverride: isOverride,
                 InjectMemberKeys: injects,
                 IncludeGlobalTypeNames: includes,
-                Providers: providers);
+                Providers: providers,
+                Wrappers: wrappers.ToImmutable());
         }
 
         private static bool TryReadModuleAttribute(
@@ -144,7 +146,7 @@ namespace Stiletto.Generator
             return true;
         }
 
-        private static bool TryBuildProviders(INamedTypeSymbol type, string moduleReflectionName, out ImmutableArray<ProviderModel> providers)
+        private static bool TryBuildProviders(INamedTypeSymbol type, string moduleReflectionName, ImmutableArray<WrapperModel>.Builder wrappers, out ImmutableArray<ProviderModel> providers)
         {
             providers = default;
             var builder = ImmutableArray.CreateBuilder<ProviderModel>();
@@ -182,7 +184,8 @@ namespace Stiletto.Generator
                 var paramBuilder = ImmutableArray.CreateBuilder<ProviderParamModel>(method.Parameters.Length);
                 foreach (var p in method.Parameters)
                 {
-                    if (!RoslynKeys.TryKeyForType(p.Type, RoslynKeys.NamedQualifier(p), out var paramKey))
+                    var qualifier = RoslynKeys.NamedQualifier(p);
+                    if (!RoslynKeys.TryKeyForType(p.Type, qualifier, out var paramKey))
                     {
                         return false;
                     }
@@ -190,6 +193,8 @@ namespace Stiletto.Generator
                     paramBuilder.Add(new ProviderParamModel(
                         Key: paramKey,
                         GlobalTypeName: p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
+
+                    InjectBindingEmitter.AddWrapperIfAny(p.Type, qualifier, wrappers);
                 }
 
                 builder.Add(new ProviderModel(
@@ -207,16 +212,7 @@ namespace Stiletto.Generator
         }
 
         private static bool IsLazyOrProvider(ITypeSymbol type)
-        {
-            if (type is not INamedTypeSymbol { IsGenericType: true } named)
-            {
-                return false;
-            }
-
-            var ns = named.ContainingNamespace?.ToDisplayString();
-            return (named.MetadataName == "Lazy`1" && ns == "System")
-                || (named.MetadataName == "IProvider`1" && ns == "Stiletto");
-        }
+            => RoslynKeys.IsLazy(type) || RoslynKeys.IsProvider(type);
 
         internal static SourceText Emit(ModuleModel model)
         {
@@ -427,5 +423,6 @@ namespace Stiletto.Generator
         bool IsOverride,
         EquatableArray<string> InjectMemberKeys,
         EquatableArray<string> IncludeGlobalTypeNames,
-        EquatableArray<ProviderModel> Providers);
+        EquatableArray<ProviderModel> Providers,
+        EquatableArray<WrapperModel> Wrappers);
 }
