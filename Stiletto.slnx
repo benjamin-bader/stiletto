@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Stiletto.Generator/Stiletto.Generator.csproj" />
+    <Project Path="src/Stiletto/Stiletto.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/Stiletto.Generator.Tests/Stiletto.Generator.Tests.csproj" />
+    <Project Path="test/Stiletto.Integration.Tests/Stiletto.Integration.Tests.csproj" />
+    <Project Path="test/Stiletto.Tests/Stiletto.Tests.csproj" />
+  </Folder>
+</Solution>
