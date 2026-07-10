@@ -11,6 +11,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Stiletto.Tests" />
     <InternalsVisibleTo Include="Stiletto.Generator.Tests" />
+    <InternalsVisibleTo Include="Stiletto.Integration.Tests" />
   </ItemGroup>
 
 </Project>
