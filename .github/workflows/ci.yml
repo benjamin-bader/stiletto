@@ -31,3 +31,26 @@ jobs:
 
       - name: Test
         run: dotnet test Stiletto.slnx --configuration Release --no-build
+
+  aot-smoke:
+    name: NativeAOT smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Install NativeAOT prerequisites
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      # Publishes the sample with the reflection fallback switched off, so the
+      # trimmer/AOT must remove the reflection loaders entirely. A stray IL warning
+      # or a runtime that needed reflection would fail the publish or the run.
+      - name: Publish (NativeAOT, registry-only)
+        run: dotnet publish samples/Stiletto.AotSmokeTest/Stiletto.AotSmokeTest.csproj -c Release -r linux-x64
+
+      - name: Run the native binary
+        run: samples/Stiletto.AotSmokeTest/bin/Release/net10.0/linux-x64/native/Stiletto.AotSmokeTest

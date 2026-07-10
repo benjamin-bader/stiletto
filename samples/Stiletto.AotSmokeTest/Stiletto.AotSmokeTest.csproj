@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <Nullable>annotations</Nullable>
+    <IsPackable>false</IsPackable>
+
+    <!-- Turns on the trim/AOT analyzers at build time and NativeAOT at publish time. -->
+    <PublishAot>true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!-- Registry-only: disable the reflection fallback so the trimmer/AOT removes it
+       entirely. Trim="true" makes the value a trim-time constant. -->
+  <ItemGroup>
+    <RuntimeHostConfigurationOption Include="Stiletto.ReflectionFallback" Value="false" Trim="true" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Stiletto\Stiletto.csproj" />
+    <ProjectReference Include="..\..\src\Stiletto.Generator\Stiletto.Generator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

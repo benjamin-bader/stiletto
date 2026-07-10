@@ -27,11 +27,31 @@ namespace Stiletto
 {
     public abstract class Container
     {
+        internal const string ReflectionFallbackSwitch = "Stiletto.ReflectionFallback";
+
         public abstract Container Add(params object[] modules);
         public abstract T Get<T>();
         public abstract T Inject<T>(T instance);
         public abstract object Inject(object instance, Type type);
         public abstract void Validate();
+
+        /// <summary>
+        /// Whether the reflection fallback (reflection-by-name discovery plus pure
+        /// reflection bindings) is consulted for anything the source generator did not
+        /// compile. Defaults to <see langword="true"/>. Set the
+        /// <c>Stiletto.ReflectionFallback</c> feature switch (e.g. via
+        /// <c>&lt;RuntimeHostConfigurationOption&gt;</c>) to <see langword="false"/> for
+        /// a registry-only container: faster, and — under trimming/NativeAOT — the
+        /// reflection code is removed entirely and missing bindings fail loudly rather
+        /// than silently reflecting.
+        /// </summary>
+#if NET
+        [System.Diagnostics.CodeAnalysis.FeatureSwitchDefinition(ReflectionFallbackSwitch)]
+        [System.Diagnostics.CodeAnalysis.FeatureGuard(typeof(System.Diagnostics.CodeAnalysis.RequiresUnreferencedCodeAttribute))]
+        [System.Diagnostics.CodeAnalysis.FeatureGuard(typeof(System.Diagnostics.CodeAnalysis.RequiresDynamicCodeAttribute))]
+#endif
+        public static bool ReflectionFallbackEnabled
+            => !AppContext.TryGetSwitch(ReflectionFallbackSwitch, out var enabled) || enabled;
 
         /// <summary>
         /// Creates a container with the given modules, of which at least one
@@ -49,14 +69,13 @@ namespace Stiletto
         public static Container Create(params object[] modules)
         {
             // Source-generated loaders self-register via [ModuleInitializer]; consult
-            // them first, then fall back to reflection-by-name (CodegenLoader) and pure
-            // reflection for anything not compiled. The fallback keeps behavior a strict
-            // superset of the old AppDomain-scanning path.
-            var loaders = new List<ILoader>(LoaderRegistry.Snapshot())
+            // them first, then optionally fall back to reflection for anything not
+            // compiled (see ReflectionFallbackEnabled).
+            var loaders = new List<ILoader>(LoaderRegistry.Snapshot());
+            if (ReflectionFallbackEnabled)
             {
-                new CodegenLoader(),
-                new ReflectionLoader(),
-            };
+                AddReflectionFallback(loaders);
+            }
 
             var loader = new RuntimeAggregationLoader(loaders.ToArray());
             return StilettoContainer.MakeContainer(null, loader, modules);
@@ -66,9 +85,23 @@ namespace Stiletto
         {
             var allLoaders = new List<ILoader>(loaders);
             allLoaders.AddRange(LoaderRegistry.Snapshot());
-            allLoaders.Add(new CodegenLoader());
-            allLoaders.Add(new ReflectionLoader());
+            if (ReflectionFallbackEnabled)
+            {
+                AddReflectionFallback(allLoaders);
+            }
             return StilettoContainer.MakeContainer(null, new RuntimeAggregationLoader(allLoaders.ToArray()), modules);
+        }
+
+#if NET
+        [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
+            "The reflection fallback discovers compiled bindings by name and builds reflection bindings; disable it with the Stiletto.ReflectionFallback feature switch under trimming/AOT.")]
+        [System.Diagnostics.CodeAnalysis.RequiresDynamicCode(
+            "Reflection bindings construct types and generic instantiations at runtime.")]
+#endif
+        private static void AddReflectionFallback(List<ILoader> loaders)
+        {
+            loaders.Add(new CodegenLoader());
+            loaders.Add(new ReflectionLoader());
         }
 
         private class StilettoContainer : Container
