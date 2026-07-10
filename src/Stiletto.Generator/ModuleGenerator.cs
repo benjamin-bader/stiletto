@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Stiletto.Generator
@@ -21,11 +20,8 @@ namespace Stiletto.Generator
     /// keyable non-Lazy/non-IProvider type, and is <c>ProvidesType.Default</c> (Set
     /// providers force the whole module to the reflection loader). Anything else falls
     /// back to reflection, so anything emitted is guaranteed correct.
-    /// </summary>
-    [Generator(LanguageNames.CSharp)]
-    /// <summary>
-    /// Model-building and C# emission for compiled modules. Driven by
-    /// <see cref="StilettoGenerator"/>.
+    ///
+    /// Not itself a generator: <see cref="StilettoGenerator"/> drives it.
     /// </summary>
     internal static class ModuleEmitter
     {

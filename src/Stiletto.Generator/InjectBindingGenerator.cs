@@ -4,7 +4,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Stiletto.Generator
@@ -23,11 +22,10 @@ namespace Stiletto.Generator
     /// parameter and <c>[Inject]</c> property is a non-generic named type with, for
     /// properties, an accessible non-init setter. Anything else is left to the
     /// reflection loader, so anything emitted is guaranteed correct.
-    /// </summary>
-    /// <summary>
-    /// Model-building and C# emission for inject bindings. Driven by
-    /// <see cref="StilettoGenerator"/> — this is not itself a generator, so the
-    /// aggregated loader can never reference a binding this didn't produce.
+    ///
+    /// Not itself a generator: <see cref="StilettoGenerator"/> drives the model
+    /// building and emission below, so the aggregated loader can never reference a
+    /// binding this didn't produce.
     /// </summary>
     internal static class InjectBindingEmitter
     {
