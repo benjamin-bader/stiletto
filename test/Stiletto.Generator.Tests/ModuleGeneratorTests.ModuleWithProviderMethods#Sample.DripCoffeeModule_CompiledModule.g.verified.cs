@@ -64,7 +64,7 @@ namespace Sample
 
             public override void Resolve(global::Stiletto.Internal.Resolver resolver)
             {
-                this.arg0 = resolver.RequestBinding("Sample.Heater", typeof(global::Sample.DripCoffeeModule), true, true);
+                this.arg0 = resolver.RequestBinding("Sample.Heater", typeof(global::Sample.DripCoffeeModule), true, true)!;
             }
 
             public override void GetDependencies(

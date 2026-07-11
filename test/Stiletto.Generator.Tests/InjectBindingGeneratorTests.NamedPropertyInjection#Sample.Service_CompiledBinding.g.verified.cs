@@ -16,7 +16,7 @@ namespace Sample
 
         public override void Resolve(global::Stiletto.Internal.Resolver resolver)
         {
-            this.prop_Endpoint = resolver.RequestBinding("@primary/Sample.Endpoint", "Sample.Service.Endpoint", true, false);
+            this.prop_Endpoint = resolver.RequestBinding("@primary/Sample.Endpoint", "Sample.Service.Endpoint", true, false)!;
         }
 
         public override void GetDependencies(

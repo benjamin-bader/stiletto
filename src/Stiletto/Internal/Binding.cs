@@ -34,9 +34,9 @@ namespace Stiletto.Internal
             IsDependedOn = 32,
         }
 
-        private readonly string providerKey;
-        private readonly string membersKey;
-        private readonly object requiredBy;
+        private readonly string? providerKey;
+        private readonly string? membersKey;
+        private readonly object? requiredBy;
 
         private BindingState state;
 
@@ -100,22 +100,22 @@ namespace Stiletto.Internal
             }
         }
 
-        public string ProviderKey
+        public string? ProviderKey
         {
             get { return providerKey; }
         }
 
-        public string MembersKey
+        public string? MembersKey
         {
             get { return membersKey; }
         }
 
-        public object RequiredBy
+        public object? RequiredBy
         {
             get { return requiredBy; }
         }
 
-        protected Binding(string providerKey, string membersKey, bool isSingleton, object requiredBy)
+        protected Binding(string? providerKey, string? membersKey, bool isSingleton, object? requiredBy)
         {
             this.providerKey = providerKey;
             this.membersKey = membersKey;
@@ -140,7 +140,7 @@ namespace Stiletto.Internal
             // no-op
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return ProviderKey;
         }

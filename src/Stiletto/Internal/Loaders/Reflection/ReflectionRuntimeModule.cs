@@ -38,12 +38,10 @@ namespace Stiletto.Internal.Loaders.Reflection
 
         public override void GetBindings(IDictionary<string, Binding> bindings)
         {
-            for (var t = ModuleType; t != typeof(object); t = t.BaseType)
+            // t reaches typeof(object) before it can become null.
+            for (Type? t = ModuleType; t != null && t != typeof(object); t = t.BaseType)
             {
-                // t will always be typeof(object) before it is null.
-                // ReSharper disable PossibleNullReferenceException
                 var methods = t.GetMethods(DeclaredMethods);
-                // ReSharper restore PossibleNullReferenceException
                 for (var i = 0; i < methods.Length; ++i)
                 {
                     var m = methods[i];
@@ -53,7 +51,7 @@ namespace Stiletto.Internal.Loaders.Reflection
                         continue;
                     }
 
-                    var key = Key.Get(m.ReturnType, m.GetQualifierName());
+                    var key = Key.Get(m.ReturnType, m.GetQualifierName())!;
                     switch (attr.ProvidesType)
                     {
                         case ProvidesType.Default:
@@ -62,7 +60,7 @@ namespace Stiletto.Internal.Loaders.Reflection
 
                         case ProvidesType.Set:
 
-                            ReflectionSetBinding.Add(bindings, Key.GetSetKey(key), new ProviderMethodBinding(m, key, Module, IsLibrary));
+                            ReflectionSetBinding.Add(bindings, Key.GetSetKey(key)!, new ProviderMethodBinding(m, key, Module, IsLibrary));
                             break;
                     }
                 }
@@ -102,11 +100,11 @@ namespace Stiletto.Internal.Loaders.Reflection
         {
             private readonly MethodInfo method;
             private readonly object target;
-            private Binding[] methodParameterBindings;
+            private Binding[] methodParameterBindings = null!;
 
             public ProviderMethodBinding(MethodInfo method, string providerKey, object target, bool isLibrary)
                 : base(providerKey, null, method.HasAttribute<SingletonAttribute>(),
-                       method.DeclaringType.FullName + "." + method.Name)
+                       method.DeclaringType!.FullName + "." + method.Name)
             {
                 this.method = method;
                 this.target = target;
@@ -121,8 +119,8 @@ namespace Stiletto.Internal.Loaders.Reflection
                 methodParameterBindings = new Binding[parameters.Length];
                 for (var i = 0; i < parameters.Length; ++i)
                 {
-                    var key = Key.Get(parameters[i].ParameterType, parameters[i].GetQualifierName());
-                    methodParameterBindings[i] = resolver.RequestBinding(key, target.GetType().FullName + "::" + method.Name);
+                    var key = Key.Get(parameters[i].ParameterType, parameters[i].GetQualifierName())!;
+                    methodParameterBindings[i] = resolver.RequestBinding(key, target.GetType().FullName + "::" + method.Name)!;
                 }
             }
 
@@ -134,7 +132,7 @@ namespace Stiletto.Internal.Loaders.Reflection
                     args[i] = methodParameterBindings[i].Get();
                 }
 
-                return method.Invoke(target, args);
+                return method.Invoke(target, args)!;
             }
 
             public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)

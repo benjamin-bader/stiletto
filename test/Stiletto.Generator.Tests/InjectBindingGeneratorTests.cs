@@ -367,13 +367,13 @@ namespace Stiletto.Generator.Tests
             var compilation = CreateCompilation(source);
             var driver = (CSharpGeneratorDriver)CSharpGeneratorDriver
                 .Create(new StilettoGenerator())
-                .RunGeneratorsAndUpdateCompilation(compilation, out var updated, out _);
+                .RunGeneratorsAndUpdateCompilation(compilation, out var updated, out _, TestContext.Current.CancellationToken);
 
             // No errors from the generator run itself...
             Assert.Empty(driver.GetRunResult().Diagnostics);
 
             // ...and the generated trees compile with no errors against Stiletto.
-            var errors = updated.GetDiagnostics()
+            var errors = updated.GetDiagnostics(TestContext.Current.CancellationToken)
                 .Where(d => d.Severity == DiagnosticSeverity.Error)
                 .ToList();
 

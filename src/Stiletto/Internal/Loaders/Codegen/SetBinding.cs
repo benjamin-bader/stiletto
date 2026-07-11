@@ -24,8 +24,8 @@ namespace Stiletto.Internal.Loaders.Codegen
     {
         public static void Add<T>(IDictionary<string, Binding> bindings, string key, Binding binding)
         {
-            Binding previous;
-            SetBindingBase setBinding;
+            Binding? previous;
+            SetBindingBase? setBinding;
 
             if (bindings.TryGetValue(key, out previous))
             {
@@ -51,7 +51,7 @@ namespace Stiletto.Internal.Loaders.Codegen
 
     public class SetBinding<T> : SetBindingBase
     {
-        public SetBinding(string key, object requiredBy)
+        public SetBinding(string key, object? requiredBy)
             : base(key, requiredBy)
         {
         }

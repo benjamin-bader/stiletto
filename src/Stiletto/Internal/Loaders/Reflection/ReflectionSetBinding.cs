@@ -25,8 +25,8 @@ namespace Stiletto.Internal.Loaders.Reflection
     {
         public static void Add(IDictionary<string, Binding> bindings, string key, Binding binding)
         {
-            Binding previous;
-            SetBindingBase setBinding;
+            Binding? previous;
+            SetBindingBase? setBinding;
 
             if (bindings.TryGetValue(key, out previous))
             {
@@ -54,7 +54,7 @@ namespace Stiletto.Internal.Loaders.Reflection
 
         private readonly Lazy<ConstructorInfo> setCtor; 
 
-        public ReflectionSetBinding(string key, object requiredBy)
+        public ReflectionSetBinding(string key, object? requiredBy)
             : base(key, requiredBy)
         {
             setCtor = new Lazy<ConstructorInfo>(GetCtor);
@@ -70,11 +70,12 @@ namespace Stiletto.Internal.Loaders.Reflection
 
         private ConstructorInfo GetCtor()
         {
-            var elementKey = Key.GetSetElementKey(ProviderKey);
-            var typeName = Key.GetTypeName(elementKey);
-            var elementType = ReflectionUtils.GetType(typeName);
+            // A set binding's ProviderKey is the set key, whose element type resolves.
+            var elementKey = Key.GetSetElementKey(ProviderKey!)!;
+            var typeName = Key.GetTypeName(elementKey)!;
+            var elementType = ReflectionUtils.GetType(typeName)!;
             var tSet = typeof (NonGenericSetImpl<>).MakeGenericType(elementType);
-            return tSet.GetConstructor(new [] { typeof (IEnumerable<object>) });
+            return tSet.GetConstructor(new [] { typeof (IEnumerable<object>) })!;
         }
 
         private class NonGenericSetImpl<T> : HashSet<object>, ISet<T>
@@ -154,7 +155,7 @@ namespace Stiletto.Internal.Loaders.Reflection
 
             bool ICollection<T>.Contains(T item)
             {
-                return Contains(item);
+                return Contains(item!);
             }
 
             void ICollection<T>.CopyTo(T[] array, int arrayIndex)

@@ -322,7 +322,7 @@ namespace Stiletto.Generator
                 {
                     sb.Append(stmt).Append("bindings[").Append(i).Append("] = resolver.RequestBinding(")
                       .Append(Literal(model.Params[i].Key)).Append(", ")
-                      .Append(Literal(model.RequiredByCtor)).AppendLine(", true, true);");
+                      .Append(Literal(model.RequiredByCtor)).AppendLine(", true, true)!;");
                 }
                 sb.Append(stmt).AppendLine("this.ctorParamBindings = bindings;");
             }
@@ -330,13 +330,13 @@ namespace Stiletto.Generator
             {
                 sb.Append(stmt).Append("this.").Append(FieldName(prop)).Append(" = resolver.RequestBinding(")
                   .Append(Literal(prop.Key)).Append(", ")
-                  .Append(Literal(prop.RequiredBy)).AppendLine(", true, false);");
+                  .Append(Literal(prop.RequiredBy)).AppendLine(", true, false)!;");
             }
             if (hasBase)
             {
                 sb.Append(stmt).Append("this.baseTypeBinding = resolver.RequestBinding(")
                   .Append(Literal(model.BaseMemberKey!)).Append(", ")
-                  .Append(Literal(model.MembersKey)).AppendLine(", false, false);");
+                  .Append(Literal(model.MembersKey)).AppendLine(", false, false)!;");
             }
             sb.Append(body).AppendLine("}");
             sb.AppendLine();

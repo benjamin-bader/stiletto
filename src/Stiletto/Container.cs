@@ -102,13 +102,13 @@ namespace Stiletto
 
         private class StilettoContainer : Container
         {
-            private readonly StilettoContainer baseContainer;
+            private readonly StilettoContainer? baseContainer;
             private readonly Resolver resolver;
             private readonly IDictionary<string, Type> injectTypes;
             private readonly ILoader loader;
 
             private StilettoContainer(
-                StilettoContainer baseContainer,
+                StilettoContainer? baseContainer,
                 Resolver resolver,
                 ILoader loader,
                 IDictionary<string, Type> injectTypes)
@@ -120,7 +120,7 @@ namespace Stiletto
             }
 
             internal static StilettoContainer MakeContainer(
-                StilettoContainer baseContainer,
+                StilettoContainer? baseContainer,
                 ILoader loader,
                 params object[] modules)
             {
@@ -141,7 +141,7 @@ namespace Stiletto
                 }
 
                 var resolver = new Resolver(
-                    baseContainer != null ? baseContainer.resolver : null,
+                    baseContainer?.resolver,
                     loader,
                     HandleErrors);
 
@@ -159,7 +159,7 @@ namespace Stiletto
 
             public override T Get<T>()
             {
-                var key = Key.Get<T>();
+                var key = Key.Get<T>()!;
                 var injectKey = Key.GetMemberKey<T>();
                 var binding = GetInjectBinding(injectKey, key);
                 return (T) binding.Get();
@@ -169,7 +169,7 @@ namespace Stiletto
             {
                 var key = Key.GetMemberKey<T>();
                 var binding = GetInjectBinding(key, key);
-                binding.InjectProperties(instance);
+                binding.InjectProperties(instance!);
                 return instance;
             }
 
@@ -206,7 +206,7 @@ namespace Stiletto
 
             private Binding GetInjectBinding(string membersKey, string key)
             {
-                Type moduleType = null;
+                Type? moduleType = null;
                 for (var container = this; container != null; container = container.baseContainer)
                 {
                     if (container.injectTypes.TryGetValue(membersKey, out moduleType) && moduleType != null)
@@ -227,7 +227,8 @@ namespace Stiletto
                         binding = resolver.RequestBinding(key, moduleType, false);
                     }
 
-                    return binding;
+                    // The two-pass request resolves the binding or the graph errors out.
+                    return binding!;
                 }
             }
 
@@ -250,11 +251,11 @@ namespace Stiletto
                     var m = seedModules[i];
                     if (m is Type)
                     {
-                        runtimeModules[i] = loader.GetRuntimeModule((Type)m, null);
+                        runtimeModules[i] = loader.GetRuntimeModule((Type)m, null)!;
                     }
                     else
                     {
-                        runtimeModules[i] = loader.GetRuntimeModule(m.GetType(), m);
+                        runtimeModules[i] = loader.GetRuntimeModule(m.GetType(), m)!;
                     }
                 }
 
@@ -283,7 +284,7 @@ namespace Stiletto
                         continue;
                     }
 
-                    var runtimeModule = loader.GetRuntimeModule(t, null);
+                    var runtimeModule = loader.GetRuntimeModule(t, null)!;
                     result.Add(t, runtimeModule);
 
                     for (var i = 0; i < runtimeModule.Includes.Length; ++i)

@@ -45,7 +45,7 @@ namespace Stiletto
         /// <returns>
         /// Returns a type key.
         /// </returns>
-        public static string Get<T>()
+        public static string? Get<T>()
         {
             return Get(typeof (T), null);
         }
@@ -57,7 +57,7 @@ namespace Stiletto
         /// <returns>
         /// Returns a type key.
         /// </returns>
-        public static string Get(Type t)
+        public static string? Get(Type t)
         {
             return Get(t, null);
         }
@@ -75,7 +75,7 @@ namespace Stiletto
         /// <returns>
         /// Returns a type key.
         /// </returns>
-        public static string Get(Type t, string name)
+        public static string? Get(Type t, string? name)
         {
             if (string.IsNullOrEmpty(name) && !t.IsGenericType)
             {
@@ -126,7 +126,7 @@ namespace Stiletto
             return key.IndexOf('@') >= 0;
         }
 
-        public static string GetTypeName(string key)
+        public static string? GetTypeName(string key)
         {
             var start = StartOfType(key);
 
@@ -139,7 +139,7 @@ namespace Stiletto
         /// Returns the key of the underlying binding of a <see cref="IProvider&lt;T&gt;"/>
         /// binding, or <see langword="null"/> if the key is not a lazy binding.
         /// </summary>
-        public static string GetProviderKey(string key)
+        public static string? GetProviderKey(string key)
         {
             var start = StartOfType(key);
             if (!SubstringStartsWith(key, start, ProviderPrefix))
@@ -153,7 +153,7 @@ namespace Stiletto
         /// Returns the key of the underlying binding of a <see cref="Lazy&lt;T&gt;"/>
         /// binding, or <see langword="null"/> if the key is not a lazy binding.
         /// </summary>
-        public static string GetLazyKey(string key)
+        public static string? GetLazyKey(string key)
         {
             var start = StartOfType(key);
             if (!SubstringStartsWith(key, start, LazyPrefix))
@@ -163,13 +163,13 @@ namespace Stiletto
             return ExtractKey(key, start, key.Substring(0, start), LazyPrefix);
         }
 
-        public static string GetSetKey(string key)
+        public static string? GetSetKey(string key)
         {
             var start = StartOfType(key);
             return key.Substring(0, start) + SetPrefix + key.Substring(start) + ">";
         }
 
-        public static string GetSetElementKey(string setKey)
+        public static string? GetSetElementKey(string setKey)
         {
             var start = StartOfType(setKey);
             if (!SubstringStartsWith(setKey, start, SetPrefix))
@@ -214,7 +214,7 @@ namespace Stiletto
 
         private static string GetRawGenericName(Type t)
         {
-            var name = t.FullName;
+            var name = t.FullName!;
             var genericParametersStart = name.IndexOf('[');
             return name.Substring(0, genericParametersStart);
         }

@@ -16,7 +16,7 @@ namespace Sample
 
         public override void Resolve(global::Stiletto.Internal.Resolver resolver)
         {
-            this.prop_Dependency = resolver.RequestBinding("Sample.Dep", "Sample.NeedsProperty.Dependency", true, false);
+            this.prop_Dependency = resolver.RequestBinding("Sample.Dep", "Sample.NeedsProperty.Dependency", true, false)!;
         }
 
         public override void GetDependencies(

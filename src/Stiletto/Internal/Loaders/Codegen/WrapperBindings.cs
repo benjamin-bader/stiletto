@@ -31,7 +31,7 @@ namespace Stiletto.Internal.Loaders.Codegen
         private Binding delegateBinding = null!;
         private Lazy<T>? lazy;
 
-        public LazyBinding(string key, object requiredBy, string lazyKey)
+        public LazyBinding(string key, object? requiredBy, string lazyKey)
             : base(key, null, false, requiredBy)
         {
             this.lazyKey = lazyKey;
@@ -39,7 +39,7 @@ namespace Stiletto.Internal.Loaders.Codegen
 
         public override void Resolve(Resolver resolver)
         {
-            delegateBinding = resolver.RequestBinding(lazyKey, RequiredBy);
+            delegateBinding = resolver.RequestBinding(lazyKey, RequiredBy)!;
         }
 
         public override object Get()
@@ -64,7 +64,7 @@ namespace Stiletto.Internal.Loaders.Codegen
         private Binding inner = null!;
         private IProvider<T>? impl;
 
-        public ProviderBinding(string key, object requiredBy, bool mustBeInjectable, string delegateKey)
+        public ProviderBinding(string key, object? requiredBy, bool mustBeInjectable, string delegateKey)
             : base(key, null, false, requiredBy)
         {
             this.mustBeInjectable = mustBeInjectable;
@@ -73,7 +73,7 @@ namespace Stiletto.Internal.Loaders.Codegen
 
         public override void Resolve(Resolver resolver)
         {
-            inner = resolver.RequestBinding(delegateKey, RequiredBy, mustBeInjectable);
+            inner = resolver.RequestBinding(delegateKey, RequiredBy, mustBeInjectable)!;
         }
 
         public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)

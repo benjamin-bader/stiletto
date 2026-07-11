@@ -17,7 +17,7 @@ namespace Sample
         public override void Resolve(global::Stiletto.Internal.Resolver resolver)
         {
             var bindings = new global::Stiletto.Internal.Binding[1];
-            bindings[0] = resolver.RequestBinding("Sample.Pump", "Sample.CoffeeMaker::.ctor", true, true);
+            bindings[0] = resolver.RequestBinding("Sample.Pump", "Sample.CoffeeMaker::.ctor", true, true)!;
             this.ctorParamBindings = bindings;
         }
 

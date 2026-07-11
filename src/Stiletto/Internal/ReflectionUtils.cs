@@ -30,7 +30,7 @@ namespace Stiletto.Internal
         /// <c>CodegenLoader</c> fallback; the primary path is the source-generated
         /// loaders registered with <see cref="LoaderRegistry"/>.
         /// </summary>
-        public static Type GetType(string fullName)
+        public static Type? GetType(string fullName)
         {
             var t = Type.GetType(fullName, false);
 
@@ -65,30 +65,31 @@ namespace Stiletto.Internal
                 for (var j = 0; j < types.Length; ++j)
                 {
                     var t = types[j];
+                    var name = t.FullName;
 
-                    if (knownTypes.ContainsKey(t.FullName))
+                    if (name == null || knownTypes.ContainsKey(name))
                     {
                         continue;
                     }
 
-                    knownTypes[t.FullName] = t;
+                    knownTypes[name] = t;
                 }
             }
         }
 
         private class AssemblyComparer : IEqualityComparer<Assembly>
         {
-            public bool Equals(Assembly x, Assembly y)
+            public bool Equals(Assembly? x, Assembly? y)
             {
                 if (ReferenceEquals(x, y)) return true;
                 if (ReferenceEquals(x, null)) return false;
                 if (ReferenceEquals(y, null)) return false;
-                return x.FullName.Equals(y.FullName, StringComparison.Ordinal);
+                return string.Equals(x.FullName, y.FullName, StringComparison.Ordinal);
             }
 
             public int GetHashCode(Assembly obj)
             {
-                return ReferenceEquals(obj, null) ? 0 : obj.FullName.GetHashCode();
+                return ReferenceEquals(obj, null) ? 0 : obj.FullName?.GetHashCode() ?? 0;
             }
         }
     }

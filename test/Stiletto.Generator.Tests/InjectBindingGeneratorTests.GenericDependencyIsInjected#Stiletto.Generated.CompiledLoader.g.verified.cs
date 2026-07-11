@@ -17,7 +17,7 @@ namespace Stiletto.Generated
             }
         }
 
-        public global::Stiletto.Internal.RuntimeModule GetRuntimeModule(global::System.Type moduleType, object moduleInstance)
+        public global::Stiletto.Internal.RuntimeModule GetRuntimeModule(global::System.Type moduleType, object? moduleInstance)
         {
             switch (moduleType.FullName)
             {
@@ -25,7 +25,7 @@ namespace Stiletto.Generated
             }
         }
 
-        public global::Stiletto.Internal.Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
+        public global::Stiletto.Internal.Binding GetLazyInjectBinding(string key, object? requiredBy, string lazyKey)
         {
             switch (lazyKey)
             {
@@ -33,7 +33,7 @@ namespace Stiletto.Generated
                 default: return null!;
             }
         }
-        public global::Stiletto.Internal.Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
+        public global::Stiletto.Internal.Binding GetIProviderInjectBinding(string key, object? requiredBy, bool mustBeInjectable, string providerKey)
         {
             switch (providerKey)
             {

@@ -23,7 +23,7 @@ namespace Stiletto.Internal
     {
         public delegate void ErrorHandler(IEnumerable<string> errors);
 
-        private readonly Resolver baseResolver;
+        private readonly Resolver? baseResolver;
         private readonly ILoader loader;
         private readonly ErrorHandler handler;
 
@@ -34,7 +34,7 @@ namespace Stiletto.Internal
 
         private bool attachSuccess;
 
-        public Resolver(Resolver baseResolver, ILoader loader, ErrorHandler handler)
+        public Resolver(Resolver? baseResolver, ILoader loader, ErrorHandler handler)
         {
             this.baseResolver = baseResolver;
             this.loader = loader;
@@ -63,9 +63,9 @@ namespace Stiletto.Internal
             return new Dictionary<string, Binding>(bindings, Key.Comparer);
         }
 
-        public Binding RequestBinding(string key, object requiredBy, bool mustBeInjectable = true, bool isLibrary = false)
+        public Binding? RequestBinding(string key, object? requiredBy, bool mustBeInjectable = true, bool isLibrary = false)
         {
-            Binding binding = null;
+            Binding? binding = null;
             for (var resolver = this; resolver != null; resolver = resolver.baseResolver)
             {
                 if (resolver.bindings.TryGetValue(key, out binding))
@@ -104,9 +104,8 @@ namespace Stiletto.Internal
             {
                 var binding = bindingsToResolve.Dequeue();
 
-                if (binding is DeferredBinding)
+                if (binding is DeferredBinding deferredBinding)
                 {
-                    var deferredBinding = (DeferredBinding)binding;
                     var key = deferredBinding.DeferredKey;
                     var mustBeInjectable = deferredBinding.MustBeInjectable;
 
@@ -185,18 +184,19 @@ namespace Stiletto.Internal
             }
         }
 
-        private Binding CreateJitBinding(string key, object requiredBy, bool mustBeInjectable)
+        private Binding CreateJitBinding(string key, object? requiredBy, bool mustBeInjectable)
         {
             var providerKey = Key.GetProviderKey(key);
             if (providerKey != null)
             {
-                return loader.GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, providerKey);
+                // The aggregating loader returns a binding or throws; never null.
+                return loader.GetIProviderInjectBinding(key, requiredBy, mustBeInjectable, providerKey)!;
             }
 
             var lazyKey = Key.GetLazyKey(key);
             if (lazyKey != null)
             {
-                return loader.GetLazyInjectBinding(key, requiredBy, lazyKey);
+                return loader.GetLazyInjectBinding(key, requiredBy, lazyKey)!;
             }
 
             var typeName = Key.GetTypeName(key);
@@ -238,7 +238,7 @@ namespace Stiletto.Internal
                 get { return mustBeInjectable; }
             }
 
-            public DeferredBinding(string deferredKey, object requiredBy, bool mustBeInjectable)
+            public DeferredBinding(string deferredKey, object? requiredBy, bool mustBeInjectable)
                 : base(null, null, false, requiredBy)
             {
                 this.deferredKey = deferredKey;

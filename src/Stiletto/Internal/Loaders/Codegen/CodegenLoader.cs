@@ -25,12 +25,12 @@ namespace Stiletto.Internal.Loaders.Codegen
         public const string LazySuffix      = "_CompiledLazyBinding";
         public const string IProviderSuffix = "_CompiledProviderBinding";
 
-        public Binding GetInjectBinding(string key, string className, bool mustBeInjectable)
+        public Binding? GetInjectBinding(string key, string className, bool mustBeInjectable)
         {
             return GetObjectOfTypeName<Binding>(className, InjectSuffix);
         }
 
-        public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
+        public Binding? GetLazyInjectBinding(string key, object? requiredBy, string lazyKey)
         {
             return GetObjectOfTypeName<Binding>(
                 Key.GetTypeName(lazyKey),
@@ -38,7 +38,7 @@ namespace Stiletto.Internal.Loaders.Codegen
                 new[] { key, requiredBy, lazyKey });
         }
 
-        public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)
+        public Binding? GetIProviderInjectBinding(string key, object? requiredBy, bool mustBeInjectable, string providerKey)
         {
             return GetObjectOfTypeName<Binding>(
                 Key.GetTypeName(providerKey),
@@ -46,14 +46,19 @@ namespace Stiletto.Internal.Loaders.Codegen
                 new[] { key, requiredBy, mustBeInjectable, providerKey });
         }
 
-        public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
+        public RuntimeModule? GetRuntimeModule(Type moduleType, object? moduleInstance)
         {
             return GetObjectOfTypeName<RuntimeModule>(moduleType.FullName, ModuleSuffix);
         }
 
-        private T GetObjectOfTypeName<T>(string typeName, string suffix, object[] ctorArgs = null)
+        private T? GetObjectOfTypeName<T>(string? typeName, string suffix, object?[]? ctorArgs = null)
             where T : class
         {
+            if (typeName == null)
+            {
+                return null;
+            }
+
             typeName += suffix;
             //typeName = typeName.Replace('+', '.');
             var t = ReflectionUtils.GetType(typeName);
@@ -63,7 +68,7 @@ namespace Stiletto.Internal.Loaders.Codegen
                 return null;
             }
 
-            return (T) Activator.CreateInstance(t, ctorArgs);
+            return (T?) Activator.CreateInstance(t, ctorArgs);
         }
     }
 }

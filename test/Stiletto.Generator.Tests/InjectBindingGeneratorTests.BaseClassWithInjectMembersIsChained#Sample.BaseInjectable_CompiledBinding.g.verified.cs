@@ -16,7 +16,7 @@ namespace Sample
 
         public override void Resolve(global::Stiletto.Internal.Resolver resolver)
         {
-            this.prop_TheDude = resolver.RequestBinding("Sample.Dude", "Sample.BaseInjectable.TheDude", true, false);
+            this.prop_TheDude = resolver.RequestBinding("Sample.Dude", "Sample.BaseInjectable.TheDude", true, false)!;
         }
 
         public override void GetDependencies(

@@ -25,19 +25,20 @@ namespace Stiletto.Internal.Loaders.Reflection
 
         private readonly string lazyKey;
         private readonly Type lazyType;
-        private Binding delegateBinding;
-        private object delayedGet;
+        private Binding delegateBinding = null!;
+        private object? delayedGet;
 
-        public ReflectionLazyBinding(string key, object requiredBy, string lazyKey)
+        public ReflectionLazyBinding(string key, object? requiredBy, string lazyKey)
             : base(key, null, false, requiredBy)
         {
             this.lazyKey = lazyKey;
-            this.lazyType = ReflectionUtils.GetType(Key.GetTypeName(lazyKey));
+            // A lazy key always carries a resolvable element type name.
+            this.lazyType = ReflectionUtils.GetType(Key.GetTypeName(lazyKey)!)!;
         }
 
         public override void Resolve(Resolver resolver)
         {
-            delegateBinding = resolver.RequestBinding(lazyKey, RequiredBy);
+            delegateBinding = resolver.RequestBinding(lazyKey, RequiredBy)!;
         }
 
         public override void InjectProperties(object target)
@@ -59,14 +60,14 @@ namespace Stiletto.Internal.Loaders.Reflection
                 //
                 // The moral of the story is that you should use the compiler, when it's done.
                 var implType = IMPL_TYPE.MakeGenericType(lazyType);
-                var implGet = implType.GetMethod("GetLazyInstance");
+                var implGet = implType.GetMethod("GetLazyInstance")!;
                 Func<object> factory = () => delegateBinding.Get();
                 var impl = Activator.CreateInstance(implType, new object[] { factory });
 
                 delayedGet = implGet.Invoke(impl, EMPTY_OBJECTS);
             }
 
-            return delayedGet;
+            return delayedGet!;
         }
 
         private class LazyImpl<T>

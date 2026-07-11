@@ -21,7 +21,7 @@ namespace Stiletto.Internal
     internal class SingletonBinding : Binding
     {
         private readonly Binding binding;
-        private object instance;
+        private object? instance;
         private bool initialized;
 
         public Binding DelegateBinding
@@ -81,7 +81,7 @@ namespace Stiletto.Internal
                 }
             }
 
-            return instance;
+            return instance!;
         }
 
         public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)

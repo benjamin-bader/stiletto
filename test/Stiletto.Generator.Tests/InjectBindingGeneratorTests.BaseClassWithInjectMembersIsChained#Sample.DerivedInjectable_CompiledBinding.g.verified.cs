@@ -16,7 +16,7 @@ namespace Sample
 
         public override void Resolve(global::Stiletto.Internal.Resolver resolver)
         {
-            this.baseTypeBinding = resolver.RequestBinding("members/Sample.BaseInjectable", "members/Sample.DerivedInjectable", false, false);
+            this.baseTypeBinding = resolver.RequestBinding("members/Sample.BaseInjectable", "members/Sample.DerivedInjectable", false, false)!;
         }
 
         public override void GetDependencies(

@@ -17,9 +17,9 @@ namespace Sample
         public override void Resolve(global::Stiletto.Internal.Resolver resolver)
         {
             var bindings = new global::Stiletto.Internal.Binding[3];
-            bindings[0] = resolver.RequestBinding("System.Collections.Generic.IList`1<Sample.Bean>", "Sample.Roaster::.ctor", true, true);
-            bindings[1] = resolver.RequestBinding("System.Lazy`1<Sample.Bean>", "Sample.Roaster::.ctor", true, true);
-            bindings[2] = resolver.RequestBinding("Stiletto.IProvider`1<Sample.Bean>", "Sample.Roaster::.ctor", true, true);
+            bindings[0] = resolver.RequestBinding("System.Collections.Generic.IList`1<Sample.Bean>", "Sample.Roaster::.ctor", true, true)!;
+            bindings[1] = resolver.RequestBinding("System.Lazy`1<Sample.Bean>", "Sample.Roaster::.ctor", true, true)!;
+            bindings[2] = resolver.RequestBinding("Stiletto.IProvider`1<Sample.Bean>", "Sample.Roaster::.ctor", true, true)!;
             this.ctorParamBindings = bindings;
         }
 

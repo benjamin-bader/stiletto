@@ -60,13 +60,13 @@ namespace Stiletto.Internal
             get { return isOverride; }
         }
 
-        public object Module { get; set; }
+        public object Module { get; set; } = null!;
 
         protected RuntimeModule(Type moduleType, string[] injects, Type[] includes, bool complete, bool isLibrary, bool isOverride)
         {
-            Conditions.CheckNotNull(moduleType, "moduleType");
-            Conditions.CheckNotNull(injects, "injects");
-            Conditions.CheckNotNull(includes, "includes");
+            ArgumentNullException.ThrowIfNull(moduleType);
+            ArgumentNullException.ThrowIfNull(injects);
+            ArgumentNullException.ThrowIfNull(includes);
 
             this.moduleType = moduleType;
             this.injects = injects;

@@ -355,7 +355,7 @@ namespace Stiletto.Generator
                 {
                     sb.Append(stmt).Append("this.arg").Append(i).Append(" = resolver.RequestBinding(")
                       .Append(Literal(provider.Params[i].Key)).Append(", typeof(").Append(model.ModuleGlobalTypeName)
-                      .Append("), true, ").Append(Bool(model.IsLibrary)).AppendLine(");");
+                      .Append("), true, ").Append(Bool(model.IsLibrary)).AppendLine(")!;");
                 }
                 sb.Append(member).AppendLine("}");
 

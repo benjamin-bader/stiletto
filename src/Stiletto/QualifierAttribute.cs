@@ -19,7 +19,7 @@ using System;
 namespace Stiletto
 {
     /// <summary>
-    /// Marks an attribute as an Stiletto qualifier for use in modifying
+    /// Marks an attribute as a Stiletto qualifier for use in modifying
     /// how a dependency can be satisfied.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, Inherited = false)]

@@ -23,7 +23,7 @@ namespace Stiletto
     /// </summary>
     /// <remarks>
     /// Naming a dependency allows you to provide multiple different values
-    /// of the same type, which is often useful any but trivial programs.
+    /// of the same type, which is often useful in all but trivial programs.
     /// </remarks>
     /// <example>
     /// <code>
@@ -36,7 +36,7 @@ namespace Stiletto
     ///         return new[] { "Monday", "Tuesday", "etc." };
     ///     }
     ///
-    ///     [Provides, Named("months"]
+    ///     [Provides, Named("months")]
     ///     public IList&lt;string&gt; GetMonths()
     ///     {
     ///         return new[] { "Jan", "Feb", "Mar", "Etc" };

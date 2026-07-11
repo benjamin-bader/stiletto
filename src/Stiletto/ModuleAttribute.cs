@@ -19,7 +19,7 @@ using System;
 namespace Stiletto
 {
     /// <summary>
-    /// Marks a class as an Stiletto module.  Any public methods marked with
+    /// Marks a class as a Stiletto module.  Any public methods marked with
     /// a <see cref="ProvidesAttribute"/> will be used to satisfy dependencies.
     /// </summary>
     /// <remarks>
@@ -33,8 +33,8 @@ namespace Stiletto
         private bool complete = true;
         private bool library;
         private bool isOverride;
-        private Type[] injects;
-        private Type[] includedModules;
+        private Type[]? injects;
+        private Type[]? includedModules;
 
         /// <summary>
         /// Gets or sets the list of types that can be directly obtained from a
@@ -86,7 +86,7 @@ namespace Stiletto
         }
 
         /// <summary>
-        /// Gets or set s a value indicating whether this module will override
+        /// Gets or sets a value indicating whether this module will override
         /// other modules.
         /// </summary>
         /// <remarks>

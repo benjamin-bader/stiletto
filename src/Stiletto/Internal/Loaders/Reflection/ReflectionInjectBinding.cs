@@ -18,24 +18,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 namespace Stiletto.Internal.Loaders.Reflection
 {
     internal class ReflectionInjectBinding : Binding
     {
         private readonly Type type;
-        private readonly Type baseType;
+        private readonly Type? baseType;
         private readonly string[] keys;
         private readonly ConstructorInfo ctor;
-        private readonly Binding[] paramterBindings;
+        private readonly Binding[] parameterBindings;
         private readonly PropertyInfo[] properties;
         private readonly Binding[] propertyBindings;
-        private Binding baseTypeBinding;
+        private Binding? baseTypeBinding;
 
         private ReflectionInjectBinding(
-            string providerKey, string membersKey, bool isSingleton, Type t,
+            string? providerKey, string membersKey, bool isSingleton, Type t,
             PropertyInfo[] properties, ConstructorInfo ctor, int parameterCount,
-            Type baseType, string[] keys)
+            Type? baseType, string[] keys)
             : base(providerKey, membersKey, isSingleton, t)
         {
             this.type = t;
@@ -43,7 +44,7 @@ namespace Stiletto.Internal.Loaders.Reflection
             this.properties = properties;
             this.baseType = baseType;
             this.keys = keys;
-            this.paramterBindings = new Binding[parameterCount];
+            this.parameterBindings = new Binding[parameterCount];
             this.propertyBindings = new Binding[properties.Length];
         }
 
@@ -54,7 +55,7 @@ namespace Stiletto.Internal.Loaders.Reflection
             {
                 if (propertyBindings[i] == null)
                 {
-                    propertyBindings[i] = resolver.RequestBinding(keys[k], type.FullName + "." + properties[i].Name);
+                    propertyBindings[i] = resolver.RequestBinding(keys[k], type.FullName + "." + properties[i].Name)!;
                 }
 
                 ++k;
@@ -62,11 +63,11 @@ namespace Stiletto.Internal.Loaders.Reflection
 
             if (ctor != null)
             {
-                for (var i = 0; i < paramterBindings.Length; ++i)
+                for (var i = 0; i < parameterBindings.Length; ++i)
                 {
-                    if (paramterBindings[i] == null)
+                    if (parameterBindings[i] == null)
                     {
-                        paramterBindings[i] = resolver.RequestBinding(keys[k], type.FullName + "::.ctor");
+                        parameterBindings[i] = resolver.RequestBinding(keys[k], type.FullName + "::.ctor")!;
                     }
                     ++k;
                 }
@@ -85,10 +86,10 @@ namespace Stiletto.Internal.Loaders.Reflection
                 throw new BindingException("Reflection bindings must have a constructor to invoke.");
             }
 
-            var args = new object[paramterBindings.Length];
-            for (var i = 0; i < paramterBindings.Length; ++i)
+            var args = new object[parameterBindings.Length];
+            for (var i = 0; i < parameterBindings.Length; ++i)
             {
-                args[i] = paramterBindings[i].Get();
+                args[i] = parameterBindings[i].Get();
             }
 
             try
@@ -99,7 +100,8 @@ namespace Stiletto.Internal.Loaders.Reflection
             }
             catch (TargetInvocationException ex)
             {
-                throw ex.InnerException;
+                ExceptionDispatchInfo.Capture(ex.InnerException ?? ex).Throw();
+                throw; // unreachable; the line above always throws.
             }
         }
 
@@ -119,13 +121,14 @@ namespace Stiletto.Internal.Loaders.Reflection
             }
             catch (TargetInvocationException ex)
             {
-                throw ex.InnerException;
+                ExceptionDispatchInfo.Capture(ex.InnerException ?? ex).Throw();
+                throw; // unreachable; the line above always throws.
             }
         }
 
         public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
         {
-            injectDependencies.UnionWith(paramterBindings);
+            injectDependencies.UnionWith(parameterBindings);
             propertyDependencies.UnionWith(propertyBindings);
 
             if (baseTypeBinding != null)
@@ -158,13 +161,13 @@ namespace Stiletto.Internal.Loaders.Reflection
                     ? namedAttribute.Name
                     : null;
 
-                keys.Add(Key.Get(p.PropertyType, name));
+                keys.Add(Key.Get(p.PropertyType, name)!);
 
                 injectableProperties.Add(p);
             }
 
             var ctors = t.GetConstructors(BindingFlags.Instance | BindingFlags.Public);
-            ConstructorInfo injectableCtor = null;
+            ConstructorInfo? injectableCtor = null;
             for (var i = 0; i < ctors.Length; ++i)
             {
                 if (!ctors[i].HasAttribute<InjectAttribute>())
@@ -208,7 +211,7 @@ namespace Stiletto.Internal.Loaders.Reflection
                     ? namedAttribute.Name
                     : null;
 
-                keys.Add(Key.Get(parameter.ParameterType, name));
+                keys.Add(Key.Get(parameter.ParameterType, name)!);
             }
 
             if (baseType != null)

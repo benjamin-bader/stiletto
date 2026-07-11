@@ -17,7 +17,7 @@ namespace Sample
         public override void Resolve(global::Stiletto.Internal.Resolver resolver)
         {
             var bindings = new global::Stiletto.Internal.Binding[1];
-            bindings[0] = resolver.RequestBinding("@primary/Sample.Endpoint", "Sample.Connection::.ctor", true, true);
+            bindings[0] = resolver.RequestBinding("@primary/Sample.Endpoint", "Sample.Connection::.ctor", true, true)!;
             this.ctorParamBindings = bindings;
         }
 

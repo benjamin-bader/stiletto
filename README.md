@@ -12,8 +12,8 @@ Users of Dagger, Guice, or any other javax.inject-compatible IoC container will 
 
 ```csharp
 [Module(
-  Injects = new[] { typeof(CoffeeApp) })]
-public class CoffeeMoule
+  Injects = new[] { typeof(CoffeeMaker) })]
+public class CoffeeModule
 {
   [Provides]
   public IHeater MakeHeater()
@@ -77,7 +77,7 @@ public class CoffeeMaker
 [Module(Injects = new[] { typeof(NeedsTwoStrings) })]
 public class NamedDependencyModule
 {
-  [Provides, Named("this-is-one-dep")]
+  [Provides, Named("this-is-a-dep")]
   public string ProvideStringOne()
   {
     return "foo";
@@ -97,9 +97,13 @@ public class NeedsTwoStrings
 
   [Inject, Named("this-is-another-dep")]
   public string StringTwo { get; set; }
+}
 
-  // Also works for constructors
-  public NeedsTwoStrings(
+// [Named] works the same way on constructor parameters:
+public class AlsoNeedsTwoStrings
+{
+  [Inject]
+  public AlsoNeedsTwoStrings(
       [Named("this-is-a-dep")] string stringOne,
       [Named("this-is-another-dep")] string stringTwo)
   {
@@ -157,7 +161,7 @@ public class EagerModule
   [Provides]
   public int ProvideRandomNumber()
   {
-    return random.NextInt();
+    return random.Next();
   }
 }
 
@@ -182,7 +186,7 @@ Console.WriteLine("Numbers: {0} {1} {2}", nums.Get(), nums.Get(), nums.Get()); /
 Stiletto supports multibindings in the form of `ISet<T>`.  Multiple `[Provides]` methods can contribute to the same set, as follows:
 
 ```csharp
-[Module(Injects = new[] { typeof(SetEntryPoint) )]
+[Module(Injects = new[] { typeof(SetEntryPoint) })]
 public class SetModule
 {
   [Provides(ProvidesType.Set)]

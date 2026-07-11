@@ -67,7 +67,7 @@ namespace Stiletto.Internal
             throw new InvalidOperationException("Control should never reach this point.");
         }
 
-        public Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)
+        public Binding GetLazyInjectBinding(string key, object? requiredBy, string lazyKey)
         {
             for (var i = 0; i < loaders.Count; ++i)
             {
@@ -96,7 +96,7 @@ namespace Stiletto.Internal
             throw new InvalidOperationException("Control should never reach this point.");
         }
 
-        public Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable,
+        public Binding GetIProviderInjectBinding(string key, object? requiredBy, bool mustBeInjectable,
                                                  string delegateKey)
         {
             for (var i = 0; i < loaders.Count; ++i)
@@ -126,7 +126,7 @@ namespace Stiletto.Internal
             throw new InvalidOperationException("Control should never reach this point.");
         }
 
-        public RuntimeModule GetRuntimeModule(Type moduleType, object moduleInstance)
+        public RuntimeModule GetRuntimeModule(Type moduleType, object? moduleInstance)
         {
             for (var i = 0; i < loaders.Count; ++i)
             {

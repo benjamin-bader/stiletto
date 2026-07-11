@@ -28,7 +28,7 @@ namespace Stiletto.Internal
             get { return contributors; }
         } 
 
-        protected SetBindingBase(string key, object requiredBy)
+        protected SetBindingBase(string key, object? requiredBy)
             : base(key, null, false, requiredBy)
         {}
 

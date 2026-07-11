@@ -23,10 +23,10 @@ namespace Stiletto.Internal.Loaders.Reflection
     {
         private readonly bool mustBeInjectable;
         private readonly string delegateKey;
-        private Binding inner;
-        private object impl;
+        private Binding inner = null!;
+        private object? impl;
 
-        internal ReflectionProviderBinding(string providerKey, object requiredBy, bool mustBeInjectable, string delegateKey)
+        internal ReflectionProviderBinding(string providerKey, object? requiredBy, bool mustBeInjectable, string delegateKey)
             : base(providerKey, null, false, requiredBy)
         {
             this.delegateKey = delegateKey;
@@ -35,7 +35,7 @@ namespace Stiletto.Internal.Loaders.Reflection
 
         public override void Resolve(Resolver resolver)
         {
-            inner = resolver.RequestBinding(delegateKey, RequiredBy, mustBeInjectable);
+            inner = resolver.RequestBinding(delegateKey, RequiredBy, mustBeInjectable)!;
         }
 
         public override void GetDependencies(ISet<Binding> injectDependencies, ISet<Binding> propertyDependencies)
@@ -55,11 +55,12 @@ namespace Stiletto.Internal.Loaders.Reflection
 
         private object ImplForType()
         {
-            var providedTypeName = Key.GetTypeName(delegateKey);
-            var providedType = ReflectionUtils.GetType(providedTypeName);
+            // A provider key always carries a resolvable element type name.
+            var providedTypeName = Key.GetTypeName(delegateKey)!;
+            var providedType = ReflectionUtils.GetType(providedTypeName)!;
             var providerType = typeof (ProviderImpl<>).MakeGenericType(providedType);
             Func<object> factory = () => inner.Get();
-            return Activator.CreateInstance(providerType, new object[] { factory });
+            return Activator.CreateInstance(providerType, new object[] { factory })!;
         }
 
         private class ProviderImpl<T> : IProvider<T>

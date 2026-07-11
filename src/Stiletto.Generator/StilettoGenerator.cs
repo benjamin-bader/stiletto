@@ -109,7 +109,7 @@ namespace Stiletto.Generator
             sb.AppendLine();
 
             // GetRuntimeModule: moduleType.FullName -> new {Module}_CompiledModule()
-            sb.AppendLine("        public global::Stiletto.Internal.RuntimeModule GetRuntimeModule(global::System.Type moduleType, object moduleInstance)");
+            sb.AppendLine("        public global::Stiletto.Internal.RuntimeModule GetRuntimeModule(global::System.Type moduleType, object? moduleInstance)");
             sb.AppendLine("        {");
             sb.AppendLine("            switch (moduleType.FullName)");
             sb.AppendLine("            {");
@@ -144,14 +144,14 @@ namespace Stiletto.Generator
 
             EmitWrapperMethod(
                 sb,
-                "public global::Stiletto.Internal.Binding GetLazyInjectBinding(string key, object requiredBy, string lazyKey)",
+                "public global::Stiletto.Internal.Binding GetLazyInjectBinding(string key, object? requiredBy, string lazyKey)",
                 switchVar: "lazyKey",
                 cases: lazyCases,
                 buildCase: w => "new global::Stiletto.Internal.Loaders.Codegen.LazyBinding<" + w.ElementGlobalTypeName + ">(key, requiredBy, lazyKey)");
 
             EmitWrapperMethod(
                 sb,
-                "public global::Stiletto.Internal.Binding GetIProviderInjectBinding(string key, object requiredBy, bool mustBeInjectable, string providerKey)",
+                "public global::Stiletto.Internal.Binding GetIProviderInjectBinding(string key, object? requiredBy, bool mustBeInjectable, string providerKey)",
                 switchVar: "providerKey",
                 cases: providerCases,
                 buildCase: w => "new global::Stiletto.Internal.Loaders.Codegen.ProviderBinding<" + w.ElementGlobalTypeName + ">(key, requiredBy, mustBeInjectable, providerKey)");
