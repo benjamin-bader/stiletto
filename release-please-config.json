@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "//": "bootstrap-sha baselines an existing repo: only commits AFTER this SHA (master tip when release-please was adopted) are considered, so the pre-existing non-conventional history is ignored. It stops mattering once the first real tag is cut.",
+  "bootstrap-sha": "df7ae71de61e445a605a3d2c03a5f3e3177650c6",
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "package-name": "Stiletto",
+      "changelog-path": "CHANGELOG.md",
+      "include-component-in-tag": false,
+      "extra-files": [
+        "src/Stiletto/Stiletto.csproj"
+      ]
+    }
+  }
+}

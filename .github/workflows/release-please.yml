@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    branches: [ master ]
+
+# release-please needs to open/update its release PR and, on merge, create the
+# tag and GitHub release.
+permissions:
+  contents: write
+  pull-requests: write
+
+# Never run two release passes against master at once.
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Release PR / tag
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    name: Publish to NuGet
+    # Runs only on the push that merges a release PR, i.e. once a tag/release
+    # was just created. The checkout below picks up that release commit, whose
+    # Stiletto.csproj already carries the bumped <Version>.
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    runs-on: ubuntu-latest
+    # id-token: write lets NuGet/login mint a short-lived key via OIDC
+    # (Trusted Publishing) — no long-lived API-key secret required.
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore Stiletto.slnx
+
+      # Belt-and-suspenders: master already ran CI, but never ship an untested pack.
+      - name: Test
+        run: dotnet test Stiletto.slnx --configuration Release --no-restore
+
+      # Packs Stiletto.dll (lib/) plus the source generator (analyzers/) into a
+      # single .nupkg, with a matching .snupkg symbols package.
+      - name: Pack
+        run: dotnet pack src/Stiletto/Stiletto.csproj --configuration Release -o "${{ runner.temp }}/nupkg"
+
+      - name: NuGet login (Trusted Publishing)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: benjamin-bader
+
+      - name: Push
+        run: >
+          dotnet nuget push "${{ runner.temp }}/nupkg/*.nupkg"
+          --source https://api.nuget.org/v3/index.json
+          --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          --skip-duplicate
