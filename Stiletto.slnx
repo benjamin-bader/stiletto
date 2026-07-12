@@ -8,6 +8,7 @@
   </Folder>
   <Folder Name="/test/">
     <Project Path="test/Stiletto.Generator.Tests/Stiletto.Generator.Tests.csproj" />
+    <Project Path="test/Stiletto.Integration.External/Stiletto.Integration.External.csproj" />
     <Project Path="test/Stiletto.Integration.Tests/Stiletto.Integration.Tests.csproj" />
     <Project Path="test/Stiletto.Tests/Stiletto.Tests.csproj" />
   </Folder>

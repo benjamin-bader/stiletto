@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    A companion assembly for the cross-assembly integration test. Like the main
+    integration project, it references Stiletto.Generator as an analyzer so csc
+    runs the generator during THIS assembly's build: it gets its own compiled
+    bindings and its own self-registering CompiledLoader. The point is to prove
+    that a binding compiled here resolves when the *module* lives in a different
+    assembly — i.e. that per-assembly CompiledLoaders aggregate at runtime.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <!-- DI sample types are populated by injection; don't warn about it. -->
+    <Nullable>annotations</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Stiletto\Stiletto.csproj" />
+    <ProjectReference Include="..\..\src\Stiletto.Generator\Stiletto.Generator.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+</Project>

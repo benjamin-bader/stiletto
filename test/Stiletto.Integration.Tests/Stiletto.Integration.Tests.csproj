@@ -24,6 +24,9 @@
     <ProjectReference Include="..\..\src\Stiletto.Generator\Stiletto.Generator.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />
+    <!-- A second assembly with its own generated bindings + loader, for the
+         cross-assembly resolution test. -->
+    <ProjectReference Include="..\Stiletto.Integration.External\Stiletto.Integration.External.csproj" />
   </ItemGroup>
 
 </Project>
