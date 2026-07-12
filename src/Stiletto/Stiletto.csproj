@@ -5,7 +5,16 @@
     <RootNamespace>Stiletto</RootNamespace>
     <AssemblyName>Stiletto</AssemblyName>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <Description>A compile-time and reflection-based dependency injector for .NET, ported from Square's Dagger.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Label="Package">
+    <PackageId>Stiletto</PackageId>
+    <!-- Hardcoded for now; release-please will own this going forward. -->
+    <Version>1.0.0-alpha.1</Version>
+    <Title>Stiletto</Title>
+    <Description>A compile-time dependency injector for .NET, ported from Square's Dagger. A Roslyn source generator emits binding code at build time (NativeAOT- and trim-friendly), with an optional reflection fallback.</Description>
+    <PackageTags>dependency-injection;di;ioc;source-generator;dagger;aot;trimming</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,5 +22,34 @@
     <InternalsVisibleTo Include="Stiletto.Generator.Tests" />
     <InternalsVisibleTo Include="Stiletto.Integration.Tests" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <!--
+    Ship the source generator inside this package. ReferenceOutputAssembly=false
+    keeps it off the runtime reference set (consumers depend on Stiletto.dll, not
+    the generator); OutputItemType captures the generator's build output so the
+    _PackGenerator target below can drop it into analyzers/dotnet/cs. PrivateAssets
+    keeps the generator's Roslyn dependency out of the published package graph.
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\Stiletto.Generator\Stiletto.Generator.csproj"
+                      ReferenceOutputAssembly="false"
+                      OutputItemType="_StilettoGeneratorOutput"
+                      PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="_PackGenerator"
+          BeforeTargets="_GetPackageFiles"
+          DependsOnTargets="ResolveProjectReferences">
+    <ItemGroup>
+      <None Include="@(_StilettoGeneratorOutput)"
+            Pack="true"
+            PackagePath="analyzers/dotnet/cs"
+            Visible="false" />
+    </ItemGroup>
+  </Target>
 
 </Project>

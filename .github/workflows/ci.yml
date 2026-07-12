@@ -5,6 +5,8 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  # Manual release: run from the Actions tab to pack and push to nuget.org.
+  workflow_dispatch:
 
 # Cancel superseded runs on the same branch/PR.
 concurrency:
@@ -54,3 +56,40 @@ jobs:
 
       - name: Run the native binary
         run: samples/Stiletto.AotSmokeTest/bin/Release/net10.0/linux-x64/native/Stiletto.AotSmokeTest
+
+  publish:
+    name: Publish to NuGet
+    # Only on a manual dispatch, and only after the build/test/AOT jobs pass.
+    if: github.event_name == 'workflow_dispatch'
+    needs: [build-and-test, aot-smoke]
+    runs-on: ubuntu-latest
+    # id-token: write lets NuGet/login mint a short-lived key via OIDC
+    # (Trusted Publishing) — no long-lived API-key secret required.
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: global.json
+
+      # Packs Stiletto.dll (lib/) plus the source generator (analyzers/) into a
+      # single .nupkg, with a matching .snupkg symbols package.
+      - name: Pack
+        run: dotnet pack src/Stiletto/Stiletto.csproj --configuration Release -o "${{ runner.temp }}/nupkg"
+
+      - name: NuGet login (Trusted Publishing)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: benjamin-bader
+
+      - name: Push
+        run: >
+          dotnet nuget push "${{ runner.temp }}/nupkg/*.nupkg"
+          --source https://api.nuget.org/v3/index.json
+          --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
+          --skip-duplicate

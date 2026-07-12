@@ -22,4 +22,22 @@
     <Copyright>Copyright © Ben Bader</Copyright>
   </PropertyGroup>
 
+  <!--
+    Packaging defaults shared by every packable project. These are inert on
+    projects that set IsPackable=false (the tests, samples, and the generator).
+  -->
+  <PropertyGroup Label="Packaging">
+    <PackageProjectUrl>https://github.com/benjamin-bader/stiletto</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/benjamin-bader/stiletto</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+
+    <!-- Source Link + reproducible-build settings (SDK-bundled since .NET 8). -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
 </Project>
