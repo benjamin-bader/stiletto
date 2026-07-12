@@ -5,8 +5,8 @@ _NOTE:_ This project is no longer being actively developed, as I no longer do mo
 
 A fast dependency injector in C# for .NET and Mono; please see [the introductory website][0] for more information.
 
-This is a port of the [Square's Dagger IoC library][1], intended to be usable everywhere C# is usable, including MonoTouch where `System.Reflection.Emit` is unavailable.
-Compile-time validation and code-generation is implemented as a [Fody][2] weaver, installable via a NuGet package.
+This is a port of the [Square's Dagger IoC library][1], intended to be usable everywhere C# is usable, including NativeAOT and trimmed apps where reflection is unavailable.
+Compile-time validation and code-generation is implemented as a Roslyn source generator that ships in the same NuGet package as the runtime.
 
 Users of Dagger, Guice, or any other javax.inject-compatible IoC container will feel at home:
 
@@ -37,8 +37,13 @@ public class CoffeeMaker
 
 # Getting Started
 
-To install Stiletto and start using it, add the Stiletto NuGet package to your project, and start injecting.
-To install the compile-time plugin, install the Stiletto.Fody NuGet package in your main project.
+To install Stiletto and start using it, add the Stiletto NuGet package to your project, and start injecting:
+
+```
+dotnet add package Stiletto
+```
+
+The package bundles both the runtime and the source generator, so the compile-time validation and binding generation are wired up automatically — there is no separate plugin to install.
 
 Stiletto supports:
 - property and constructor injection.
@@ -211,21 +216,30 @@ public class SetEntryPoint
 
 # Building
 
-It's not easy to make a full build of Stiletto, but building for one platform is easy; requirements vary per platform:
-* Mono, .NET 4: Vanilla .NET builds can be made with your favorite .NET toolchain
-* iOS: A Xamarin iOS account is required, and either Xamarin Studio or Visual Studio must be used to build.  No Mac is required.
-* Android: A Xamarin Android account is required, and either Xamarin Studio or Visual Studio must be used to build.
-* Windows Phone 8: Visual Studio 2012 on Windows 8 with the WP8 SDK installed must be used to build.
-* Everything: The union of the above: Windows 8, VS 2012, Xamarin accounts.
-* NuGet: Packing and pushing are manual, but building the NuGet.csproj file will assemble all dependencies in a NuGetBuild directory; its subdirectories are the Stiletto and Stiletto.Fody convention-based directories.
+Stiletto targets a single, modern toolchain — the .NET SDK pinned in `global.json`. Building and testing is just:
+
+```
+dotnet build Stiletto.slnx --configuration Release
+dotnet test Stiletto.slnx --configuration Release
+```
+
+The `Stiletto` package (runtime plus source generator) is produced with:
+
+```
+dotnet pack src/Stiletto/Stiletto.csproj --configuration Release
+```
+
+Publishing to nuget.org is a manual step: run the **CI** workflow from the GitHub Actions tab (`workflow_dispatch`). It packs and pushes using the `NUGET_API_KEY` repository secret.
 
 # Testing
 
-Unit tests can be run with your favorite NUnit runner.  Stiletto.Test contains the definitive set of unit tests covering the Stiletto common library.  Stiletto.Test.PostWeaving contains the same tests, but building it also builds the Fody weaver and runs the test assembly through the weaving process.  While not a complete integration test, this ensures that any changes to the weaver don't cause behavior changes at runtime.
+The test suite lives under `test/` and runs with `dotnet test`:
+* `Stiletto.Tests` — the runtime library.
+* `Stiletto.Generator.Tests` — snapshot tests for the source generator's output.
+* `Stiletto.Integration.Tests` — end-to-end tests that compile and exercise generated bindings.
 
-There is a suite of integration tests covering the compile-time code validation and generation features.  Each test is a separate C# project containing code to be validated along with a file describing the expected outcome.  They can be run en suite by the `ValidateBuilds` tool.  Once built, it will be copied to the IntegrationTests folder.  Run it from there, and it will build and verify each test case.
+A NativeAOT smoke test (`samples/Stiletto.AotSmokeTest`) publishes with the reflection fallback disabled, verifying that the generator-only path trims and runs cleanly. CI runs it on every push.
 
 
 [0]: http://stiletto.bendb.com
 [1]: http://square.github.io/dagger
-[2]: https://github.com/Fody/Fody
