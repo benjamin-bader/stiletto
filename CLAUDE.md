@@ -75,8 +75,19 @@ The version lives in three release-please–owned places; **don't hand-edit them
 `.release-please-manifest.json`, `version.txt`, and the annotated `<Version>`
 line in `src/Stiletto/Stiletto.csproj` (marked `x-release-please-version`).
 
-The package is currently at `1.0.0-alpha.1`. The next release graduates it to
-`1.0.0`; normal semver applies from there.
+The package baseline is `1.0.0-alpha.1`. release-please treats that as a
+prerelease and, left alone, keeps advancing the prerelease line
+(`fix:` → `1.0.1-alpha.1`, etc.) rather than dropping the `-alpha`. To
+graduate to a stable release, add a `Release-As:` footer to a commit:
+
+```
+Release-As: 1.0.0
+```
+
+That overrides the next version for one release only; normal semver
+(`feat`→minor, `fix`→patch, `feat!`→major) resumes afterward. The
+config-level `release-as` key does the same but pins *every* release until
+removed, so prefer the commit footer for one-off graduations.
 
 ## Build & test
 
