@@ -75,7 +75,7 @@ namespace Stiletto
                 AddReflectionFallback(loaders);
             }
 
-            var loader = new RuntimeAggregationLoader(loaders.ToArray());
+            var loader = new RuntimeAggregationLoader([.. loaders]);
             return StilettoContainer.MakeContainer(null, loader, modules);
         }
 
@@ -87,7 +87,7 @@ namespace Stiletto
             {
                 AddReflectionFallback(allLoaders);
             }
-            return StilettoContainer.MakeContainer(null, new RuntimeAggregationLoader(allLoaders.ToArray()), modules);
+            return StilettoContainer.MakeContainer(null, new RuntimeAggregationLoader([.. allLoaders]), modules);
         }
 
         [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode(
@@ -241,7 +241,7 @@ namespace Stiletto
                 throw new InvalidOperationException(message);
             }
 
-            private static IDictionary<Type, RuntimeModule> GetAllRuntimeModules(
+            private static Dictionary<Type, RuntimeModule> GetAllRuntimeModules(
                 ILoader loader,
                 object[] seedModules)
             {
@@ -249,9 +249,9 @@ namespace Stiletto
                 for (var i = 0; i < runtimeModules.Length; ++i)
                 {
                     var m = seedModules[i];
-                    if (m is Type)
+                    if (m is Type t)
                     {
-                        runtimeModules[i] = loader.GetRuntimeModule((Type)m, null)!;
+                        runtimeModules[i] = loader.GetRuntimeModule(t, null)!;
                     }
                     else
                     {

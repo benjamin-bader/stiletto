@@ -283,7 +283,7 @@ namespace Stiletto.Generator.Tests
             return Verify(RunGenerator(source));
         }
 
-        public static IEnumerable<object[]> GenericDependencyTypes()
+        public static IEnumerable<Type[]> GenericDependencyTypes()
         {
             yield return [typeof(IList<string>)];
             yield return [typeof(Lazy<int>)];
@@ -327,7 +327,7 @@ namespace Stiletto.Generator.Tests
             }
 
             var definition = type.GetGenericTypeDefinition().FullName!;
-            var raw = "global::" + definition.Substring(0, definition.IndexOf('`')).Replace('+', '.');
+            var raw = "global::" + definition[..definition.IndexOf('`')].Replace('+', '.');
             var args = string.Join(", ", type.GetGenericArguments().Select(CSharpName));
             return raw + "<" + args + ">";
         }

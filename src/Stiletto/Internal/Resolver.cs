@@ -19,27 +19,20 @@ using System.Collections.Generic;
 
 namespace Stiletto.Internal
 {
-    public class Resolver
+    public class Resolver(Resolver? baseResolver, ILoader loader, Resolver.ErrorHandler handler)
     {
         public delegate void ErrorHandler(IEnumerable<string> errors);
 
-        private readonly Resolver? baseResolver;
-        private readonly ILoader loader;
-        private readonly ErrorHandler handler;
+        private readonly Resolver? baseResolver = baseResolver;
+        private readonly ILoader loader = loader;
+        private readonly ErrorHandler handler = handler;
 
-        private readonly IList<string> errors = new List<string>();
-        private readonly Queue<Binding> bindingsToResolve = new Queue<Binding>();
+        private readonly IList<string> errors = [];
+        private readonly Queue<Binding> bindingsToResolve = new();
         private readonly IDictionary<string, Binding> bindings =
             new Dictionary<string, Binding>(Key.Comparer);
 
         private bool attachSuccess;
-
-        public Resolver(Resolver? baseResolver, ILoader loader, ErrorHandler handler)
-        {
-            this.baseResolver = baseResolver;
-            this.loader = loader;
-            this.handler = handler;
-        }
 
         public void InstallBindings(IDictionary<string, Binding> bindingsToInstall)
         {
@@ -80,9 +73,11 @@ namespace Stiletto.Internal
 
             if (binding == null)
             {
-                var deferredBinding = new DeferredBinding(key, requiredBy, mustBeInjectable);
-                deferredBinding.IsLibrary = isLibrary;
-                deferredBinding.IsDependedOn = true;
+                var deferredBinding = new DeferredBinding(key, requiredBy, mustBeInjectable)
+                {
+                    IsLibrary = isLibrary,
+                    IsDependedOn = true
+                };
                 bindingsToResolve.Enqueue(deferredBinding);
                 attachSuccess = false;
                 return null;
@@ -260,7 +255,7 @@ namespace Stiletto.Internal
                 throw NotSupported();
             }
 
-            private static Exception NotSupported()
+            private static NotSupportedException NotSupported()
             {
                 return new NotSupportedException("Deferred bindings must resolve first.");
             }
