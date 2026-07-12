@@ -214,6 +214,26 @@ public class SetEntryPoint
 }
 ```
 
+# Upgrading from the Fody-based Stiletto (0.x)
+
+Stiletto 1.0 replaces the old Fody/IL-weaving pipeline with a Roslyn source
+generator. Older versions rewrote your assemblies after compilation with a
+`Stiletto.Fody` weaver; 1.0 emits the same binding code at compile time from a
+generator bundled inside the `Stiletto` package.
+
+To upgrade:
+
+- Remove the `Stiletto.Fody` package reference and delete Stiletto's entry from
+  `FodyWeavers.xml` (drop `Fody` entirely if nothing else uses it).
+- Keep (or add) the `Stiletto` package. The generator runs automatically — there
+  is no weaver or plugin to configure.
+- Note that 1.0 targets `net10.0` only, and now supports NativeAOT and trimmed
+  apps (with an optional reflection fallback behind a feature switch).
+
+The public API is unchanged — `[Inject]`, `[Module]`, `[Provides]`, `[Named]`,
+`[Singleton]`, and `Container.Create(...)` all behave as before — so application
+code that used those should not need changes.
+
 # Building
 
 Stiletto targets a single, modern toolchain — the .NET SDK pinned in `global.json`. Building and testing is just:
@@ -229,7 +249,7 @@ The `Stiletto` package (runtime plus source generator) is produced with:
 dotnet pack src/Stiletto/Stiletto.csproj --configuration Release
 ```
 
-Publishing to nuget.org is a manual step: run the **CI** workflow from the GitHub Actions tab (`workflow_dispatch`). It packs and pushes using the `NUGET_API_KEY` repository secret.
+Releases are automated with [release-please](https://github.com/googleapis/release-please). Conventional-commit history drives a release PR that bumps the version and updates the changelog; merging it tags the release and publishes the package to nuget.org via OIDC Trusted Publishing (no long-lived API-key secret). See `CLAUDE.md` for the commit conventions.
 
 # Testing
 
