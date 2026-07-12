@@ -1,0 +1,43 @@
+name: Deploy www
+
+# Publishes the marketing site in `www/` to GitHub Pages
+# (https://stiletto.bendb.com). The site's source of truth is `www/` on
+# master; this workflow is the only thing that writes to Pages. Deploys are
+# manual only — trigger from the Actions tab ("Run workflow"). It publishes
+# whatever `www/` looks like on the ref you run it against (default: master).
+
+on:
+  workflow_dispatch:
+
+# Allow the deploy job to publish to Pages via OIDC.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One live deploy at a time; don't cancel an in-flight publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload www artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: www
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
