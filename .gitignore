@@ -7,7 +7,7 @@ _ReSharper*/
 TopHat.Generated.cs
 *.psess
 *.vspx
-
+.vs/
 
 # MonoDevelop Files
 *.userprefs
@@ -25,4 +25,4 @@ TopHat.Generated.cs
 graphviz/
 
 # Integration test detritus
-IntegrationTests/ValidateBuilds.exe
+TestResults/

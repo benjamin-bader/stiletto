@@ -1,5 +1,0 @@
-﻿<ExpectedResults>
-  <Errors>
-  	<Pattern>The type [^\s]+ is provided more than once</Pattern>
-  </Errors>
-</ExpectedResults>

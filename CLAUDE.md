@@ -100,7 +100,5 @@ dotnet build   Stiletto.slnx --configuration Release
 dotnet test    Stiletto.slnx --configuration Release
 ```
 
-Only the SDK-style projects under `src/`, `test/`, and `samples/` are part of
-`Stiletto.slnx`. The legacy net4.0 projects (`Stiletto.Fody`, the mobile heads,
-`ValidateBuilds`, `Example`) are kept only as reference for the source-generator
-port and do not build on this toolchain.
+Every project lives under `src/`, `test/`, or `samples/` and is part of
+`Stiletto.slnx`.
