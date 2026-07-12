@@ -234,7 +234,12 @@ namespace Stiletto
 
         private static bool SubstringStartsWith(string str, int offset, string substring)
         {
-            return str.IndexOf(substring, offset, Comparison) >= 0;
+            // Must match *at* offset, not merely somewhere at-or-after it: callers
+            // (GetProviderKey/GetLazyKey/GetSetElementKey) hand the result to
+            // ExtractKey, whose slicing assumes the prefix begins exactly at offset.
+            // Using >= 0 misclassified keys that only *contain* the prefix as a
+            // nested generic argument, e.g. List<IProvider<int>>.
+            return str.IndexOf(substring, offset, Comparison) == offset;
         }
     }
 }
