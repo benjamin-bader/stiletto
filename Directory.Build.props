@@ -1,10 +1,8 @@
 <Project>
 
   <!--
-    Shared defaults for all modern (SDK-style) projects in this repo.
-    Legacy net4.0 projects (Stiletto.Fody, mobile heads, ValidateBuilds, Example)
-    are old-style .csproj kept only as reference for the source-generator port;
-    they are not part of Stiletto.slnx and do not build on this toolchain.
+    Shared defaults for all projects in this repo (all SDK-style, all part of
+    Stiletto.slnx).
   -->
 
   <PropertyGroup>

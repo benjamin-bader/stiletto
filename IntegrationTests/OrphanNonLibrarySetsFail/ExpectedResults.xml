@@ -1,7 +1,0 @@
-﻿<ExpectedResults>
-  <Errors>
-  	<!-- We expect this error twice as there are two unused methods -->
-  	<Pattern>The following \[Provides\] methods are unused,</Pattern>
-  	<Pattern>The following \[Provides\] methods are unused,</Pattern>
-  </Errors>
-</ExpectedResults>

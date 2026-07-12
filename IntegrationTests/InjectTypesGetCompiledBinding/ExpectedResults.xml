@@ -1,6 +1,0 @@
-﻿<ExpectedResults>
-  <Classes>
-    <Include Name="InjectTypesGetCompiledBinding.InjectableClass_CompiledBinding" />
-    <Include Name="InjectTypesGetCompiledBinding.MainModule_CompiledModule" />
-  </Classes>
-</ExpectedResults>
