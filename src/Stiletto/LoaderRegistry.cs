@@ -34,15 +34,12 @@ namespace Stiletto
     /// </summary>
     public static class LoaderRegistry
     {
-        private static readonly List<ILoader> loaders = new List<ILoader>();
+        private static readonly List<ILoader> loaders = [];
 
         /// <summary>Registers a loader. Called by generated module initializers.</summary>
         public static void Register(ILoader loader)
         {
-            if (loader == null)
-            {
-                throw new ArgumentNullException(nameof(loader));
-            }
+            ArgumentNullException.ThrowIfNull(loader, nameof(loader));
 
             lock (loaders)
             {
@@ -55,7 +52,7 @@ namespace Stiletto
         {
             lock (loaders)
             {
-                return loaders.ToArray();
+                return [.. loaders];
             }
         }
     }

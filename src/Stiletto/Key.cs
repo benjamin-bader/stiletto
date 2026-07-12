@@ -86,7 +86,7 @@ namespace Stiletto
 
             if (name != null)
             {
-                sb.Append("@").Append(name).Append("/");
+                sb.Append('@').Append(name).Append('/');
             }
 
             ForType(t, sb);
@@ -123,16 +123,16 @@ namespace Stiletto
         /// </summary>
         public static bool IsNamed(string key)
         {
-            return key.IndexOf('@') >= 0;
+            return key.Contains('@');
         }
 
         public static string? GetTypeName(string key)
         {
             var start = StartOfType(key);
 
-            return key.IndexOf('[') >= 0
+            return key.Contains('[')
                        ? null
-                       : start < 0 ? key : key.Substring(start);
+                       : start < 0 ? key : key[start..];
         }
 
         /// <summary>
@@ -146,7 +146,7 @@ namespace Stiletto
             {
                 return null;
             }
-            return ExtractKey(key, start, key.Substring(0, start), ProviderPrefix);
+            return ExtractKey(key, start, key[..start], ProviderPrefix);
         }
 
         /// <summary>
@@ -160,13 +160,13 @@ namespace Stiletto
             {
                 return null;
             }
-            return ExtractKey(key, start, key.Substring(0, start), LazyPrefix);
+            return ExtractKey(key, start, key[..start], LazyPrefix);
         }
 
         public static string? GetSetKey(string key)
         {
             var start = StartOfType(key);
-            return key.Substring(0, start) + SetPrefix + key.Substring(start) + ">";
+            return key[..start] + SetPrefix + key[start..] + ">";
         }
 
         public static string? GetSetElementKey(string setKey)
@@ -176,7 +176,7 @@ namespace Stiletto
             {
                 return null;
             }
-            return ExtractKey(setKey, start, setKey.Substring(0, start), SetPrefix);
+            return ExtractKey(setKey, start, setKey[..start], SetPrefix);
         }
 
         private static void ForType(Type t, StringBuilder sb)
@@ -216,7 +216,7 @@ namespace Stiletto
         {
             var name = t.FullName!;
             var genericParametersStart = name.IndexOf('[');
-            return name.Substring(0, genericParametersStart);
+            return name[..genericParametersStart];
         }
 
         private static int StartOfType(string key)
@@ -229,7 +229,7 @@ namespace Stiletto
         private static string ExtractKey(string key, int start, string delegatePrefix, string prefix)
         {
             var startIndex = start + prefix.Length;
-            return delegatePrefix + key.Substring(startIndex, key.Length - startIndex - 1);
+            return delegatePrefix + key[startIndex..^1];
         }
 
         private static bool SubstringStartsWith(string str, int offset, string substring)

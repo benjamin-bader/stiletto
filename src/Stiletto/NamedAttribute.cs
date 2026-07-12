@@ -50,7 +50,6 @@ namespace Stiletto
     /// }
     /// </code>
     /// </example>
-
     [Qualifier]
     [AttributeUsage(AttributeTargets.Method | AttributeTargets.Parameter | AttributeTargets.Property)]
     public class NamedAttribute : Attribute
