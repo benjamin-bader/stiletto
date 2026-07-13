@@ -1,6 +1,6 @@
 # Eager cross-assembly loader registration
 
-**Status:** proposed
+**Status:** implemented
 **Applies to:** `src/Stiletto.Generator`, `src/Stiletto` (runtime `LoaderRegistry` / `Container`)
 
 ## Summary
@@ -12,8 +12,8 @@ never touched before `Container.Create` runs will not have registered its
 loader in time. Under the registry-only configuration (reflection fallback
 disabled — the trimming/NativeAOT story) that is a hard resolution failure.
 
-This document describes the gap precisely and proposes a codegen fix: during
-compilation, the generator scans the reference closure of any assembly that
+This document describes the gap precisely and the codegen fix that addresses it:
+during compilation, the generator scans the reference closure of any assembly that
 **calls `Container.Create`** (plus the entry executable) and emits a single
 eager aggregate `[ModuleInitializer]` that force-registers every referenced
 Stiletto loader before any container is built.
