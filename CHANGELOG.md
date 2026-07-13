@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/benjamin-bader/stiletto/compare/v1.0.0...v1.1.0) (2026-07-13)
+
+
+### Features
+
+* **generator:** eagerly register cross-assembly loaders at Create anchors ([#49](https://github.com/benjamin-bader/stiletto/issues/49)) ([d1f76da](https://github.com/benjamin-bader/stiletto/commit/d1f76da9c611e1c998551bab2af4ed85ac7dafeb))
+
 ## [1.0.0](https://github.com/benjamin-bader/stiletto/compare/v1.0.0-alpha.1...v1.0.0) (2026-07-12)
 
 
