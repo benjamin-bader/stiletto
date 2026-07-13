@@ -96,17 +96,22 @@ namespace Stiletto.Generator.Tests
             AppDomain.CurrentDomain.AssemblyResolve += Resolve;
             try
             {
-                // "Touch" the consumer (the anchor), firing its module initializer — but
-                // deliberately NOT the producer. Post-fix, the consumer's aggregate
-                // registrar runs here and registers the producer's loader; pre-fix, only
-                // the consumer's own loader registers.
-                RuntimeHelpers.RunModuleConstructor(consumer.ManifestModule.ModuleHandle);
-
-                // The producer's loader must NOT have registered on its own — that is the
-                // whole point (it was never touched).
+                // Nothing has touched the producer, so its loader is not registered yet —
+                // the "contributing assembly that was never referenced in code" state.
                 Assert.DoesNotContain(
                     Stiletto.LoaderRegistry.Snapshot(),
                     l => l.GetType().Assembly == producer);
+
+                // "Touch" the consumer (the anchor), firing its module initializer — but
+                // deliberately NOT the producer. The consumer's aggregate registrar runs
+                // here and eagerly registers the producer's loader before any Create.
+                RuntimeHelpers.RunModuleConstructor(consumer.ManifestModule.ModuleHandle);
+
+                // The anchor eagerly registered the producer's loader, even though nothing
+                // touched the producer directly.
+                Assert.Contains(
+                    Stiletto.LoaderRegistry.Snapshot(),
+                    l => l.GetType().Assembly == producer && l.GetType().Name == "CompiledLoader");
 
                 // Invoke the anchor's Create+Validate. Pre-fix this throws because the
                 // producer's compiled binding is unreachable; post-fix it succeeds.
@@ -119,12 +124,6 @@ namespace Stiletto.Generator.Tests
                     + "assembly should succeed once the consumer (the Container.Create "
                     + "anchor) eagerly registers it, but resolution failed:\n"
                     + (error as TargetInvocationException)?.InnerException);
-
-                // And the producer's loader is now present — registered eagerly by the
-                // anchor, not by an incidental touch.
-                Assert.Contains(
-                    Stiletto.LoaderRegistry.Snapshot(),
-                    l => l.GetType().Assembly == producer && l.GetType().Name == "CompiledLoader");
             }
             finally
             {

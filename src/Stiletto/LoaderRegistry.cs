@@ -35,15 +35,25 @@ namespace Stiletto
     public static class LoaderRegistry
     {
         private static readonly List<ILoader> loaders = [];
+        private static readonly HashSet<Type> registeredTypes = [];
 
-        /// <summary>Registers a loader. Called by generated module initializers.</summary>
+        /// <summary>
+        /// Registers a loader. Called by generated module initializers and by the
+        /// generated aggregate registrar. Idempotent by loader type: the same
+        /// assembly's <c>CompiledLoader</c> can be offered from several paths
+        /// (its own module initializer plus one or more consumers' aggregates,
+        /// possibly on different threads) but is only added once.
+        /// </summary>
         public static void Register(ILoader loader)
         {
             ArgumentNullException.ThrowIfNull(loader, nameof(loader));
 
             lock (loaders)
             {
-                loaders.Add(loader);
+                if (registeredTypes.Add(loader.GetType()))
+                {
+                    loaders.Add(loader);
+                }
             }
         }
 

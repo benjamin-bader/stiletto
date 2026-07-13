@@ -126,33 +126,37 @@ emit:
   [assembly: global::Stiletto.StilettoLoaderAssembly("Stiletto.Generated.Registrations.LibFoo")]
   ```
 
-- The public, **idempotent** registrar. The name embeds the assembly to avoid
-  the `CS0433` collision that a shared fully-qualified name would cause across
-  references:
+- The public registrar. The name embeds the assembly to avoid the `CS0433`
+  collision that a shared fully-qualified name would cause across references:
 
   ```csharp
   namespace Stiletto.Generated.Registrations
   {
       public static class LibFoo                       // unique per assembly
       {
-          private static bool registered;
           public static void EnsureRegistered()
-          {
-              if (registered) return;                  // idempotent
-              registered = true;
-              global::Stiletto.LoaderRegistry.Register(
-                  new global::Stiletto.Generated.CompiledLoader());
-          }
+              => global::Stiletto.LoaderRegistry.Register(
+                     new global::Stiletto.Generated.CompiledLoader());
 
           [global::System.Runtime.CompilerServices.ModuleInitializer]
-          internal static void Init() => EnsureRegistered();  // direct-touch fast path
+          internal static void Init() => EnsureRegistered();  // direct-touch path
       }
   }
   ```
 
-  The guard makes the aggregate (below) and the `[ModuleInitializer]`
-  co-exist without double-registering. Belt-and-suspenders: also dedup by
-  loader `Type` inside `LoaderRegistry.Register`.
+  The registrar is deliberately **stateless** — no double-checked `registered`
+  flag. Idempotency lives entirely in `LoaderRegistry.Register`, which dedups by
+  loader `Type` under its lock. A flag would reintroduce a memory-model hazard:
+  because different assemblies' module initializers run concurrently on
+  different threads, one thread could observe `registered == true` set by
+  another *before* that other thread's `Register` completed, return early, and
+  then snapshot the registry with the loader still missing. Routing every call
+  through the lock removes that hazard: each anchor registers every loader in
+  its closure itself, through `lock(loaders)`, before its own `Create` — so its
+  snapshot is guaranteed to see them, independent of other threads. Redundant
+  calls (the producer's own `Init`, other consumers) coalesce to a single
+  registration via the type dedup. The tiny cost is a throwaway
+  `CompiledLoader` allocation per redundant call, discarded by the dedup.
 
 Keeping the per-assembly `[ModuleInitializer]` preserves correct behavior for
 libraries consumed by an app that does **not** run the Stiletto generator.
@@ -276,9 +280,6 @@ deliberately touches `typeof(Widget).Assembly` first).
 
 ## Open questions
 
-- Should `LoaderRegistry.Register` dedup by loader `Type` regardless, to make
-  double-registration structurally impossible rather than relying on the
-  per-assembly guard flag?
 - Do we want an MSBuild property to opt out of the aggregate (e.g. for an
   assembly that intentionally manages registration by hand)?
 - Is detecting `Create` via the semantic model worth the cost versus simply

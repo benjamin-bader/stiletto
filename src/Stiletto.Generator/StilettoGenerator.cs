@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
@@ -64,14 +65,138 @@ namespace Stiletto.Generator
                 }
             });
 
-            context.RegisterSourceOutput(injectModels.Combine(moduleModels), static (spc, pair) =>
-                EmitLoader(spc, pair.Left, pair.Right));
+            // The assembly name feeds the unique, per-assembly public registrar type.
+            // Selecting just the name keeps this cached (a bare CompilationProvider
+            // would recompute the loader emit on every keystroke).
+            var assemblyName = context.CompilationProvider
+                .Select(static (c, _) => c.AssemblyName ?? "Stiletto");
+
+            context.RegisterSourceOutput(injectModels.Combine(moduleModels).Combine(assemblyName),
+                static (spc, data) => EmitLoader(spc, data.Left.Left, data.Left.Right, data.Right));
+
+            // --- Eager aggregate registrar (see docs/design/cross-assembly-loader-registration.md) ---
+            // Anchor: this assembly either calls Container.Create/CreateWithLoaders, or
+            // is an executable. Either way it is a point where a container is (or may be)
+            // built, so every compiled loader in its reference closure must be registered
+            // first. Its own module initializer, running before its own code, guarantees
+            // the aggregate fires before any Create call here.
+            var callsCreate = context.SyntaxProvider
+                .CreateSyntaxProvider(
+                    predicate: static (node, _) => IsMaybeCreateInvocation(node),
+                    transform: static (ctx, _) => IsContainerCreateInvocation(ctx))
+                .Where(static isCreate => isCreate)
+                .Collect()
+                .Select(static (calls, _) => !calls.IsEmpty);
+
+            // The entry .exe kinds (Roslyn's own OutputKind.IsApplication set) — but not
+            // a .winmd component, .netmodule, or class library. Hand-listed because
+            // OutputKindExtensions.IsApplication is internal to Roslyn.
+            var isExecutable = context.CompilationProvider
+                .Select(static (c, _) => c.Options.OutputKind
+                    is OutputKind.ConsoleApplication
+                    or OutputKind.WindowsApplication
+                    or OutputKind.WindowsRuntimeApplication);
+
+            // Registration entry points advertised by referenced, compiled Stiletto
+            // assemblies. Projected to a sorted, value-equatable array so downstream
+            // output caches across edits that don't change references.
+            var referencedRegistrars = context.CompilationProvider
+                .Select(static (c, _) => CollectReferencedRegistrars(c));
+
+            var anchor = callsCreate.Combine(isExecutable).Combine(referencedRegistrars);
+            context.RegisterSourceOutput(anchor, static (spc, data) =>
+                EmitAggregateRegistrar(spc, isAnchor: data.Left.Left || data.Left.Right, registrars: data.Right));
+        }
+
+        private static bool IsMaybeCreateInvocation(SyntaxNode node)
+        {
+            if (node is not InvocationExpressionSyntax invocation)
+            {
+                return false;
+            }
+
+            var name = invocation.Expression switch
+            {
+                MemberAccessExpressionSyntax member => member.Name.Identifier.ValueText,
+                MemberBindingExpressionSyntax binding => binding.Name.Identifier.ValueText,
+                IdentifierNameSyntax identifier => identifier.Identifier.ValueText,
+                _ => null,
+            };
+
+            return name is "Create" or "CreateWithLoaders";
+        }
+
+        private static bool IsContainerCreateInvocation(GeneratorSyntaxContext ctx)
+        {
+            if (ctx.SemanticModel.GetSymbolInfo((InvocationExpressionSyntax)ctx.Node).Symbol is not IMethodSymbol method)
+            {
+                return false;
+            }
+
+            return method.Name is "Create" or "CreateWithLoaders"
+                && method.ContainingType?.ToDisplayString() == "Stiletto.Container";
+        }
+
+        private static EquatableArray<string> CollectReferencedRegistrars(Compilation compilation)
+        {
+            var names = new SortedSet<string>(StringComparer.Ordinal);
+            foreach (var reference in compilation.SourceModule.ReferencedAssemblySymbols)
+            {
+                foreach (var attribute in reference.GetAttributes())
+                {
+                    if (attribute.AttributeClass?.ToDisplayString() == "Stiletto.StilettoLoaderAssemblyAttribute"
+                        && attribute.ConstructorArguments.Length == 1
+                        && attribute.ConstructorArguments[0].Value is string registrationTypeName)
+                    {
+                        names.Add(registrationTypeName);
+                    }
+                }
+            }
+
+            return new EquatableArray<string>(names.ToImmutableArray());
+        }
+
+        private static void EmitAggregateRegistrar(
+            SourceProductionContext spc,
+            bool isAnchor,
+            EquatableArray<string> registrars)
+        {
+            if (!isAnchor || registrars.Count == 0)
+            {
+                return;
+            }
+
+            var sb = new StringBuilder();
+            sb.AppendLine("// <auto-generated/>");
+            sb.AppendLine("#nullable enable");
+            sb.AppendLine("namespace Stiletto.Generated");
+            sb.AppendLine("{");
+            sb.AppendLine("    [global::System.CodeDom.Compiler.GeneratedCode(\"Stiletto.Generator\", null)]");
+            sb.AppendLine("    [global::System.Runtime.CompilerServices.CompilerGenerated]");
+            sb.AppendLine("    internal static class ReferencedLoaderRegistration");
+            sb.AppendLine("    {");
+            sb.AppendLine("        // Runs before any Container.Create in this assembly: eagerly registers");
+            sb.AppendLine("        // every compiled loader in the reference closure so none is missed by a");
+            sb.AppendLine("        // container's one-time registry snapshot.");
+            sb.AppendLine("        [global::System.Runtime.CompilerServices.ModuleInitializer]");
+            sb.AppendLine("        internal static void RegisterAll()");
+            sb.AppendLine("        {");
+            foreach (var registrar in registrars)
+            {
+                sb.Append("            global::").Append(registrar).AppendLine(".EnsureRegistered();");
+            }
+            sb.AppendLine("        }");
+            sb.AppendLine("    }");
+            sb.AppendLine("}");
+
+            spc.AddSource("Stiletto.Generated.ReferencedLoaderRegistration.g.cs", SourceText.From(sb.ToString(), Encoding.UTF8));
         }
 
         private static void EmitLoader(
             SourceProductionContext spc,
             ImmutableArray<InjectBindingModel> injectModels,
-            ImmutableArray<ModuleModel> moduleModels)
+            ImmutableArray<ModuleModel> moduleModels,
+            string assemblyName)
         {
             if (injectModels.IsEmpty && moduleModels.IsEmpty)
             {
@@ -79,9 +204,16 @@ namespace Stiletto.Generator
                 return;
             }
 
+            var registrarName = SanitizeIdentifier(assemblyName);
+            var registrarFullName = "Stiletto.Generated.Registrations." + registrarName;
+
             var sb = new StringBuilder();
             sb.AppendLine("// <auto-generated/>");
             sb.AppendLine("#nullable enable");
+            // Marks this assembly, for the consuming aggregate, as one that carries a
+            // compiled loader — advertising the public entry point to register it.
+            sb.Append("[assembly: global::Stiletto.StilettoLoaderAssembly(")
+              .Append(Literal(registrarFullName)).AppendLine(")]");
             sb.AppendLine("namespace Stiletto.Generated");
             sb.AppendLine("{");
             sb.AppendLine("    [global::System.CodeDom.Compiler.GeneratedCode(\"Stiletto.Generator\", null)]");
@@ -157,13 +289,28 @@ namespace Stiletto.Generator
                 buildCase: w => "new global::Stiletto.Internal.Loaders.Codegen.ProviderBinding<" + w.ElementGlobalTypeName + ">(key, requiredBy, mustBeInjectable, providerKey)");
 
             sb.AppendLine("    }");
+            sb.AppendLine("}");
             sb.AppendLine();
 
+            // The public registration entry point. Its [ModuleInitializer] covers the
+            // direct-touch path (and assemblies consumed by a non-generated app); the
+            // aggregate emitted at Container.Create anchors calls EnsureRegistered()
+            // eagerly. It is deliberately stateless: LoaderRegistry.Register dedups by
+            // loader type under its lock, so redundant calls (from several threads and
+            // paths) coalesce to a single registration with no double-checked flag and
+            // thus no memory-model hazard. The type name is unique per assembly so
+            // consumers can reference it without a CS0433 collision.
+            sb.AppendLine("namespace Stiletto.Generated.Registrations");
+            sb.AppendLine("{");
+            sb.AppendLine("    [global::System.CodeDom.Compiler.GeneratedCode(\"Stiletto.Generator\", null)]");
             sb.AppendLine("    [global::System.Runtime.CompilerServices.CompilerGenerated]");
-            sb.AppendLine("    internal static class CompiledLoaderRegistration");
+            sb.Append("    public static class ").AppendLine(registrarName);
             sb.AppendLine("    {");
+            sb.AppendLine("        public static void EnsureRegistered()");
+            sb.AppendLine("            => global::Stiletto.LoaderRegistry.Register(new global::Stiletto.Generated.CompiledLoader());");
+            sb.AppendLine();
             sb.AppendLine("        [global::System.Runtime.CompilerServices.ModuleInitializer]");
-            sb.AppendLine("        internal static void Register() => global::Stiletto.LoaderRegistry.Register(new CompiledLoader());");
+            sb.AppendLine("        internal static void Init() => EnsureRegistered();");
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
@@ -220,6 +367,26 @@ namespace Stiletto.Generator
 
         private static string GlobalName(string? ns, string typeName)
             => ns is null ? "global::" + typeName : "global::" + ns + "." + typeName;
+
+        /// <summary>
+        /// Turns an assembly name into a valid, unique-per-assembly C# identifier for
+        /// the public registrar type (e.g. "Foo.Bar-Baz" -> "Foo_Bar_Baz").
+        /// </summary>
+        private static string SanitizeIdentifier(string assemblyName)
+        {
+            var sb = new StringBuilder(assemblyName.Length);
+            foreach (var c in assemblyName)
+            {
+                sb.Append(char.IsLetterOrDigit(c) || c == '_' ? c : '_');
+            }
+
+            if (sb.Length == 0 || char.IsDigit(sb[0]))
+            {
+                sb.Insert(0, '_');
+            }
+
+            return sb.ToString();
+        }
 
         private static string Literal(string value)
             => "\"" + value.Replace("\\", "\\\\").Replace("\"", "\\\"") + "\"";
