@@ -64,16 +64,15 @@ build: modernize NuGet packaging, drop Fody
 
 1. Land conventional commits on `master`.
 2. `release-please.yml` opens/maintains a **release PR** that bumps the version,
-   updates `CHANGELOG.md`, `version.txt`, and the `<Version>` in
-   `src/Stiletto/Stiletto.csproj`.
+   updates `CHANGELOG.md` and the `<Version>` in `src/Stiletto/Stiletto.csproj`.
 3. Merge the release PR when you're ready to cut a release. release-please then
    creates the git tag and GitHub release, and the `publish` job packs and
    pushes the package to nuget.org via Trusted Publishing (OIDC — no API key
    secret).
 
-The version lives in three release-please–owned places; **don't hand-edit them**:
-`.release-please-manifest.json`, `version.txt`, and the annotated `<Version>`
-line in `src/Stiletto/Stiletto.csproj` (marked `x-release-please-version`).
+The version lives in two release-please–owned places; **don't hand-edit them**:
+`.release-please-manifest.json` and the annotated `<Version>` line in
+`src/Stiletto/Stiletto.csproj` (marked `x-release-please-version`).
 
 The package baseline is `1.0.0-alpha.1`. release-please treats that as a
 prerelease and, left alone, keeps advancing the prerelease line
