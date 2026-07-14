@@ -26,3 +26,6 @@ graphviz/
 
 # Integration test detritus
 TestResults/
+
+# BenchmarkDotNet run output
+BenchmarkDotNet.Artifacts/
